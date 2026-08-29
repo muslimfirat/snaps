@@ -1,10 +1,23 @@
-import { 
-  InstitutionAccount, 
-  InstitutionAuthSession, 
-  InstitutionConfig, 
-  ClassGroup, 
-  StudentRecord, 
-  InstitutionExam 
+/**
+ * ⚠️ DEMO ONLY — NOT REAL AUTHENTICATION
+ *
+ * This module implements the institution ("dershane") portal as a fully client-side
+ * demo. Passwords are stored in plaintext in localStorage and compared in the
+ * browser; there is no server, no session token, and no data isolation beyond the
+ * current browser profile. Seed accounts and all student records
+ * ([institutionData.ts]) are fictional sample data.
+ *
+ * Do NOT use this for real institutions or real student PII. Turning the portal
+ * into a real feature is tracked as "Faz 3 → Gerçek özellik" in fazlar.md
+ * (move accounts to Firestore + Firebase Auth, protect student data with rules).
+ */
+import {
+  InstitutionAccount,
+  InstitutionAuthSession,
+  InstitutionConfig,
+  ClassGroup,
+  StudentRecord,
+  InstitutionExam
 } from '../types';
 import { 
   DEFAULT_INSTITUTION_CONFIG, 

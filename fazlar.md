@@ -117,22 +117,34 @@ senaryosu gerçek ihtiyaç olursa.
 
 ---
 
-## Faz 3 — Kurum portalı kimlik doğrulama kararı (Bulgu #2, #3)
+## Faz 3 — Kurum portalı: demo olarak işaretle (Bulgu #2, #3)  ✅ TAMAM (2026-08-29)
 
-Amaç: düz metin şifre + istemci-tarafı auth + öğrenci PII riskini kapatmak.
+Ürün kararı: **(b) demo/showcase.** Gerçek auth'a taşıma işi ileride ayrı bir
+mini-proje olarak ele alınacak (aşağıdaki "Faz 3b").
 
-- [ ] **Ürün kararı:** Kurum portalı (a) gerçek çok-kiracılı özellik mi, (b) demo/showcase mı?
-- [ ] **(a) ise:**
-  - Kurum hesaplarını Firestore'a taşı (`/institutions/{id}`), şifre yerine Firebase Auth (email/password veya custom claims)
-  - Öğrenci verisi Firestore'da, kurallar kurum üyeliğine göre
-  - `institutionAuth.ts` istemci-tarafı parola karşılaştırmasını kaldır
-- [ ] **(b) ise:**
-  - `institutionAuth.ts` ve `institutionData.ts` başına `// DEMO ONLY — no real auth, seeded sample data` yorumu
-  - Login ekranına görünür "Demo modu" etiketi
-  - Seed telefon/isimlerin tamamen kurgusal olduğunu doğrula (şu an öyle görünüyor)
-- [ ] Karar ne olursa olsun: `README`/`metadata.json`'a not
+- [x] `institutionAuth.ts` başına `⚠️ DEMO ONLY — NOT REAL AUTHENTICATION` blok yorumu
+- [x] `institutionData.ts` başına `⚠️ DEMO DATA — fictional sample data` yorumu
+- [x] `InstitutionLoginView`: yanıltıcı "Şifreli & İzole Kurum Girişi" rozeti → **"Demo Modu"** (amber)
+- [x] Login ekranına görünür demo uyarı bandı ("gerçek kimlik doğrulama yok, veriler
+  yalnızca bu tarayıcıda, kurgusal örnek veri, gerçek öğrenci verisi girmeyin")
+- [x] Portal başlığındaki "şifreli giriş" ifadesi "yönetim paneli önizlemesi" ile değiştirildi
+- [x] Seed telefon/isimler kurgusal doğrulandı (`0542 111 22 33` vb. kalıplar)
+- [x] Yeni `README.md` — teknoloji, çalıştırma, API politikası + "Bilinen sınırlamalar"da demo notu
 
-**Kabul kriterleri:** Portal ya gerçek auth ile korumalı ya da her yüzeyde açıkça "demo" olarak işaretli.
+**Doğrulama:** `npm run lint` 0 hata · tarayıcıda "Demo Modu" rozeti + uyarı bandı görünüyor.
+Not: `auth/unauthorized-domain` — `localhost` Firebase projesinde yetkili domain değil,
+bu yüzden gerçek Google girişi lokalde test edilemiyor (beklenen, değişikliklerimizle ilgisiz).
+
+**Kabul kriterleri:** ✅ Portal her yüzeyde açıkça "demo" olarak işaretli, yanıltıcı güvenlik iddiası kalmadı.
+
+---
+
+## Faz 3b — Kurum portalını gerçek özelliğe çevir (ERTELENDİ / opsiyonel)
+
+- [ ] Kurum hesapları `/institutions/{id}` + Firebase Auth (email/password veya custom claims)
+- [ ] Öğrenci verisi Firestore'da, kurallar kurum üyeliğine göre
+- [ ] `institutionAuth.ts` istemci-tarafı parola karşılaştırması kaldırılır
+- [ ] Faz 1'de eklenen `/api/institution/*` auth gate'i kurum kullanıcısıyla uçtan uca bağlanır
 
 ---
 

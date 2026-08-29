@@ -17,7 +17,8 @@ import {
   User, 
   Palette,
   ChevronRight,
-  GraduationCap
+  GraduationCap,
+  AlertTriangle
 } from 'lucide-react';
 import { InstitutionAccount } from '../types';
 import { 
@@ -138,9 +139,9 @@ export const InstitutionLoginView: React.FC<InstitutionLoginViewProps> = ({
           <span>← Öğrenci Çalışma Paneline Dön</span>
         </button>
 
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-950/60 border border-indigo-500/30 text-[11px] font-semibold text-indigo-300">
-          <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Şifreli & İzole Kurum Girişi</span>
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/50 border border-amber-500/30 text-[11px] font-semibold text-amber-300">
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+          <span>Demo Modu</span>
         </div>
       </div>
 
@@ -160,8 +161,18 @@ export const InstitutionLoginView: React.FC<InstitutionLoginViewProps> = ({
             Dershane & Kurumsal Yönetim Portalı
           </h1>
           <p className="text-sm text-slate-400 mt-2 leading-relaxed">
-            Kurum yöneticileri, zümre başkanları ve rehberlik danışmanları için şifreli giriş. Her dershane kendi e-posta ve şifresiyle oturum açarak sadece kendi öğrencilerini ve sınavlarını yönetir.
+            Kurum yöneticileri, zümre başkanları ve rehberlik danışmanları için tasarlanmış yönetim paneli önizlemesi. Her dershane kendi öğrencilerini ve sınavlarını ayrı ayrı yönetir.
           </p>
+        </div>
+
+        {/* Demo mode notice */}
+        <div className="max-w-xl mx-auto mb-8 p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-[12px] text-amber-200/90 leading-relaxed flex gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <span>
+            <strong className="text-amber-200">Bu bölüm bir demo önizlemesidir.</strong> Kurum girişi
+            gerçek bir kimlik doğrulama sistemi kullanmaz; hesaplar ve öğrenci bilgileri yalnızca
+            bu tarayıcıda saklanır ve örnek (kurgusal) verilerden oluşur. Gerçek öğrenci verisi girmeyin.
+          </span>
         </div>
 
         {/* Tab Switcher: Login vs Register */}

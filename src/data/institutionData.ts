@@ -1,3 +1,8 @@
+/**
+ * ⚠️ DEMO DATA — all institutions, class groups, students, phone numbers and exam
+ * results below are fictional sample data for the institution portal preview.
+ * They are not real people. See [institutionAuth.ts] for the demo-mode caveat.
+ */
 import { InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, InstitutionPlanItem } from '../types';
 
 export const INSTITUTION_TIERED_PLANS: InstitutionPlanItem[] = [
