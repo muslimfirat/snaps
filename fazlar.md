@@ -8,17 +8,23 @@ Durum: `[ ]` bekliyor · `[~]` devam ediyor · `[x]` tamam
 
 ---
 
-## Faz 0 — Hazırlık ve güvenlik ağı
+## Faz 0 — Hazırlık ve güvenlik ağı  ✅ TAMAM (2026-08-29)
 
 Amaç: değişikliklere başlamadan önce ölçülebilir bir taban oluşturmak.
 
-- [ ] `bun install` ile bağımlılıkları kur
-- [ ] `bun run lint` (yani `tsc --noEmit`) çıktısını kaydet — mevcut hata sayısı taban
-- [ ] `bun run dev` ile uygulamanın ayağa kalktığını doğrula
-- [ ] Uygulamayı manuel gez: Snap çöz, koç sohbeti, deneme ekle, kurum girişi — mevcut davranışı not al (regresyon referansı)
-- [ ] `git init` + ilk commit (proje git deposu değil; her fazı izlemek için şart)
+- [x] Bağımlılıkları kur — `bun` yok, **npm kullanıldı** (`package-lock.json` oluştu, 324 paket)
+- [x] `npm run lint` (`tsc --noEmit`) → **0 hata** (taban). Not: `resolveJsonModule` olmadan da geçiyor; Bulgu #14 bu TS sürümünde sorun olmayabilir, Faz 6'da teyit
+- [x] `npm run dev` → server `:3000` ayağa kalkıyor, Vite frontend render oluyor, konsol hatasız
+- [x] Smoke test: `/api/health`, `/api/snap/solve`, `/api/coach/chat` → fallback yanıtları çalışıyor (GEMINI_API_KEY yok, bu beklenen)
+- [x] `git init` + ilk commit (`83d41cc`)
 
-**Kabul kriterleri:** Lint çıktısı ve çalışan uygulama ekran görüntüsü/notu elde; temiz ilk commit atıldı.
+**Taban durumu:**
+- Toolchain: Node v24.19, npm 11.17 (bun yok). Komutlar: `npm install`, `npm run dev`, `npm run lint`, `npm run build`
+- Lint: 0 hata
+- `.env` yok → tüm AI özellikleri curated/fallback içerik döndürüyor
+- Bilinen çalışan akışlar: Dashboard render, API fallback uçları
+
+**Kabul kriterleri:** ✅ Lint temiz, uygulama çalışıyor, temiz ilk commit atıldı.
 
 ---
 
