@@ -55,7 +55,9 @@ export async function apiFetch<T = any>(
     });
   } catch (err: any) {
     if (err?.name === 'AbortError') throw err;
-    throw new ApiError('Sunucuya ulaşılamadı. İnternet bağlantını kontrol et.', 0);
+    const error = new ApiError('Sunucuya ulaşılamadı. İnternet bağlantını kontrol et.', 0);
+    notifyApiError(error);
+    throw error;
   }
 
   const rawText = await res.text();
@@ -75,8 +77,20 @@ export async function apiFetch<T = any>(
         : res.status === 429
           ? 'Çok fazla istek gönderildi, lütfen biraz bekle.'
           : 'İşlem sırasında bir sorun oluştu, lütfen tekrar dene.';
-    throw new ApiError(data?.message || fallbackMessage, res.status, data?.error);
+    const error = new ApiError(data?.message || fallbackMessage, res.status, data?.error);
+    notifyApiError(error);
+    throw error;
   }
 
   return data as T;
+}
+
+/** Broadcasts an API failure so a global toast can show it (see ApiErrorToast). */
+function notifyApiError(error: ApiError) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent('snaps:api-error', {
+      detail: { message: error.message, status: error.status },
+    }),
+  );
 }

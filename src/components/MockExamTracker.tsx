@@ -25,6 +25,7 @@ import { EXAM_METADATA } from '../data/curriculumData';
 import { EmptyState } from './ui/EmptyState';
 import { Skeleton } from './ui/Skeleton';
 import { apiFetch } from '../lib/apiClient';
+import { getLocalDateStr } from '../lib/dateUtils';
 
 interface MockExamTrackerProps {
   profile: UserProfile;
@@ -46,7 +47,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
   const safeMockExams = Array.isArray(mockExams) ? mockExams : [];
   const [showAddModal, setShowAddModal] = useState(false);
   const [examTitle, setExamTitle] = useState('');
-  const [examDate, setExamDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [examDate, setExamDate] = useState(() => getLocalDateStr());
   const [notes, setNotes] = useState('');
 
   // AI Diagnostic states

@@ -24,6 +24,7 @@ import { EmptyState } from './ui/EmptyState';
 import { Skeleton } from './ui/Skeleton';
 import { haptics } from '../lib/haptics';
 import { apiFetch } from '../lib/apiClient';
+import { getLocalDateStr } from '../lib/dateUtils';
 
 interface SmartMistakeBankProps {
   profile: UserProfile;
@@ -64,7 +65,7 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
   const [newUserWrongAnswer, setNewUserWrongAnswer] = useState('');
   const [newAiExplanation, setNewAiExplanation] = useState('');
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateStr();
 
   const dueItems = safeMistakes.filter(
     (m) => m && m.leitnerStage < 5 && (!m.nextReviewDate || m.nextReviewDate <= todayStr)
@@ -122,7 +123,7 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
         return {
           ...m,
           leitnerStage: nextStage,
-          nextReviewDate: nextDate.toISOString().split('T')[0],
+          nextReviewDate: getLocalDateStr(nextDate),
           lastReviewedDate: todayStr,
           reviewCount: m.reviewCount + 1,
           successCount: success ? m.successCount + 1 : m.successCount,

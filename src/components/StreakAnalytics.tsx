@@ -350,9 +350,9 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
               data={chartData}
               margin={{ top: 15, right: 10, left: -15, bottom: 0 }}
               onClick={(state) => {
-                if (state && state.activeTooltipIndex !== undefined) {
+                if (state && state.activeTooltipIndex !== undefined && state.activeTooltipIndex !== null) {
                   haptics.selection();
-                  setSelectedDayIndex(state.activeTooltipIndex);
+                  setSelectedDayIndex(Number(state.activeTooltipIndex));
                 }
               }}
             >

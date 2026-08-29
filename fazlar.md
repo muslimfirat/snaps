@@ -148,19 +148,37 @@ bu yüzden gerçek Google girişi lokalde test edilemiyor (beklenen, değişikli
 
 ---
 
-## Faz 4 — Dayanıklılık ve hata yönetimi (Bulgu #5, #6, #12)
+## Faz 4 — Dayanıklılık ve hata yönetimi (Bulgu #5, #6, #12)  ✅ TAMAM (2026-08-29)
 
 Amaç: tek bir kötü yanıt veya gece yarısı senaryosunun uygulamayı bozmasını önlemek.
 
-- [ ] `res.ok` kontrolü — Faz 1'deki `apiClient` helper'ı ile zaten çözülüyorsa doğrula; değilse tamamla
-- [ ] React `<ErrorBoundary>` bileşeni ekle, `main.tsx`'te `<App>`'i sarmala
-  - Fallback UI: "Bir şeyler ters gitti" + yenile butonu + hata detayı (dev'de)
-- [ ] Zaman dilimi düzeltmesi: `storage.ts` içinde tek bir `getLocalDateStr()` yardımcısı
-  - `processDailyLoginStreak`, `getDayDifference`, `loadWeeklyStudyLogs`, `DEFAULT_PROFILE` — hepsi bunu kullansın
-  - `toISOString().split('T')[0]` (UTC) kullanımlarını kaldır
-- [ ] `apiClient` hatalarında bileşenlerde kullanıcıya görünür mesaj (sadece haptic değil) — toast veya inline uyarı
+- [x] `res.ok` kontrolü — Faz 1'deki `apiFetch` helper'ında zaten var, doğrulandı
+- [x] `src/components/ErrorBoundary.tsx` — class component, `main.tsx`'te `<App>`'i sarıyor
+  - Fallback: "Bir şeyler ters gitti" + "Sayfayı Yenile" butonu + dev'de hata detayı (`import.meta.env.DEV`)
+- [x] `src/lib/dateUtils.ts` — `getLocalDateStr(date?)` + `dayDifference(a, b)` (yerel takvim günü)
+  - `storage.ts`: `DEFAULT_PROFILE`, `processDailyLoginStreak`, `loadWeeklyStudyLogs` → yerel tarih;
+    eski modül-içi `getDayDifference` silindi (UTC/yerel karışıklığı vardı)
+  - `DailyTasksWidget` (günlük görev anahtarı), `SmartMistakeBank` (Leitner due + nextReviewDate),
+    `MockExamTracker` (deneme tarihi varsayılanı) → `getLocalDateStr`
+  - Seed/demo verilerdeki `toISOString` (curriculumData, institutionAuth, InstitutionPortal) dokunulmadı (kozmetik)
+- [x] `src/components/ApiErrorToast.tsx` — `apiFetch` başarısızlıkta (`401/429/ağ`)
+  `snaps:api-error` CustomEvent yayıyor; App'te tek global toast dinliyor (4 sn tekrar-bastırma, oto-kapanış)
 
-**Kabul kriterleri:** Bir bileşen bilerek throw ettirildiğinde beyaz ekran yerine fallback görünüyor. Cihaz saati gece 01:00 / UTC-3 senaryosunda streak doğru hesaplanıyor.
+**Ek: `@types/react` + `@types/react-dom` eklendi** (projede hiç yoktu — tüm React `any`'di).
+Bu, gizli kalmış 4 tip hatasını ortaya çıkardı, hepsi düzeltildi:
+| Dosya | Hata | Düzeltme |
+|-------|------|----------|
+| `ClassroomLeaderboard.tsx:103` | `StudentRecord.streakDays` yok | tipe opsiyonel alan + `|| 0` |
+| `Dashboard.tsx:149` | `onNavigateTab('profile','SETTINGS')` geçersiz kategori | `'PROFILE'` |
+| `StreakAnalytics.tsx:355` | recharts `activeTooltipIndex` string\|number | `Number(...)` + null guard |
+| `VoiceAICoach.tsx:47` | `examInfo.targetAudience` yok | `targetHint` |
+
+**Doğrulama:** `npm run lint` **0 hata** (yeni taban — artık gerçek React tipleriyle) ·
+`npm run build` başarılı · tarayıcıda ApiErrorToast tetiklenip görüntülendi (ekran görüntüsü) ·
+konsol temiz.
+
+**Kabul kriterleri:** ✅ ErrorBoundary bağlı (beyaz ekran yerine fallback). ✅ Streak/günlük
+mantığı artık tutarlı yerel takvim günü kullanıyor. ✅ API hataları kullanıcıya toast ile görünüyor.
 
 ---
 

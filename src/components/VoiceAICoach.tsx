@@ -44,7 +44,7 @@ export const VoiceAICoach: React.FC<VoiceAICoachProps> = ({
 
   const defaultBriefings = {
     MORNING: `Günaydın şampiyon! Bugün ${examInfo.name} hazırlığında kritik bir gün. Toplam ${stats.totalQuestionsSolved} soru çözdün ve ${stats.totalStudyHours} saattir bu hedefe odaklandın. Bugün odaklanman gereken ana alan: Matematik Problemler ve Paragraf Hızı. Günlük 100 soru hedefini tamamlamayı ve hata defterindeki yanlışları tekrar etmeyi unutma! Masanın başına geç, derin bir nefes al ve başla.`,
-    MOTIVATION: `Yorulduğunu biliyorum ama rakiplerin şu an pes ederken senin masada kalman farkı yaratacak. ${examInfo.targetAudience} için verdiğin bu emek asla boşa gitmeyecek. Bir sorunun seni binlerce kişinin önüne geçireceğini hatırla. Şimdi odaklan ve sıradaki soruyu parçala!`,
+    MOTIVATION: `Yorulduğunu biliyorum ama rakiplerin şu an pes ederken senin masada kalman farkı yaratacak. ${examInfo.targetHint} için verdiğin bu emek asla boşa gitmeyecek. Bir sorunun seni binlerce kişinin önüne geçireceğini hatırla. Şimdi odaklan ve sıradaki soruyu parçala!`,
     ANXIETY: `Gözlerini kapat ve derin bir nefes al. 4 saniye nefes al... 4 saniye tut... ve 6 saniyede yavaşça bırak. Sınav sadece bilgini ölçen bir araç, senin değerini değil. Şu ana kadar yüzlerce saat çalıştın ve zihnin ihtiyacın olan tüm bilgiye sahip. Rahatla ve sadece sıradaki adımı düşün.`,
   };
 

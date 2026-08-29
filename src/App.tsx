@@ -22,6 +22,7 @@ import { QuickStartModal } from './components/QuickStartModal';
 import { StreakAnalytics } from './components/StreakAnalytics';
 import { InstitutionLoginView } from './components/InstitutionLoginView';
 import { StudyInsightsToast } from './components/StudyInsightsToast';
+import { ApiErrorToast } from './components/ApiErrorToast';
 import { 
   getCurrentInstitutionSession, 
   getInstitutionAccountById, 
@@ -646,6 +647,9 @@ export default function App() {
       <StudyInsightsToast
         activeTab={activeTab}
       />
+
+      {/* Global toast for API failures (401 / 429 / network) */}
+      <ApiErrorToast />
 
       {/* Global Minimal Footer */}
       <footer className="border-t border-slate-900 py-4 text-center text-xs text-slate-500">

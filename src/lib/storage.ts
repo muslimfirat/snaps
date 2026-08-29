@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { INITIAL_KPSS_SUBJECTS, INITIAL_YKS_SUBJECTS, INITIAL_SAVED_SNAPS, INITIAL_FLASHCARDS, INITIAL_MISTAKES, EXAM_METADATA } from '../data/curriculumData';
 import { DEFAULT_INSTITUTION_CONFIG, DEFAULT_CLASS_GROUPS, DEFAULT_STUDENTS, DEFAULT_INSTITUTION_EXAMS } from '../data/institutionData';
+import { getLocalDateStr, dayDifference } from './dateUtils';
 
 const STORAGE_KEYS = {
   PROFILE: 'snaps_user_profile',
@@ -43,26 +44,11 @@ export const DEFAULT_PROFILE: UserProfile = {
   todayMinutesStudied: 110,
   streakDays: 6,
   maxStreakDays: 6,
-  lastActiveDate: new Date().toISOString().split('T')[0],
-  lastLoginDate: new Date().toISOString().split('T')[0],
-  loginDates: [new Date().toISOString().split('T')[0]],
+  lastActiveDate: getLocalDateStr(),
+  lastLoginDate: getLocalDateStr(),
+  loginDates: [getLocalDateStr()],
   classGroupId: 'grp-kpss-1',
 };
-
-/**
- * Calculates calendar day difference between two YYYY-MM-DD strings.
- */
-function getDayDifference(dateStr1: string, dateStr2: string): number {
-  try {
-    const d1 = new Date(dateStr1 + 'T00:00:00');
-    const d2 = new Date(dateStr2 + 'T00:00:00');
-    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
-    const diffMs = Math.abs(d2.getTime() - d1.getTime());
-    return Math.round(diffMs / (1000 * 60 * 60 * 24));
-  } catch {
-    return 0;
-  }
-}
 
 /**
  * Processes daily login streak whenever the user loads the app or active profile.
@@ -71,7 +57,7 @@ function getDayDifference(dateStr1: string, dateStr2: string): number {
  * - Missed days (>1 day gap): Resets streak to 1 and starts fresh daily counters.
  */
 export function processDailyLoginStreak(rawProfile: UserProfile): { profile: UserProfile; streakUpdated: boolean } {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateStr();
   const lastDate = rawProfile.lastActiveDate || rawProfile.lastLoginDate || '';
   const currentStreak = Number(rawProfile.streakDays) || 0;
   const currentMaxStreak = Number(rawProfile.maxStreakDays) || currentStreak || 1;
@@ -111,7 +97,7 @@ export function processDailyLoginStreak(rawProfile: UserProfile): { profile: Use
     };
   }
 
-  const diffDays = getDayDifference(lastDate, todayStr);
+  const diffDays = dayDifference(lastDate, todayStr);
 
   if (diffDays === 1) {
     // Consecutive day login: Streak rewarded!
@@ -439,7 +425,7 @@ export function loadWeeklyStudyLogs(profile: UserProfile): DailyStudyLog[] {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = getLocalDateStr(d);
     
     // Day of week index (Monday = 0, Sunday = 6)
     const dayOfWeek = (d.getDay() + 6) % 7;

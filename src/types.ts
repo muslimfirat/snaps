@@ -259,6 +259,8 @@ export interface StudentRecord {
   coachNotes?: string;
   status: 'HIGH' | 'STABLE' | 'NEEDS_ATTENTION';
   joinedDate: string;
+  /** Consecutive active-study-day streak (optional; used by leaderboard sorting). */
+  streakDays?: number;
 }
 
 export interface InstitutionExam {

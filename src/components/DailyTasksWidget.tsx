@@ -21,6 +21,7 @@ import {
 import { DailyTaskItem, UserProfile, MainTabCategory } from '../types';
 import { THEME } from '../theme';
 import { haptics } from '../lib/haptics';
+import { getLocalDateStr } from '../lib/dateUtils';
 
 interface DailyTasksWidgetProps {
   profile: UserProfile;
@@ -47,7 +48,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
   onNavigateTab,
   compact = false,
 }) => {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateStr();
   const storageKey = `snaps_daily_tasks_${todayStr}`;
   const isKPSS = profile.targetExam.startsWith('KPSS');
 

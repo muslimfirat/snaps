@@ -146,7 +146,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             onClick={() => {
               haptics.selection();
-              onNavigateTab('profile', 'SETTINGS');
+              onNavigateTab('profile', 'PROFILE');
             }}
             title="Tüm Başarı Rozetlerini gör"
             className="flex items-center gap-2 bg-[#161822] hover:bg-[#222533] border border-[#2D3245] hover:border-indigo-500/40 px-3.5 py-2 rounded-xl transition-all cursor-pointer"

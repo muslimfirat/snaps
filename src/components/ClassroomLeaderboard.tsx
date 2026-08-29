@@ -100,7 +100,7 @@ export const ClassroomLeaderboard: React.FC<ClassroomLeaderboardProps> = ({
         scoreVal = s.totalQuestionsSolved;
         secScore = `${s.latestMockNet} Net`;
       } else if (sortBy === 'streak') {
-        scoreVal = s.streakDays;
+        scoreVal = s.streakDays || 0;
         secScore = `${s.latestMockNet} Net`;
       }
 
