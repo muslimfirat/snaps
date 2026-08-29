@@ -213,13 +213,8 @@ export const Header: React.FC<HeaderProps> = ({
     setIsMenuOpen(false);
   };
 
-  const mappedCategoryId = 
-    activeCategory === 'OVERVIEW' ? 'HOME' : 
-    (activeCategory === 'AI_STUDIO' || activeCategory === 'PRACTICE') ? 'TRAINING' : 
-    activeCategory;
-
-  const currentCategoryDef = 
-    CATEGORY_DEFINITIONS.find((c) => c.id === mappedCategoryId) || 
+  const currentCategoryDef =
+    CATEGORY_DEFINITIONS.find((c) => c.id === activeCategory) ||
     CATEGORY_DEFINITIONS.find((c) => c.subTabs.some(st => st.id === activeTab)) || 
     CATEGORY_DEFINITIONS[0];
 
@@ -435,7 +430,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="hidden md:grid grid-cols-4 gap-1 sm:gap-1.5 pt-1.5 pb-2 border-t border-[#242838] w-full">
           {CATEGORY_DEFINITIONS.map((cat) => {
             const Icon = cat.icon;
-            const isSelected = mappedCategoryId === cat.id;
+            const isSelected = activeCategory === cat.id;
             
             let label = cat.name;
             if (cat.id === 'INSTITUTION') {
@@ -473,7 +468,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="md:hidden flex items-center gap-1 py-1.5 overflow-x-auto no-scrollbar border-t border-[#242838] w-full">
           {CATEGORY_DEFINITIONS.map((cat) => {
             const Icon = cat.icon;
-            const isSelected = mappedCategoryId === cat.id;
+            const isSelected = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Header, CATEGORY_DEFINITIONS } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { CommandSearch } from './components/CommandSearch';
@@ -77,6 +77,11 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(false);
 
+  // Keep the latest local state reachable from the login effect without
+  // re-subscribing it on every mutation (the effect only fires on uid change).
+  const localStateRef = useRef({ profile, snaps, mistakes, mockExams, studyPlan, flashcards, subjects });
+  localStateRef.current = { profile, snaps, mistakes, mockExams, studyPlan, flashcards, subjects };
+
   // Cloud Sync Listener: When user logs in with Google, pull their cloud data or seed their Firestore doc
   useEffect(() => {
     if (!currentUser) return;
@@ -119,22 +124,23 @@ export default function App() {
           }
         } else {
           // New Google User: Seed their initial cloud storage with their current state
+          const local = localStateRef.current;
           const updatedProfile = {
-            ...profile,
-            name: currentUser.displayName || profile.name,
+            ...local.profile,
+            name: currentUser.displayName || local.profile.name,
           };
           setProfile(updatedProfile);
           storage.saveProfile(updatedProfile);
 
           await syncCurrentDataToCloud({
             profile: updatedProfile,
-            snaps,
-            mistakes,
-            mockExams,
-            studyPlan,
-            flashcards,
-            subjects,
-            targetExam: profile.targetExam,
+            snaps: local.snaps,
+            mistakes: local.mistakes,
+            mockExams: local.mockExams,
+            studyPlan: local.studyPlan,
+            flashcards: local.flashcards,
+            subjects: local.subjects,
+            targetExam: local.profile.targetExam,
           });
         }
       } catch (err) {
@@ -366,7 +372,7 @@ export default function App() {
     logoutInstitution();
     setIsInstitutionAuthenticated(false);
     setCurrentInstitutionAccount(null);
-    handleSelectTab('dashboard', 'OVERVIEW');
+    handleSelectTab('dashboard', 'HOME');
   };
 
   const handleUpdateInstitutionConfig = (config: InstitutionConfig) => {
@@ -460,7 +466,6 @@ export default function App() {
             onNavigateTab={handleSelectTab}
             onIncrementQuestionCount={handleIncrementQuestionCount}
             onIncrementStudyMinutes={handleIncrementStudyMinutes}
-            onUpdateProfile={handleUpdateProfilePartial}
           />
         )}
 
@@ -509,7 +514,7 @@ export default function App() {
             savedSnaps={snaps}
             onSaveSnap={handleSaveSnap}
             onIncrementQuestionCount={handleIncrementQuestionCount}
-            onNavigateToNotebook={() => handleSelectTab('mistakes', 'AI_STUDIO')}
+            onNavigateToNotebook={() => handleSelectTab('mistakes', 'TRAINING')}
           />
         )}
 
@@ -595,14 +600,14 @@ export default function App() {
               onUpdateClassGroups={handleUpdateClassGroups}
               onUpdateStudents={handleUpdateStudents}
               onUpdateInstitutionExams={handleUpdateInstitutionExams}
-              onSwitchToStudentMode={() => handleSelectTab('dashboard', 'OVERVIEW')}
+              onSwitchToStudentMode={() => handleSelectTab('dashboard', 'HOME')}
               activeInstitutionEmail={currentInstitutionAccount?.email}
               onLogoutInstitution={handleInstitutionLogout}
             />
           ) : (
             <InstitutionLoginView
               onLoginSuccess={handleInstitutionLoginSuccess}
-              onReturnToStudentMode={() => handleSelectTab('dashboard', 'OVERVIEW')}
+              onReturnToStudentMode={() => handleSelectTab('dashboard', 'HOME')}
             />
           )
         )}

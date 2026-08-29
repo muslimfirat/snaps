@@ -182,18 +182,31 @@ mantığı artık tutarlı yerel takvim günü kullanıyor. ✅ API hataları ku
 
 ---
 
-## Faz 5 — Tutarlılık ve tip düzeltmeleri (Bulgu #9, #10, #11)
+## Faz 5 — Tutarlılık ve tip düzeltmeleri (Bulgu #9, #10, #11)  ✅ TAMAM (2026-08-29)
 
 Amaç: yarım kalmış refactor kalıntılarını temizlemek.
 
-- [ ] `MainTabCategory`: kullanılmayan değerleri (`OVERVIEW`, `AI_STUDIO`, `PRACTICE` vb.) tek sete indir
-  - `getCategoryForTab` ile çağrı yerlerini aynı sete hizala
-  - `Header.tsx:217` `OVERVIEW→HOME` yamasını kaldır
-- [ ] `onIncrementQuestionCount` — `SnapSolver` ve diğer bileşenlerde ya prop'u zorunlu yap ya çağrıyı guard'la
-- [ ] `App.tsx:80` bulut-restore effect'i: seed dalındaki closure değerlerini `ref`'e al veya effect'i böl
-- [ ] Diğer `?`-opsiyonel ama koşulsuz çağrılan prop'ları tara (`grep -n "?: (" src/components`)
+- [x] `MainTabCategory`: 8 → **5 değer** (`HOME | TRAINING | CALENDAR | PROFILE | INSTITUTION`).
+  `OVERVIEW`, `AI_STUDIO`, `PRACTICE` kaldırıldı
+  - 11 çağrı yeri kanonik sete hizalandı (`OVERVIEW→HOME`, `AI_STUDIO/PRACTICE→TRAINING`):
+    `App.tsx` (4), `QuickStartModal` (4), `ClassroomLeaderboard`, `CurriculumTracker`, `StreakAnalytics` (2)
+  - `Header.tsx` `mappedCategoryId` yaması tamamen silindi → doğrudan `activeCategory`
+  - `BottomNav.tsx` `isHomeActive`/`isTrainingActive` legacy `||` dalları silindi
+  - Not: `StreakAnalytics` "pomodoro" linki yanlışlıkla `OVERVIEW` veriyordu → `TRAINING` (highlight bug'ı düzeldi)
+- [x] `onIncrementQuestionCount` — `SnapSolver.tsx:169` opsiyonel prop koşulsuz çağrılıyordu → `?.` guard
+  - `SmartMistakeBank`, `QuestionDuel`, `SpeedTrainer` zaten guard'lı (doğrulandı)
+- [x] `App.tsx` bulut-restore effect'i: `localStateRef` eklendi — seed dalı artık `profile/snaps/...`
+  değerlerini ref'ten okuyor (uid değişiminde bayat closure riski yok)
+- [x] Ölü/yanıltıcı prop temizliği (yarım refactor kalıntısı):
+  - `Dashboard.onUpdateProfile` — App geçiyordu ama Dashboard hiç kullanmıyordu → prop + geçiş silindi
+  - `DailyTasksWidget.onIncrementQuestionCount` + `onIncrementStudyMinutes` — deklare ama destructure bile edilmiyordu → silindi
+  - `MockExamTracker.onUpdateStudyPlan` — opsiyonel ama koşulsuz çağrılıyor + App hep geçiyor → zorunlu yapıldı
+  - `CurriculumTracker` / `StreakAnalytics` `onNavigateTab` — `category: any` → `category?: MainTabCategory`
 
-**Kabul kriterleri:** Nav kategori geçişleri tüm sekmelerde doğru highlight yapıyor. `tsc --noEmit` bu dosyalarda yeni hata üretmiyor.
+**Doğrulama:** `npm run lint` **0 hata** · `npm run build` başarılı · tarayıcıda Anasayfa↔Antrenman
+kategori highlight'ı doğru, konsol temiz.
+
+**Kabul kriterleri:** ✅ Nav kategori geçişleri doğru highlight yapıyor. ✅ `tsc --noEmit` temiz.
 
 ---
 

@@ -245,7 +245,7 @@ export const ClassroomLeaderboard: React.FC<ClassroomLeaderboardProps> = ({
         </div>
 
         <button
-          onClick={() => onNavigateTab('mock', 'PRACTICE')}
+          onClick={() => onNavigateTab('mock', 'TRAINING')}
           className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors flex items-center gap-1"
         >
           <Sparkles className="w-3.5 h-3.5" />

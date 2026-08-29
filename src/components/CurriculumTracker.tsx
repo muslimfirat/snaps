@@ -16,7 +16,7 @@ import {
   BookmarkPlus
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Subject, SubjectTopic, UserProfile, Flashcard } from '../types';
+import { Subject, SubjectTopic, UserProfile, Flashcard, MainTabCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { haptics } from '../lib/haptics';
 import { apiFetch } from '../lib/apiClient';
@@ -27,7 +27,7 @@ interface CurriculumTrackerProps {
   onUpdateSubjects: (subjects: Subject[]) => void;
   onIncrementQuestionCount: (count?: number) => void;
   onAddFlashcard?: (card: Flashcard) => void;
-  onNavigateTab?: (tab: string, category: any) => void;
+  onNavigateTab?: (tab: string, category?: MainTabCategory) => void;
 }
 
 export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
@@ -471,7 +471,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                   <button
                     onClick={() => {
                       setSummaryModalTopic(null);
-                      onNavigateTab('flashcards', 'PRACTICE');
+                      onNavigateTab('flashcards', 'TRAINING');
                     }}
                     className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors"
                   >

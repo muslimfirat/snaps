@@ -26,8 +26,6 @@ import { getLocalDateStr } from '../lib/dateUtils';
 interface DailyTasksWidgetProps {
   profile: UserProfile;
   onNavigateTab: (tab: string, category?: MainTabCategory) => void;
-  onIncrementQuestionCount?: (count?: number) => void;
-  onIncrementStudyMinutes?: (minutes: number) => void;
   compact?: boolean;
 }
 

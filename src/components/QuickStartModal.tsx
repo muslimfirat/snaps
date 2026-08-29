@@ -38,7 +38,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({
       actionText: 'Hedef Ayarlarına Git',
       action: () => {
         onClose();
-        onNavigateTab('dashboard', 'OVERVIEW');
+        onNavigateTab('dashboard', 'HOME');
       },
     },
     {
@@ -50,7 +50,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({
       actionText: 'Soru Çözdürmeyi Dene',
       action: () => {
         onClose();
-        onNavigateTab('snap', 'AI_STUDIO');
+        onNavigateTab('snap', 'TRAINING');
       },
     },
     {
@@ -62,7 +62,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({
       actionText: 'Sesli Koçla Konuş',
       action: () => {
         onClose();
-        onNavigateTab('voice_coach', 'AI_STUDIO');
+        onNavigateTab('voice_coach', 'TRAINING');
       },
     },
     {
@@ -74,7 +74,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({
       actionText: 'Hedeflerimi Gör',
       action: () => {
         onClose();
-        onNavigateTab('dashboard', 'OVERVIEW');
+        onNavigateTab('dashboard', 'HOME');
       },
     },
   ];

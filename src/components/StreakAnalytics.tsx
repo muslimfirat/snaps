@@ -28,14 +28,14 @@ import {
   ShieldAlert,
   FlameKindling,
 } from 'lucide-react';
-import { UserProfile, DailyStudyLog } from '../types';
+import { UserProfile, DailyStudyLog, MainTabCategory } from '../types';
 import { loadWeeklyStudyLogs, saveDailyStudyLogs } from '../lib/storage';
 import { THEME } from '../theme';
 import { haptics } from '../lib/haptics';
 
 interface StreakAnalyticsProps {
   profile: UserProfile;
-  onNavigateTab?: (tab: string, category?: any) => void;
+  onNavigateTab?: (tab: string, category?: MainTabCategory) => void;
   onIncrementQuestionCount?: (count: number) => void;
 }
 
@@ -568,14 +568,14 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
 
         <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
           <button
-            onClick={() => onNavigateTab && onNavigateTab('snap', 'AI_STUDIO')}
+            onClick={() => onNavigateTab && onNavigateTab('snap', 'TRAINING')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${THEME.brand.tailwind.btn}`}
           >
             <span>Soru Çözdür</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={() => onNavigateTab && onNavigateTab('pomodoro', 'OVERVIEW')}
+            onClick={() => onNavigateTab && onNavigateTab('pomodoro', 'TRAINING')}
             className="px-3.5 py-2 rounded-xl bg-[#161822] hover:bg-[#222533] border border-[#2D3245] text-slate-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Clock className="w-3.5 h-3.5 text-indigo-400" />

@@ -166,7 +166,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
       };
 
       setCurrentSolution(newSolution);
-      onIncrementQuestionCount(1);
+      onIncrementQuestionCount?.(1);
       haptics.success();
     } catch (err) {
       console.error('Solve error:', err);

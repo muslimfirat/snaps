@@ -32,7 +32,7 @@ interface MockExamTrackerProps {
   mockExams: MockExamRecord[];
   onAddMockExam: (exam: MockExamRecord) => void;
   onDeleteMockExam: (id: string) => void;
-  onUpdateStudyPlan?: (plan: WeeklyStudyPlan) => void;
+  onUpdateStudyPlan: (plan: WeeklyStudyPlan) => void;
   onNavigateTab?: (tab: string) => void;
 }
 

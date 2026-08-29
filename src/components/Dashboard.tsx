@@ -44,7 +44,6 @@ interface DashboardProps {
   onNavigateTab: (tab: string, category?: MainTabCategory) => void;
   onIncrementQuestionCount: (count?: number) => void;
   onIncrementStudyMinutes?: (minutes: number) => void;
-  onUpdateProfile?: (updated: Partial<UserProfile>) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -289,8 +288,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <DailyTasksWidget
         profile={profile}
         onNavigateTab={onNavigateTab}
-        onIncrementQuestionCount={onIncrementQuestionCount}
-        onIncrementStudyMinutes={onIncrementStudyMinutes}
         compact={true}
       />
 

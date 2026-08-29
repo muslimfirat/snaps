@@ -1,6 +1,6 @@
 export type ExamCategory = 'KPSS_LISANS' | 'KPSS_ONLISANS' | 'KPSS_ORTAOGRETIM' | 'YKS_SAYISAL' | 'YKS_ESITAGIRLIK' | 'YKS_SOZEL' | 'YKS_DIL';
 
-export type MainTabCategory = 'HOME' | 'TRAINING' | 'CALENDAR' | 'PROFILE' | 'OVERVIEW' | 'AI_STUDIO' | 'PRACTICE' | 'INSTITUTION';
+export type MainTabCategory = 'HOME' | 'TRAINING' | 'CALENDAR' | 'PROFILE' | 'INSTITUTION';
 
 
 export interface SubjectTopic {

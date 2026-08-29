@@ -28,15 +28,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onOpenSettings,
 }) => {
   // Check which main category is active
-  const isHomeActive = 
-    activeCategory === 'HOME' || 
-    activeCategory === 'OVERVIEW' || 
+  const isHomeActive =
+    activeCategory === 'HOME' ||
     ['dashboard', 'curriculum', 'streak', 'institution'].includes(activeTab);
 
-  const isTrainingActive = 
-    activeCategory === 'TRAINING' || 
-    activeCategory === 'AI_STUDIO' || 
-    activeCategory === 'PRACTICE' || 
+  const isTrainingActive =
+    activeCategory === 'TRAINING' ||
     [
       'snap', 
       'mock', 
