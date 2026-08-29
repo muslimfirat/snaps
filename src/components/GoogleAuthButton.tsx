@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Cloud, Check, LogOut, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
+import { Cloud, Check, LogOut, Loader2, Sparkles, ShieldCheck, AlertTriangle, RefreshCw } from 'lucide-react';
 import { haptics } from '../lib/haptics';
 
 interface GoogleAuthButtonProps {
@@ -14,9 +14,56 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   className = '',
   onSuccess,
 }) => {
-  const { currentUser, loading, syncStatus, signInWithGoogle, signOut, authError, clearAuthError } = useAuth();
+  const { currentUser, loading, syncStatus, signInWithGoogle, signOut, retrySync, authError, clearAuthError } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetrySync = async () => {
+    setIsRetrying(true);
+    haptics.selection();
+    try {
+      await retrySync();
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  /** Small inline cloud-status row shared by the compact dropdown and the full card. */
+  const SyncStatusRow = () => {
+    if (syncStatus === 'error') {
+      return (
+        <div className="flex items-center justify-between gap-2 text-[11px] text-rose-300">
+          <span className="flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            Bulut eşitlemesi başarısız
+          </span>
+          <button
+            onClick={handleRetrySync}
+            disabled={isRetrying}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-200 font-semibold hover:bg-rose-900/60 transition-colors cursor-pointer disabled:opacity-60"
+          >
+            <RefreshCw className={`w-3 h-3 ${isRetrying ? 'animate-spin' : ''}`} />
+            Tekrar dene
+          </button>
+        </div>
+      );
+    }
+    if (syncStatus === 'syncing') {
+      return (
+        <div className="flex items-center gap-1.5 text-[11px] text-indigo-300">
+          <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
+          <span>Eşitleniyor…</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] text-emerald-400">
+        <Check className="w-3.5 h-3.5 shrink-0" />
+        <span>Firestore Bulut Eşitlemesi Aktif</span>
+      </div>
+    );
+  };
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
@@ -93,10 +140,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 text-[11px] text-emerald-400">
-                <Check className="w-3.5 h-3.5 shrink-0" />
-                <span>Firestore Bulut Eşitlemesi Aktif</span>
-              </div>
+              <SyncStatusRow />
 
               <button
                 onClick={() => {
@@ -150,12 +194,8 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
-          <div className="flex items-center gap-1.5 text-emerald-400 font-medium">
-            <Check className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Firestore Bulut Senkronizasyonu Aktif</span>
-          </div>
-          <span className="text-[11px] text-slate-400">Verileriniz güvende</span>
+        <div className="pt-2 border-t border-slate-800/80">
+          <SyncStatusRow />
         </div>
       </div>
     );

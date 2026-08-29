@@ -76,21 +76,44 @@ esbuild `--format=cjs`). Önceden vardı, `dev` (tsx) etkilenmiyor. Faz 6'da dü
 
 ---
 
-## Faz 2 — Firestore veri modeli ve 1 MiB limiti (Bulgu #4, #8)
+## Faz 2 — Firestore 1 MiB limiti (Bulgu #4, #8)  ✅ TAMAM (2026-08-29)
 
 Amaç: fotoğraflı snap'ler biriktikçe bulut senkronunun sessizce çökmesini önlemek.
 
-- [ ] `SnapSolution` buluta yazılmadan önce `imageUrl` (base64) alanını çıkar
-  - Yerel `localStorage`'da kalabilir; sadece Firestore payload'undan çıkarılacak
-- [ ] `snaps`, `mistakes`, `mockExams`, `flashcards` → `/users/{uid}/{coll}/{id}` alt-koleksiyonlarına taşı
-  - `firestore.rules` zaten izin veriyor; `firebase-blueprint.json` zaten bu şekilde tasarlanmış
-  - `firestoreSync.ts`: dizi replace yerine per-document `setDoc`/`deleteDoc`
-  - Okuma: `getDocs(collection(...))`
-- [ ] Geriye dönük uyumluluk: eski tek-doküman formatındaki veriyi ilk açılışta alt-koleksiyonlara migrate et, sonra ana dokümandan sil
-- [ ] Senkron hatası artık kullanıcıya görünür olsun: `syncStatus === 'error'` durumunda Header'da uyarı rozeti + tekrar dene butonu
-- [ ] Ölü kodu temizle: `syncProfileToFirestore`, `subscribeToUserCloudData` — ya kullan ya sil
+Kapsam: **Pragmatik** (kullanıcı kararı) — tek-doküman modeli korundu, base64 görsel
+çıkarma + boyut koruması ile sorunun ~%90'ı çözüldü. Tam alt-koleksiyon migrasyonu
+**Faz 2b'ye ertelendi** (gerçek bir kullanıcı limite dayanırsa çekilecek).
 
-**Kabul kriterleri:** 20+ fotoğraflı snap eklenince bulut senkronu çalışıyor. Firestore konsolunda alt-koleksiyonlar görünüyor. Eski hesap açıldığında verisi kayıpsız migrate oluyor.
+- [x] `firestoreSync.ts` `stripImages()` — `snaps` ve `mistakes` dizilerinden `imageUrl` (base64)
+  buluta yazılmadan önce çıkarılıyor. Yerel `localStorage` kopyası görseli o cihazda tutuyor
+- [x] `trimOversizedPayload()` — serileştirilmiş doküman > 900 KB ise en büyük alanları sırayla
+  düşürüyor + `console.warn`; her şey düşürülüp hâlâ büyükse `CLOUD_PAYLOAD_TOO_LARGE` fırlatıyor
+- [x] Görünür senkron durumu: `GoogleAuthButton` içinde `SyncStatusRow`
+  (yeşil "aktif" / indigo "eşitleniyor…" / kırmızı "başarısız" + **Tekrar dene** butonu)
+- [x] `AuthContext`: `retrySync()` eklendi; `pendingPayloadRef` başarısız/kısmi senkron
+  payload'unu biriktiriyor, retry (veya sonraki mutasyon) tümünü yeniden gönderiyor
+- [x] Ölü kod silindi: `syncProfileToFirestore`, `subscribeToUserCloudData` (+ `onSnapshot` importu)
+
+**Doğrulama:** `npm run lint` 0 hata · `npm run build` başarılı · frontend render + konsol temiz
+(HMR ws hatası hariç, alakasız). Not: gerçek Google girişi ile canlı Firestore E2E testi
+yapılamadı (bu ortamda oturum açılamıyor); mantık tip-kontrollü + build temiz.
+
+**Kabul kriterleri (revize):** ✅ Görsel içeren snap'ler artık buluta base64 taşımıyor →
+20+ fotoğraflı snap tek-dokümanı şişirmiyor. ✅ Boyut aşımında sessiz çökme yerine
+kısmi senkron + uyarı. ✅ Kullanıcı senkron hatasını görüp tekrar deneyebiliyor.
+
+---
+
+## Faz 2b — Alt-koleksiyon migrasyonu (ERTELENDİ)
+
+Tetik: bir kullanıcının `/users/{uid}` dokümanı 700 KB'ı geçerse veya çok-cihaz
+senaryosu gerçek ihtiyaç olursa.
+
+- [ ] `snaps`, `mistakes`, `mockExams`, `flashcards` → `/users/{uid}/{coll}/{id}` alt-koleksiyonları
+  - `firestore.rules` zaten izin veriyor; `firebase-blueprint.json` zaten böyle tasarlanmış
+  - `firestoreSync.ts`: per-document `setDoc`/`deleteDoc`, okuma `getDocs`
+  - App.tsx handler'ları delta (upsert/delete) geçecek şekilde uyarla
+- [ ] Eski tek-doküman formatını ilk açılışta migrate et, sonra ana dokümandan sil
 
 ---
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { 
   auth, 
   signInWithGoogle as fbSignInWithGoogle, 
@@ -23,6 +23,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   syncCurrentDataToCloud: (data: Parameters<typeof syncUserDataToFirestore>[1]) => Promise<void>;
   fetchCloudData: () => Promise<CloudUserData | null>;
+  /** Re-attempts the most recent failed cloud sync. */
+  retrySync: () => Promise<void>;
   authError: string | null;
   clearAuthError: () => void;
 }
@@ -35,6 +37,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [lastSyncedTime, setLastSyncedTime] = useState<Date | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+
+  // Accumulated payload of everything synced this session, used to re-push on retry.
+  const pendingPayloadRef = useRef<Parameters<typeof syncUserDataToFirestore>[1]>({});
+  const currentUserRef = useRef<FirebaseUser | null>(null);
+  currentUserRef.current = currentUser;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -86,18 +93,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const syncCurrentDataToCloud = async (data: Parameters<typeof syncUserDataToFirestore>[1]) => {
-    if (!currentUser) return;
-    try {
-      setSyncStatus('syncing');
-      await syncUserDataToFirestore(currentUser.uid, data);
-      setSyncStatus('synced');
-      setLastSyncedTime(new Date());
-    } catch (err) {
-      console.error('Cloud sync failed:', err);
-      setSyncStatus('error');
-    }
-  };
+  const syncCurrentDataToCloud = useCallback(
+    async (data: Parameters<typeof syncUserDataToFirestore>[1]) => {
+      const user = currentUserRef.current;
+      if (!user) return;
+      // Remember what we tried to push so retrySync() can resend it.
+      pendingPayloadRef.current = { ...pendingPayloadRef.current, ...data };
+      try {
+        setSyncStatus('syncing');
+        await syncUserDataToFirestore(user.uid, pendingPayloadRef.current);
+        pendingPayloadRef.current = {};
+        setSyncStatus('synced');
+        setLastSyncedTime(new Date());
+      } catch (err) {
+        console.error('Cloud sync failed:', err);
+        setSyncStatus('error');
+      }
+    },
+    [],
+  );
+
+  const retrySync = useCallback(async () => {
+    await syncCurrentDataToCloud({});
+  }, [syncCurrentDataToCloud]);
 
   const fetchCloudData = async (): Promise<CloudUserData | null> => {
     if (!currentUser) return null;
@@ -127,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
         syncCurrentDataToCloud,
         fetchCloudData,
+        retrySync,
         authError,
         clearAuthError,
       }}
