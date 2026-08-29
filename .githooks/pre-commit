@@ -1,0 +1,13 @@
+#!/bin/sh
+# Faz 6: CI yok — commit'ten önce tip kontrolü (tsc --noEmit, strict).
+# Devre dışı bırakmak için: git commit --no-verify
+
+echo "pre-commit: npm run lint (tsc --noEmit)…"
+npm run lint --silent
+status=$?
+if [ $status -ne 0 ]; then
+  echo "pre-commit: lint HATALI — commit iptal edildi. (--no-verify ile atlanabilir)"
+  exit $status
+fi
+echo "pre-commit: lint temiz."
+exit 0

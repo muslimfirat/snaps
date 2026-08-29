@@ -22,9 +22,9 @@ npm run dev      # http://localhost:3000  (Express + Vite middleware)
 `bun` da kullanılabilir (`bun.lock` mevcut). Diğer komutlar:
 
 ```bash
-npm run lint     # tsc --noEmit
-npm run build    # vite build + esbuild ile server.cjs
-npm start        # dist/server.cjs (production)
+npm run lint     # tsc --noEmit (strict)
+npm run build    # vite build + esbuild ile dist/server.mjs (ESM)
+npm start        # dist/server.mjs (production)
 ```
 
 ### Ortam değişkenleri

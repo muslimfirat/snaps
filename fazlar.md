@@ -210,19 +210,46 @@ kategori highlight'ı doğru, konsol temiz.
 
 ---
 
-## Faz 6 — Build ve araç zinciri (Bulgu #13, #14, #15)
+## Faz 6 — Build ve araç zinciri (Bulgu #13, #14, #15)  ✅ TAMAM (2026-08-29)
 
 Amaç: derleyicinin gerçekten iş yapmasını sağlamak.
 
-- [ ] `tsconfig.json`: `"resolveJsonModule": true` ekle — `bun run lint` geçmeli
-- [ ] `"strict": true` aç, çıkan hataları listele
-  - Hepsi bir commit'te düzeltilemezse: geçici olarak sadece `"strictNullChecks": true` + kalanları takip listesine
-- [ ] `server.ts:35` Gemini model ID'lerini doğrula
-  - Geçerli olmayan (`gemini-3.7-flash`, `gemini-3.1-*`) ID'leri kaldır veya güncel olanlarla değiştir
-  - Fallback zinciri: 1 geçerli hızlı model + 1 geçerli güçlü model yeter
-- [ ] CI yoksa: basit bir `bun run lint` pre-commit hook'u
+- [x] `tsconfig.json`: `"resolveJsonModule": true` eklendi (`src/lib/firebase.ts` JSON importu artık
+  resmî olarak destekleniyor; önceden `moduleResolution: bundler` sayesinde sessizce geçiyordu)
+- [x] `"strict": true` açıldı → **0 hata**. Faz 4 (gerçek React tipleri + 4 gizli hata düzeltmesi)
+  ve Faz 5 (ölü prop temizliği) sayesinde kod zaten strict-temizmiş. `strictNullChecks` geçici
+  moduna gerek kalmadı. Probe dosyasıyla tsc'nin gerçekten tip kontrolü yaptığı doğrulandı
+- [x] `server.ts:95` Gemini model zinciri `https://ai.google.dev/gemini-api/docs/models` (2026-08-29)
+  ile doğrulandı. Eski: `['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.7-flash', 'gemini-3.1-pro-preview']`
+  (unpinned alias + preview model). Yeni: **`['gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-pro']`**
+  — sabitlenmiş hızlı GA modeli → ucuz/hızlı GA fallback → güçlü GA reasoning fallback.
+  (Gemini 3.x "pro" hâlâ preview-only olduğu için güçlü fallback GA `gemini-2.5-pro`'da kaldı.)
+  API key olmadığından log'dan ilk-deneme doğrulaması yapılamadı; ID'ler resmî listeye karşı teyitli
+- [x] **Bonus (Faz 1'den devir):** `npm run build` `import.meta` uyarısı düzeltildi. esbuild
+  `--format=cjs` → **`--format=esm`**, çıktı `dist/server.cjs` → `dist/server.mjs`, `start` +
+  `clean` scriptleri güncellendi. `server.ts` zaten ESM; artık `import.meta.url` bundle'da da çalışıyor
+  (config dosyası okuması cwd'den bağımsız doğru çözülüyor)
+- [x] CI yok → `.githooks/pre-commit` (`npm run lint`, TR mesajlı, `--no-verify` ile atlanabilir) +
+  `git config core.hooksPath .githooks` + `package.json` `prepare` scripti (klonda otomatik kurulur)
 
-**Kabul kriterleri:** `bun run lint` sıfır hata. Gemini çağrıları ilk denemede doğru modele gidiyor (loglardan doğrula).
+**Doğrulama:**
+| Kontrol | Sonuç |
+|---------|-------|
+| `npm run lint` (strict + resolveJsonModule) | ✅ 0 hata |
+| `npm run build` | ✅ başarılı, **`import.meta` uyarısı yok** (eskiden vardı) |
+| `NODE_ENV=production node dist/server.mjs` | ✅ ayağa kalkıyor |
+| prod `/api/health`, SPA `/`, `/api/snap/solve` | ✅ 200 (fallback yanıt) |
+| prod `/api/institution/analyze-class` (token'sız) | ✅ 401 → `__dirname` config okuması doğru |
+| `npm run dev` (tsx) hâlâ çalışıyor | ✅ health/SPA/401 aynı |
+| `.githooks/pre-commit` elle | ✅ lint çalıştırıp exit 0 |
+
+**Kabul kriterleri:** ✅ `npm run lint` sıfır hata (strict açık). ⚠️ Gemini ilk-deneme model
+doğrulaması API key gerektirdiğinden log'dan yapılamadı; model ID'leri resmî dokümana karşı teyit edildi.
+
+### Faz 7'ye devir
+- `server.ts:228` `const PORT = 3000` sabit — Cloud Run `PORT` env'ini enjekte eder.
+  `process.env.PORT || 3000` yapılmalı (Faz 7 temizliğine eklendi).
+- Vite build hâlâ tek 1.8 MB chunk üretiyor (kod bölme yok) — kozmetik, Faz 7 opsiyonel.
 
 ---
 
@@ -239,6 +266,8 @@ Amaç: 1780 satırlık `server.ts`'i sürdürülebilir hale getirmek.
   - Karar "demo" ise: fonksiyon başına yorum + ilk gerçek log girildiğinde seed'i bırak
 - [ ] `firebase-blueprint.json` ↔ gerçek Firestore şeması uyumunu son kez kontrol et
 - [ ] Kullanılmayan import/dosya taraması (`institutionData` içindeki ölü export'lar vb.)
+- [ ] `server.ts:228` `const PORT = 3000` → `process.env.PORT || 3000` (Cloud Run uyumu, Faz 6'dan devir)
+- [ ] Vite kod bölme (opsiyonel) — tek 1.8 MB chunk (Faz 6'dan devir, kozmetik)
 
 **Kabul kriterleri:** `server.ts` belirgin şekilde kısaldı, davranış aynı. Analitik grafikleri ya gerçek veri gösteriyor ya net "örnek veri" etiketli.
 

@@ -92,7 +92,10 @@ function getGeminiClient(): GoogleGenAI {
 
 // Resilient Gemini Execution Helper with automatic model fallback and timeout
 async function callGeminiApi<T>(fn: (modelName: string) => Promise<T>, timeoutMs: number = 18000): Promise<T> {
-  const models = ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.7-flash', 'gemini-3.1-pro-preview'];
+  // Model IDs verified against https://ai.google.dev/gemini-api/docs/models (2026-08-29).
+  // Chain: fast GA model → cheaper/faster GA fallback → strong GA reasoning fallback.
+  // (Gemini 3.x "pro" is still preview-only, so the strong fallback stays on GA 2.5-pro.)
+  const models = ['gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-pro'];
   let lastError: any = null;
 
   for (let i = 0; i < models.length; i++) {
