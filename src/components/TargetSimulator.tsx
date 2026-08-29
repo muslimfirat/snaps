@@ -19,6 +19,7 @@ import {
 import confetti from 'canvas-confetti';
 import { UserProfile, TargetPreset, TargetSimulationResult, MockExamRecord } from '../types';
 import { TARGET_PRESETS } from '../data/curriculumData';
+import { apiFetch } from '../lib/apiClient';
 
 interface TargetSimulatorProps {
   profile: UserProfile;
@@ -85,16 +86,11 @@ export const TargetSimulator: React.FC<TargetSimulatorProps> = ({
     }));
 
     try {
-      const res = await fetch('/api/target-simulator/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          target: selectedTarget,
-          currentNets: netsPayload,
-          examType: selectedTarget.category,
-        }),
+      const data = await apiFetch('/api/target-simulator/analyze', {
+        target: selectedTarget,
+        currentNets: netsPayload,
+        examType: selectedTarget.category,
       });
-      const data = await res.json();
       setAnalysisResult({
         matchPercentage: data.matchPercentage || 75,
         scoreDifference: data.scoreDifference || -10,

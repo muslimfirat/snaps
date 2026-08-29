@@ -24,6 +24,7 @@ import { MockExamRecord, UserProfile, ExamCategory, MockExamAnalysisReport, Week
 import { EXAM_METADATA } from '../data/curriculumData';
 import { EmptyState } from './ui/EmptyState';
 import { Skeleton } from './ui/Skeleton';
+import { apiFetch } from '../lib/apiClient';
 
 interface MockExamTrackerProps {
   profile: UserProfile;
@@ -130,21 +131,15 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
     setPlanUpdatedSuccess(false);
 
     try {
-      const res = await fetch('/api/coach/analyze-mock-exam', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          examTitle: exam.title,
-          examType: EXAM_METADATA[exam.examType]?.name || exam.examType,
-          targetScore: profile.targetScore || '88.5',
-          sections: exam.sections,
-          totalNet: exam.totalNet,
-          estimatedScore: exam.estimatedScore,
-          notes: exam.notes,
-        }),
+      const data = await apiFetch('/api/coach/analyze-mock-exam', {
+        examTitle: exam.title,
+        examType: EXAM_METADATA[exam.examType]?.name || exam.examType,
+        targetScore: profile.targetScore || '88.5',
+        sections: exam.sections,
+        totalNet: exam.totalNet,
+        estimatedScore: exam.estimatedScore,
+        notes: exam.notes,
       });
-
-      const data = await res.json();
       setAnalysisReport(data);
     } catch (err) {
       console.error('Failed to analyze mock exam:', err);
@@ -167,20 +162,14 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
       const deficientTopicNames = defTopics.map((t) => `${t?.subject || ''}: ${t?.topicName || ''}`);
       const weakSectionNames = weakSecs.map((w) => w?.sectionName || '');
 
-      const res = await fetch('/api/coach/generate-plan-from-mock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          examTitle: selectedExamForAnalysis.title,
-          examType: EXAM_METADATA[selectedExamForAnalysis.examType]?.name || selectedExamForAnalysis.examType,
-          targetScore: profile.targetScore || '88.5',
-          dailyHours: profile.dailyStudyHourTarget || 4,
-          deficientTopics: deficientTopicNames,
-          weakSections: weakSectionNames,
-        }),
+      const data = await apiFetch('/api/coach/generate-plan-from-mock', {
+        examTitle: selectedExamForAnalysis.title,
+        examType: EXAM_METADATA[selectedExamForAnalysis.examType]?.name || selectedExamForAnalysis.examType,
+        targetScore: profile.targetScore || '88.5',
+        dailyHours: profile.dailyStudyHourTarget || 4,
+        deficientTopics: deficientTopicNames,
+        weakSections: weakSectionNames,
       });
-
-      const data = await res.json();
       const updatedPlan: WeeklyStudyPlan = {
         planTitle: data.planTitle || `🎯 ${selectedExamForAnalysis.title} Telafi Programı`,
         overview: data.overview || 'Deneme analizi sonucu tespit edilen eksik konuları kapatma programı',

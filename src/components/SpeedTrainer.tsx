@@ -18,6 +18,7 @@ import {
 import confetti from 'canvas-confetti';
 import { UserProfile, SpeedTrainingSession } from '../types';
 import { haptics } from '../lib/haptics';
+import { apiFetch } from '../lib/apiClient';
 
 interface SpeedTrainerProps {
   profile: UserProfile;
@@ -94,16 +95,11 @@ export const SpeedTrainer: React.FC<SpeedTrainerProps> = ({
     setSessionResult(null);
 
     try {
-      const res = await fetch('/api/speed-trainer/generate-passage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: trainingType,
-          topic: selectedTopic,
-          examType: profile.targetExam,
-        }),
+      const data = await apiFetch('/api/speed-trainer/generate-passage', {
+        type: trainingType,
+        topic: selectedTopic,
+        examType: profile.targetExam,
       });
-      const data = await res.json();
       if (data.passage) {
         setPassageData(data);
       }

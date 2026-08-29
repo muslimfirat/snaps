@@ -23,6 +23,7 @@ import { MistakeQuestionItem, LeitnerStage, TwinQuestion, UserProfile } from '..
 import { EmptyState } from './ui/EmptyState';
 import { Skeleton } from './ui/Skeleton';
 import { haptics } from '../lib/haptics';
+import { apiFetch } from '../lib/apiClient';
 
 interface SmartMistakeBankProps {
   profile: UserProfile;
@@ -160,17 +161,12 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
     setShowTwinHints({});
 
     try {
-      const res = await fetch('/api/snap/generate-twins', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: item.subject,
-          topic: item.topic,
-          questionContext: item.questionText || item.title,
-          examType: item.examType || profile.targetExam,
-        }),
+      const data = await apiFetch('/api/snap/generate-twins', {
+        subject: item.subject,
+        topic: item.topic,
+        questionContext: item.questionText || item.title,
+        examType: item.examType || profile.targetExam,
       });
-      const data = await res.json();
       if (data.twins && Array.isArray(data.twins)) {
         setTwinQuestions(data.twins);
       }

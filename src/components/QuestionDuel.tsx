@@ -19,6 +19,7 @@ import {
 import confetti from 'canvas-confetti';
 import { UserProfile, DuelQuestion, LeaderboardUser } from '../types';
 import { haptics } from '../lib/haptics';
+import { apiFetch } from '../lib/apiClient';
 
 interface QuestionDuelProps {
   profile: UserProfile;
@@ -100,16 +101,11 @@ export const QuestionDuel: React.FC<QuestionDuelProps> = ({
     setIsAnswerRevealed(false);
 
     try {
-      const res = await fetch('/api/duel/generate-questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          category: selectedCategory,
-          examType: profile?.targetExam || 'KPSS_LISANS',
-          difficulty: 'Orta',
-        }),
+      const data = await apiFetch('/api/duel/generate-questions', {
+        category: selectedCategory,
+        examType: profile?.targetExam || 'KPSS_LISANS',
+        difficulty: 'Orta',
       });
-      const data = await res.json();
       if (data.questions && data.questions.length > 0) {
         setQuestions(data.questions);
         setTimeLeft(data.questions[0].timeLimitSeconds || 20);

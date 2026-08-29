@@ -24,6 +24,7 @@ import { SAMPLE_QUESTIONS_FOR_SNAP } from '../data/curriculumData';
 import { EmptyState } from './ui/EmptyState';
 import { Skeleton } from './ui/Skeleton';
 import { haptics } from '../lib/haptics';
+import { apiFetch } from '../lib/apiClient';
 
 interface SnapSolverProps {
   profile: UserProfile;
@@ -140,19 +141,13 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
     haptics.medium();
 
     try {
-      const res = await fetch('/api/snap/solve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64,
-          mimeType,
-          questionText,
-          examType: profile.targetExam,
-          subject: selectedSubject,
-        }),
+      const data = await apiFetch('/api/snap/solve', {
+        imageBase64,
+        mimeType,
+        questionText,
+        examType: profile.targetExam,
+        subject: selectedSubject,
       });
-
-      const data = await res.json();
 
       const newSolution: SnapSolution = {
         id: 'snap-' + Date.now(),

@@ -19,6 +19,7 @@ import confetti from 'canvas-confetti';
 import { Subject, SubjectTopic, UserProfile, Flashcard } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { haptics } from '../lib/haptics';
+import { apiFetch } from '../lib/apiClient';
 
 interface CurriculumTrackerProps {
   profile: UserProfile;
@@ -91,17 +92,11 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
     haptics.selection();
 
     try {
-      const res = await fetch('/api/coach/topic-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: subjectName,
-          topic: topicName,
-          examType: EXAM_METADATA[profile.targetExam]?.name || 'KPSS & YKS',
-        }),
+      const data = await apiFetch('/api/coach/topic-summary', {
+        subject: subjectName,
+        topic: topicName,
+        examType: EXAM_METADATA[profile.targetExam]?.name || 'KPSS & YKS',
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
       setTopicSummaryData(data);
     } catch (err) {
       console.warn('Summary fetch error, using client fallback:', err);
@@ -152,17 +147,12 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
     setIsQuizLoading(true);
 
     try {
-      const res = await fetch('/api/coach/quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: subjectName,
-          topic: topicName,
-          examType: EXAM_METADATA[profile.targetExam]?.name,
-          count: 3,
-        }),
+      const data = await apiFetch('/api/coach/quiz', {
+        subject: subjectName,
+        topic: topicName,
+        examType: EXAM_METADATA[profile.targetExam]?.name,
+        count: 3,
       });
-      const data = await res.json();
       setQuizData(data.questions || []);
     } catch (err) {
       console.error('Quiz error:', err);

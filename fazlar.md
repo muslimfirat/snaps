@@ -28,25 +28,51 @@ Amaç: değişikliklere başlamadan önce ölçülebilir bir taban oluşturmak.
 
 ---
 
-## Faz 1 — API uçlarını koruma (Bulgu #1, #2-kısmi)
+## Faz 1 — API uçlarını koruma (Bulgu #1)  ✅ TAMAM (2026-08-29)
 
 Amaç: `/api/*` uçlarının kimlik doğrulamasız ve limitsiz kötüye kullanımını durdurmak.
 
-- [ ] `server.ts` içine `/api/*` için Firebase ID token doğrulayan middleware ekle
-  - İstemci `fetch` çağrılarına `Authorization: Bearer <idToken>` başlığı eklenecek
-  - Token yoksa/geçersizse `401` dön (fallback JSON değil)
-  - `firebase-admin` paketi eklenip service account ile init edilecek **veya** hafif alternatif: Google'ın public JWK'leriyle token doğrulama
-- [ ] İstemci tarafı: ortak `apiFetch(path, body)` helper'ı oluştur (`src/lib/apiClient.ts`)
-  - `auth.currentUser?.getIdToken()` ile token ekler
-  - `res.ok` kontrolü yapar, hata durumunda anlamlı `Error` fırlatır
-  - 15 `fetch('/api/...')` çağrısını bu helper'a taşı
-- [ ] `express-rate-limit` ekle: `/api/*` için IP başına makul limit (ör. 30 istek/dk)
-- [ ] `express.json({ limit: '25mb' })` → snap ucu için `8mb`, diğerleri için `1mb`
-- [ ] Anonim/misafir kullanım gerekiyorsa: sadece `/api/coach/chat` ve `/api/snap/solve` için düşük limitli anonim erişim; gerisi auth zorunlu
+Politika: **Melez** (kullanıcı kararı) — `snap/solve` + `coach/chat` girişsiz kullanılabilir
+ama rate-limit'li; kurum portalı ve plan üretimi Google girişi zorunlu.
+Doğrulama: **public JWK** (`jose`), `firebase-admin` yok, servis hesabı gerekmez.
 
-**Kabul kriterleri:** Token'sız `curl` ile `/api/snap/solve` → `401`. Giriş yapmış kullanıcı uygulamada tüm AI özelliklerini sorunsuz kullanıyor. Rate limit aşımında `429`.
+- [x] `server.ts` — Firebase ID token doğrulayan `requireAuth` middleware (jose `jwtVerify` + `createRemoteJWKSet`)
+  - `iss`/`aud` = `firebase-applet-config.json`'daki `projectId`, imza + expiry kontrolü
+  - Token yok → `401 AUTH_REQUIRED`, geçersiz → `401 INVALID_TOKEN` (fallback JSON değil)
+- [x] `src/lib/apiClient.ts` — ortak `apiFetch(path, body, opts?)` helper'ı
+  - Giriş varsa `Authorization: Bearer <idToken>` ekler
+  - `res.ok` kontrolü, `ApiError` (status + code + TR mesaj) fırlatır, non-JSON gövdeyi tolere eder
+  - 16 `fetch('/api/...')` çağrısı bu helper'a taşındı (11 bileşen)
+- [x] `express-rate-limit`: `/api/*` genel 60/dk + `snap/solve` & `coach/chat` için 20/dk (`aiLimiter`)
+  - `app.set('trust proxy', 1)` (Cloud Run arkasında doğru IP)
+- [x] `express.json`: `snap/solve` + `parse-optical-form` → `8mb`, diğer her şey → `1mb` (eski: global `25mb`)
+- [x] Korunan uçlar: `/api/institution/*` (3 uç) + `/api/coach/generate-plan` + `/api/coach/generate-plan-from-mock`
 
-**Riskler:** AI Studio applet ortamında `firebase-admin` service account erişimi. Yoksa JWK doğrulama yoluna geç.
+**Test sonuçları (curl, token'sız):**
+| Uç | Beklenen | Sonuç |
+|----|----------|-------|
+| `/api/health` | 200 | ✅ 200 |
+| `/api/snap/solve` | 200 (public) | ✅ 200 |
+| `/api/coach/chat` | 200 (public) | ✅ 200 |
+| `/api/coach/topic-summary`, `/api/duel/*` | 200 (public) | ✅ 200 |
+| `/api/institution/analyze-class` | 401 | ✅ 401 AUTH_REQUIRED |
+| `/api/coach/generate-plan[-from-mock]` | 401 | ✅ 401 |
+| geçersiz `Bearer` token | 401 | ✅ 401 INVALID_TOKEN |
+| `coach/chat` × 25 | ~20 sonra 429 | ✅ 18×200 + 429 |
+
+- [x] `npm run lint` → 0 hata · `npm run build` → başarılı · frontend render + konsol temiz
+
+**Not / Faz 6'ya devir:** `npm run build` `import.meta` uyarısı veriyor (`server.ts` ESM ama
+esbuild `--format=cjs`). Önceden vardı, `dev` (tsx) etkilenmiyor. Faz 6'da düzeltilecek.
+
+**Kabul kriterleri:** ✅ Token'sız korunan uç → 401, public uçlar çalışıyor, 429 tetikleniyor, lint+build temiz.
+
+### Faz 1 sonrası açık iş (Faz 3 & 4'e bağlı)
+- Kurum portalı artık giriş gerektiriyor ama uygulamada kurum girişi ayrı bir sistem
+  (`institutionAuth.ts`, localStorage). Google girişi olmayan kurum kullanıcısı korunan
+  uçları çağıramaz. **Faz 3'te** kurum auth'u Firebase'e taşınınca çözülür.
+- Bileşenlerdeki `catch` blokları hâlâ çoğunlukla sadece `console.error` + fallback.
+  `ApiError.message` kullanıcıya gösterilmiyor. **Faz 4** bunu tamamlayacak.
 
 ---
 

@@ -20,6 +20,7 @@ import confetti from 'canvas-confetti';
 import { WeeklyStudyPlan, UserProfile, StudyPlanBlock, MockExamRecord } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { playCompletionBell } from '../lib/soundEffects';
+import { apiFetch } from '../lib/apiClient';
 
 interface StudyPlannerProps {
   profile: UserProfile;
@@ -67,20 +68,14 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
   const handleGeneratePlan = async (customHours?: number, customWeak?: string[], customTitle?: string) => {
     setIsGenerating(true);
     try {
-      const res = await fetch('/api/coach/generate-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          examType: EXAM_METADATA[profile.targetExam]?.name,
-          targetScore,
-          dailyHours: customHours || dailyHours,
-          weakSubjects: customWeak || weakSubjects,
-          daysUntilExam: 120,
-          planTitle: customTitle,
-        }),
+      const data = await apiFetch('/api/coach/generate-plan', {
+        examType: EXAM_METADATA[profile.targetExam]?.name,
+        targetScore,
+        dailyHours: customHours || dailyHours,
+        weakSubjects: customWeak || weakSubjects,
+        daysUntilExam: 120,
+        planTitle: customTitle,
       });
-
-      const data = await res.json();
       const newPlan: WeeklyStudyPlan = {
         planTitle: data.planTitle || 'Haftalık Koçluk Programı',
         overview: data.overview || 'Kişiselleştirilmiş çalışma stratejisi',
@@ -128,20 +123,14 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
         .filter((s) => s && (s.wrong > 2 || (s.correct / (s.correct + s.wrong + s.blank || 1)) < 0.7))
         .map((s) => s.name);
 
-      const res = await fetch('/api/coach/generate-plan-from-mock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          examTitle: latestMock.title,
-          examType: EXAM_METADATA[latestMock.examType]?.name || latestMock.examType,
-          targetScore: profile.targetScore || '88.5',
-          dailyHours: dailyHours || 4,
-          deficientTopics: weakSecs.length > 0 ? weakSecs : ['Matematik Problemleri', 'Tarih Teşkilat Yapısı', 'Paragraf Hız'],
-          weakSections: weakSecs,
-        }),
+      const data = await apiFetch('/api/coach/generate-plan-from-mock', {
+        examTitle: latestMock.title,
+        examType: EXAM_METADATA[latestMock.examType]?.name || latestMock.examType,
+        targetScore: profile.targetScore || '88.5',
+        dailyHours: dailyHours || 4,
+        deficientTopics: weakSecs.length > 0 ? weakSecs : ['Matematik Problemleri', 'Tarih Teşkilat Yapısı', 'Paragraf Hız'],
+        weakSections: weakSecs,
       });
-
-      const data = await res.json();
       const newPlan: WeeklyStudyPlan = {
         planTitle: data.planTitle || `🎯 ${latestMock.title} Telafi Programı`,
         overview: data.overview || 'Son denemedeki eksik konulara özel telafi planı',

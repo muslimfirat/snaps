@@ -23,6 +23,7 @@ import confetti from 'canvas-confetti';
 import { Flashcard, UserProfile } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { haptics } from '../lib/haptics';
+import { apiFetch } from '../lib/apiClient';
 
 interface QuickFlashcardsProps {
   profile: UserProfile;
@@ -207,17 +208,11 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
     setIsGenerating(true);
     haptics.selection();
     try {
-      const res = await fetch('/api/coach/topic-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: selectedPresetTopic.subject,
-          topic: selectedPresetTopic.topic,
-          examType: EXAM_METADATA[profile.targetExam]?.name || 'KPSS & YKS',
-        }),
+      const data = await apiFetch('/api/coach/topic-summary', {
+        subject: selectedPresetTopic.subject,
+        topic: selectedPresetTopic.topic,
+        examType: EXAM_METADATA[profile.targetExam]?.name || 'KPSS & YKS',
       });
-
-      const data = await res.json();
       const newCard: Flashcard = {
         id: 'fc-' + Date.now(),
         category: data.subject || selectedPresetTopic.subject,

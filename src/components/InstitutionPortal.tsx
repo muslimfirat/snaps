@@ -36,6 +36,7 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import { haptics } from '../lib/haptics';
+import { apiFetch } from '../lib/apiClient';
 import { 
   InstitutionConfig, 
   ClassGroup, 
@@ -205,25 +206,19 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
     const className = safeClassGroups.find((c) => c?.id === activeExam.classGroupId)?.name || 'Tüm Kurum';
 
     try {
-      const res = await fetch('/api/institution/analyze-class', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          institutionName: institutionConfig.name,
-          className,
-          examTitle: activeExam.title,
-          classAverageNet: activeExam.averageNet,
-          sectionData: activeExam.sectionAverages,
-          studentsData: relevantStudents.map((s) => ({
-            name: s.name,
-            net: s.latestMockNet,
-            weak: s.weakSubjects,
-            status: s.status,
-          })),
-        }),
+      const data = await apiFetch('/api/institution/analyze-class', {
+        institutionName: institutionConfig.name,
+        className,
+        examTitle: activeExam.title,
+        classAverageNet: activeExam.averageNet,
+        sectionData: activeExam.sectionAverages,
+        studentsData: relevantStudents.map((s) => ({
+          name: s.name,
+          net: s.latestMockNet,
+          weak: s.weakSubjects,
+          status: s.status,
+        })),
       });
-
-      const data = await res.json();
       setAnalysisReport(data);
     } catch (err) {
       console.error('Failed class analysis:', err);
@@ -303,16 +298,11 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
     setWhatsAppMessage('');
 
     try {
-      const res = await fetch('/api/institution/generate-whatsapp-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          student,
-          institutionName: institutionConfig.name,
-          latestExam: activeExam,
-        }),
+      const data = await apiFetch('/api/institution/generate-whatsapp-report', {
+        student,
+        institutionName: institutionConfig.name,
+        latestExam: activeExam,
       });
-      const data = await res.json();
       setWhatsAppMessage(data.formattedMessage || '');
     } catch (err) {
       console.error('WhatsApp report error:', err);
@@ -338,15 +328,10 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
     setOpticalResult(null);
 
     try {
-      const res = await fetch('/api/institution/parse-optical-form', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: opticalImageBase64,
-          examType: 'YKS_SAYISAL',
-        }),
+      const data = await apiFetch('/api/institution/parse-optical-form', {
+        imageBase64: opticalImageBase64,
+        examType: 'YKS_SAYISAL',
       });
-      const data = await res.json();
       setOpticalResult(data);
     } catch (err) {
       console.error('Optical form OCR error:', err);

@@ -1,14 +1,74 @@
 import express from 'express';
 import path from 'path';
+import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// --- Firebase ID token verification (public JWK, no service account) ---
+// Faz 1: /api/* uçlarını kimlik doğrulama + rate limit ile koruma.
+const FIREBASE_PROJECT_ID: string = (() => {
+  try {
+    const cfg = JSON.parse(readFileSync(path.join(__dirname, 'firebase-applet-config.json'), 'utf-8'));
+    return cfg.projectId || '';
+  } catch {
+    return process.env.FIREBASE_PROJECT_ID || '';
+  }
+})();
+
+const FIREBASE_JWKS = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
+);
+
+interface AuthedRequest extends express.Request {
+  uid?: string;
+}
+
+/**
+ * Verifies a Firebase ID token (RS256) against Google's public keys.
+ * Checks signature, issuer, audience and expiry. Returns the token subject (uid).
+ */
+async function verifyFirebaseToken(token: string): Promise<string> {
+  const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
+    issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+    audience: FIREBASE_PROJECT_ID,
+  });
+  if (!payload.sub) throw new Error('Token subject (uid) missing');
+  return payload.sub;
+}
+
+/**
+ * Express middleware: rejects the request with 401 unless it carries a valid
+ * Firebase ID token in the `Authorization: Bearer <token>` header.
+ */
+async function requireAuth(req: AuthedRequest, res: express.Response, next: express.NextFunction): Promise<void> {
+  const header = req.headers.authorization || '';
+  const match = /^Bearer (.+)$/i.exec(header);
+  if (!match) {
+    res.status(401).json({ error: 'AUTH_REQUIRED', message: 'Bu özellik için giriş yapmanız gerekiyor.' });
+    return;
+  }
+  if (!FIREBASE_PROJECT_ID) {
+    console.error('FIREBASE_PROJECT_ID is not configured; cannot verify tokens.');
+    res.status(500).json({ error: 'AUTH_MISCONFIGURED', message: 'Sunucu kimlik doğrulaması yapılandırılmamış.' });
+    return;
+  }
+  try {
+    req.uid = await verifyFirebaseToken(match[1]);
+    next();
+  } catch (err: any) {
+    console.warn('Firebase token verification failed:', err?.message || err);
+    res.status(401).json({ error: 'INVALID_TOKEN', message: 'Oturumun doğrulanamadı, lütfen tekrar giriş yap.' });
+  }
+}
 
 // Lazy Gemini client helper
 let aiClient: GoogleGenAI | null = null;
@@ -164,12 +224,40 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json({ limit: '25mb' }));
+  // Cloud Run / proxy: needed for correct client IP in rate limiting.
+  app.set('trust proxy', 1);
 
-  // Health check
+  // Health check (before rate limiter so uptime probes are never throttled).
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
+
+  // --- Body parsers: tight default, larger only for image-carrying endpoints ---
+  app.use(['/api/snap/solve', '/api/institution/parse-optical-form'], express.json({ limit: '8mb' }));
+  app.use(express.json({ limit: '1mb' }));
+
+  // --- Rate limiting (per IP) ---
+  const apiLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'RATE_LIMITED', message: 'Çok fazla istek gönderildi, lütfen bir dakika sonra tekrar dene.' },
+  });
+  const aiLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'RATE_LIMITED', message: 'Yapay zeka istekleri için dakikalık sınıra ulaşıldı, lütfen biraz bekle.' },
+  });
+  app.use('/api', apiLimiter);
+  app.use(['/api/snap/solve', '/api/coach/chat'], aiLimiter);
+
+  // --- Auth: institution portal + study-plan generation require a signed-in user ---
+  // (Melez politika: snap/solve ve coach/chat girişsiz kullanılabilir, gerisi korunur.)
+  app.use('/api/institution', requireAuth);
+  app.use(['/api/coach/generate-plan', '/api/coach/generate-plan-from-mock'], requireAuth);
 
   // 1. AI Coach Chat endpoint
   app.post('/api/coach/chat', async (req, res) => {

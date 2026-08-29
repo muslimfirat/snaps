@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { ChatMessage, UserProfile } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
+import { apiFetch } from '../lib/apiClient';
 
 interface AICoachChatProps {
   profile: UserProfile;
@@ -82,23 +83,17 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
         content: m.content,
       }));
 
-      const res = await fetch('/api/coach/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: payloadMessages,
-          examType: EXAM_METADATA[profile.targetExam]?.name,
-          userContext: {
-            targetScore: profile.targetScore,
-            streakDays: profile.streakDays,
-            dailyQuestionTarget: profile.dailyQuestionTarget,
-            todayQuestionsSolved: profile.todayQuestionsSolved,
-            examDate: profile.examDate,
-          },
-        }),
+      const data = await apiFetch('/api/coach/chat', {
+        messages: payloadMessages,
+        examType: EXAM_METADATA[profile.targetExam]?.name,
+        userContext: {
+          targetScore: profile.targetScore,
+          streakDays: profile.streakDays,
+          dailyQuestionTarget: profile.dailyQuestionTarget,
+          todayQuestionsSolved: profile.todayQuestionsSolved,
+          examDate: profile.examDate,
+        },
       });
-
-      const data = await res.json();
       const replyContent = data.reply || 'Tavsiyelerim hazır! Hadi hedeflerine adım adım odaklanalım.';
 
       const assistantMsg: ChatMessage = {
