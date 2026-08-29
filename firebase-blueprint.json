@@ -1,0 +1,133 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile, target exam, streak, and daily targets",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the user (auth.uid)" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "targetExam": { "type": "string" },
+        "targetScore": { "type": "string" },
+        "targetMajorOrTitle": { "type": "string" },
+        "examDate": { "type": "string" },
+        "dailyStudyHourTarget": { "type": "number" },
+        "dailyQuestionTarget": { "type": "number" },
+        "todayQuestionsSolved": { "type": "number" },
+        "todayMinutesStudied": { "type": "number" },
+        "streakDays": { "type": "number" },
+        "maxStreakDays": { "type": "number" },
+        "lastActiveDate": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "targetExam"]
+    },
+    "Snap": {
+      "title": "Snap",
+      "description": "Solved question snap analysis",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "questionSummary": { "type": "string" },
+        "correctOption": { "type": "string" },
+        "stepByStepSolution": { "type": "array", "items": { "type": "string" } },
+        "keyConcept": { "type": "string" },
+        "trapExplanation": { "type": "string" },
+        "isMastered": { "type": "boolean" }
+      },
+      "required": ["userId", "subject", "topic"]
+    },
+    "MockExam": {
+      "title": "MockExam",
+      "description": "Mock exam score and section breakdown",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "examType": { "type": "string" },
+        "sections": { "type": "array" },
+        "totalNet": { "type": "number" },
+        "estimatedScore": { "type": "number" }
+      },
+      "required": ["userId", "title", "totalNet"]
+    },
+    "Mistake": {
+      "title": "Mistake",
+      "description": "Leitner mistake box question item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "questionText": { "type": "string" },
+        "boxLevel": { "type": "number" },
+        "nextReviewDate": { "type": "string" }
+      },
+      "required": ["userId", "subject", "boxLevel"]
+    },
+    "StudyPlan": {
+      "title": "StudyPlan",
+      "description": "Weekly study plan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "planTitle": { "type": "string" },
+        "overview": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "days": { "type": "array" }
+      },
+      "required": ["userId", "planTitle"]
+    },
+    "Flashcard": {
+      "title": "Flashcard",
+      "description": "Flashcards and learned status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "category": { "type": "string" },
+        "front": { "type": "string" },
+        "back": { "type": "string" },
+        "tag": { "type": "string" },
+        "isLearned": { "type": "boolean" }
+      },
+      "required": ["userId", "front", "back"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document"
+    },
+    "/users/{userId}/snaps/{snapId}": {
+      "schema": "Snap",
+      "description": "User snap questions"
+    },
+    "/users/{userId}/mockExams/{examId}": {
+      "schema": "MockExam",
+      "description": "User mock exams"
+    },
+    "/users/{userId}/mistakes/{mistakeId}": {
+      "schema": "Mistake",
+      "description": "User mistake box questions"
+    },
+    "/users/{userId}/studyPlan/{planId}": {
+      "schema": "StudyPlan",
+      "description": "User study plans"
+    },
+    "/users/{userId}/flashcards/{cardId}": {
+      "schema": "Flashcard",
+      "description": "User flashcards"
+    }
+  }
+}

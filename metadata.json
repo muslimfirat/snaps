@@ -1,0 +1,6 @@
+{
+  "name": "Snaps KPSS & YKS Koçluk",
+  "description": "KPSS ve YKS adayları ve dershaneler için yapay zeka destekli soru çözümü (Snap), sesli koçluk brifingi, akıllı hata bankası, hedef simülatörü, soru düellosu, optik form OCR, WhatsApp veli raporu ve kurumsal sınav analiz portalı.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
