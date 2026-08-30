@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Header, CATEGORY_DEFINITIONS } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { CommandSearch } from './components/CommandSearch';
@@ -9,7 +9,6 @@ import { StudyPlanner } from './components/StudyPlanner';
 import { MockExamTracker } from './components/MockExamTracker';
 import { CurriculumTracker } from './components/CurriculumTracker';
 import { PomodoroTimer } from './components/PomodoroTimer';
-import { ErrorNotebook } from './components/ErrorNotebook';
 import { QuickFlashcards } from './components/QuickFlashcards';
 import { SettingsModal } from './components/SettingsModal';
 import { InstitutionPortal } from './components/InstitutionPortal';
@@ -34,7 +33,6 @@ import { storage } from './lib/storage';
 import { initGlobalHaptics, haptics } from './lib/haptics';
 import { useAuth } from './context/AuthContext';
 import { UserProfile, SnapSolution, MockExamRecord, WeeklyStudyPlan, Subject, Flashcard, InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, MistakeQuestionItem, MainTabCategory, InstitutionAccount } from './types';
-import { EXAM_METADATA } from './data/curriculumData';
 
 const getCategoryForTab = (tab: string): MainTabCategory => {
   if (['dashboard', 'curriculum', 'streak', 'analytics', 'institution', 'inst_analysis', 'inst_students', 'inst_optical', 'inst_coaching'].includes(tab)) return 'HOME';
@@ -261,15 +259,6 @@ export default function App() {
   // State handlers with auto-persistence
   const handleSaveSnap = (snap: SnapSolution) => {
     const updated = [snap, ...snaps.filter((s) => s.id !== snap.id)];
-    setSnaps(updated);
-    storage.saveSnaps(updated);
-    if (currentUser) {
-      syncCurrentDataToCloud({ snaps: updated });
-    }
-  };
-
-  const handleDeleteSnap = (id: string) => {
-    const updated = snaps.filter((s) => s.id !== id);
     setSnaps(updated);
     storage.saveSnaps(updated);
     if (currentUser) {

@@ -25,7 +25,6 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
 }) => {
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'unlocked' | 'streak' | 'questions' | 'focus'>('all');
-  const [selectedBadge, setSelectedBadge] = useState<AchievementBadge | null>(null);
 
   const { badges, unlockedCount, currentRank } = calculateBadges(profile, mockExams, snaps);
 

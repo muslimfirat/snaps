@@ -17,11 +17,10 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
   onNavigateToPricing,
 }) => {
   const activeStudentCount = students.length || 18;
-  const studentQuota = institutionConfig.studentQuota || 100;
 
   // State for administrator customizable scenario planning
   const [tuitionPerStudentMonth, setTuitionPerStudentMonth] = useState<number>(4500); // 4.500 TL/month average tuition
-  const [tuitionMonthsPerYear, setTuitionMonthsPerYear] = useState<number>(10); // 10 months academic term
+  const [tuitionMonthsPerYear] = useState<number>(10); // 10 months academic term
   const [collectionRatePercent, setCollectionRatePercent] = useState<number>(94); // 94% on-time collection
   const [simulatedStudentCount, setSimulatedStudentCount] = useState<number>(activeStudentCount);
   const [chartViewMode, setChartViewMode] = useState<'REVENUE' | 'CASHFLOW'>('REVENUE');
@@ -51,7 +50,6 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
   const simMonthlyTuitionRevenue = simulatedStudentCount * tuitionPerStudentMonth;
   const simAnnualTuitionRevenue = simulatedStudentCount * tuitionPerStudentMonth * tuitionMonthsPerYear;
   const simAnnualSoftwareValue = simulatedStudentCount * studentMonthlySoftwarePrice * 12;
-  const simSoftwareNetSavings = Math.max(0, simAnnualSoftwareValue - annualSoftwareLicenseCost);
 
   // 12-Month Academic Revenue and Cashflow Projection Data
   const monthlyProjectionData = useMemo(() => {

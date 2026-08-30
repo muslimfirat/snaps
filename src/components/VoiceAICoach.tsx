@@ -91,11 +91,6 @@ export const VoiceAICoach: React.FC<VoiceAICoachProps> = ({
     setCurrentTopic('CUSTOM');
 
     try {
-      const prompt = `Sen ${examInfo.name} sınavına hazırlanan bir öğrencinin samimi, motive edici ve uzman rehberlik koçusun.
-Öğrencinin sorusu veya durumu: "${customQuestion}".
-Öğrencinin çözdüğü soru: ${stats.totalQuestionsSolved}, Çalışma saati: ${stats.totalStudyHours}, Ortalama neti: ${stats.averageNet}.
-Öğrenciye 2-3 cümlelik çok etkili, doğrudan harekete geçiren, samimi ve Türkçe sesli dinlemeye uygun bir koçluk yanıtı ver.`;
-
       // Simple generation or smart local fallback
       const generatedAnswer = `Harika bir soru! ${customQuestion} konusunda en kritik nokta istikrardır. Günde 40 dakika bile olsa düzenli paragraf ve branş denemesi çözdüğünde netlerinin 2 hafta içinde sıçradığını göreceksin. Şüpheyi bırak, eyleme geç!`;
       setSpokenText(generatedAnswer);

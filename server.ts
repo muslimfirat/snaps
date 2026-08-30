@@ -1633,7 +1633,7 @@ Veliye veya öğrenciye WhatsApp üzerinden gönderilecek; emojilerle zenginleş
 
   // 15. Optical Form / Exam Image OCR Reader
   app.post('/api/institution/parse-optical-form', async (req, res) => {
-    const { imageBase64, examType } = req.body;
+    const { imageBase64 } = req.body;
 
     const demoResult = () => ({
       studentName: 'Örnek Öğrenci',

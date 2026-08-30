@@ -113,7 +113,6 @@ export const DailyStreakBadge: React.FC<DailyStreakBadgeProps> = ({
   const weekDays = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
   const todayDayIndex = (today.getDay() + 6) % 7; // 0 for Monday, 6 for Sunday
 
-  const activeLoginDates = Array.isArray(profile?.loginDates) ? profile.loginDates : [];
 
   const handleOpenModal = () => {
     haptics.selection();

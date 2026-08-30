@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { BookOpen, Sparkles, CheckCircle2, AlertCircle, Repeat, Plus, Search, Trash2, HelpCircle, Lightbulb, Brain, Clock, Check, RotateCcw } from 'lucide-react';
 import { MistakeQuestionItem, LeitnerStage, TwinQuestion, UserProfile } from '../types';
 import { EmptyState } from './ui/EmptyState';
-import { Skeleton } from './ui/Skeleton';
 import { haptics } from '../lib/haptics';
 import { apiFetch } from '../lib/apiClient';
 import { getLocalDateStr } from '../lib/dateUtils';
@@ -242,7 +241,6 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-6 border-t border-slate-800/80">
           {[1, 2, 3, 4, 5].map((boxNum) => {
             const count = safeMistakes.filter((m) => m && m.leitnerStage === boxNum).length;
-            const stageInfo = getStageLabel(boxNum as LeitnerStage);
             const isSelected = selectedStage === boxNum;
 
             return (

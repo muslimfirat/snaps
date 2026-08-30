@@ -318,11 +318,33 @@ Amaç: `tsc --noUnusedLocals` ile ortaya çıkan mekanik ölü kodu temizlemek.
 
 **Kabul kriterleri:** ✅ `git diff` −556/+40 satır, yalnız import satırları. Lint + build temiz, uçlar aynı.
 
-### Faz 8b — Kullanılmayan local/parametre (bir kısmı gerçek bug adayı)
-44 non-import TS6133 kaldı. Kör silme yerine tek tek bakılmalı — bazıları eksik bağlanmış
-özellik işareti: `App.tsx` `handleDeleteSnap` (silme handler'ı hiç bağlanmamış),
-`VoiceAICoach` `prompt` (kurulan prompt hiç gönderilmiyor), `SettingsModal` `handleTestInsight`,
-`AchievementBadges` `selectedBadge` state, `InstitutionPortal` kullanılmayan prop/state'ler.
+### Faz 8b — Kullanılmayan local/import temizliği + `noUnusedLocals` açıldı  ✅ TAMAM (2026-08-30)
+
+`noUnusedLocals` (yalnız local; `noUnusedParameters` bilinçli kapalı — imza/callback
+parametreleri meşru) ile kalan 25 TS6133 tek tek elden geçirildi:
+
+- **Ölü bileşen silindi:** `src/components/ErrorNotebook.tsx` (275 satır). `SmartMistakeBank`
+  onun yerini almış (`mistakes`/`notebook`/`errors` sekmeleri); App.tsx'te yalnız ölü import'tu.
+  Beraberinde `App.tsx` `handleDeleteSnap` (yalnız ErrorNotebook'a gidiyordu) kaldırıldı
+  → **not: snap silme artık hiçbir canlı yüzeyde yok** (önceden de fiilen erişilemezdi; ürün gapı)
+- **Ölü import:** `App.tsx` (`React` react-jsx ile gereksiz, `EXAM_METADATA`), `Dashboard` (`THEME`),
+  `SmartMistakeBank` (`Skeleton`)
+- **Ölü local/state:** `AchievementBadges.selectedBadge` (hiç yapılmamış rozet-detay modalı),
+  `SettingsModal.handleTestInsight` (bağlanmamış debug tetikleyici),
+  `VoiceAICoach` `prompt` (kurulup gönderilmeyen şablon — API çağrısı yok, lokal fallback kalıyor),
+  `InstitutionPortal` `showAddExamModal`/`karneStudent` state'leri,
+  `FinancialSummary` `studentQuota`/`simSoftwareNetSavings` + `setTuitionMonthsPerYear`,
+  `Dashboard` `unlockedCount`, `CurriculumTracker` `isAnswered`, `DailyStreakBadge` `activeLoginDates`,
+  `StreakAnalytics` `selectedDayLog`, `SmartMistakeBank` `stageInfo`, `server.ts` `examType` (optical-form)
+  - Setter'ı kullanılan state'lerde değer düşürüldü: `ParentDashboard.isPdfGenerating`,
+    `SnapSolver.isPracticingSimilar` → `const [, setX] = useState(...)`
+- **`tsconfig.json`: `"noUnusedLocals": true`** kalıcı açıldı (pre-commit hook artık yeniden birikmeyi engelliyor)
+
+**Doğrulama:** `npm run lint` ✅ 0 · `npm run build` ✅ (2326 modül) · dev health/spa/solve/topic-summary
+✅ 200 · optical-form & analyze-class (token'sız) ✅ 401.
+
+**Kabul kriterleri:** ✅ `noUnusedLocals` açık ve sıfır hata. ✅ Ölü ErrorNotebook + bağlanmamış
+handler'lar temizlendi, davranış aynı.
 
 ---
 

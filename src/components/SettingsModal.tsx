@@ -79,11 +79,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     haptics.selection();
   };
 
-  const handleTestInsight = () => {
-    haptics.light();
-    window.dispatchEvent(new CustomEvent('trigger-study-insight'));
-  };
-
   const handleToggleHaptic = (enabled: boolean) => {
     setHapticState(enabled);
     setHapticsEnabled(enabled);

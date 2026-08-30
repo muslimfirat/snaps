@@ -137,7 +137,6 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
     setMetricView(view);
   };
 
-  const selectedDayLog = selectedDayIndex !== null ? logs[selectedDayIndex] : null;
 
   return (
     <div className="bg-[#1B1D27] border border-[#2D3245] rounded-3xl p-6 shadow-xl space-y-6">

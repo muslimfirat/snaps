@@ -15,7 +15,6 @@ import { DailyGoalProgressRing } from './DailyGoalProgressRing';
 import { DailyTasksWidget } from './DailyTasksWidget';
 import { QuickStartModal } from './QuickStartModal';
 import { calculateBadges } from '../lib/badgeSystem';
-import { THEME } from '../theme';
 import { haptics } from '../lib/haptics';
 
 interface DashboardProps {
@@ -63,7 +62,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const curriculumPercent = isNaN(rawCurriculumPercent) ? 0 : rawCurriculumPercent;
 
   // Calculate badges to extract the latest unlocked single badge
-  const { badges, unlockedCount } = calculateBadges(profile, safeMocks, safeSnaps);
+  const { badges } = calculateBadges(profile, safeMocks, safeSnaps);
   const unlockedBadges = badges.filter((b) => b.isUnlocked);
   const latestBadge = unlockedBadges.length > 0 ? unlockedBadges[unlockedBadges.length - 1] : badges[0];
 

@@ -95,7 +95,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [showPdfModal, setShowPdfModal] = useState<boolean>(false);
   const [pdfTargetStudent, setPdfTargetStudent] = useState<StudentRecord | null>(null);
   const [pdfScope, setPdfScope] = useState<'SINGLE' | 'BATCH'>('SINGLE');
-  const [isPdfGenerating, setIsPdfGenerating] = useState<boolean>(false);
+  const [, setIsPdfGenerating] = useState<boolean>(false);
 
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
   const [sentReportsRecord, setSentReportsRecord] = useState<Record<string, boolean>>(() => {

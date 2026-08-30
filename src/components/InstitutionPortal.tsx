@@ -55,10 +55,8 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
   // Modals
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
-  const [showAddExamModal, setShowAddExamModal] = useState(false);
   const [selectedStudentForReport, setSelectedStudentForReport] = useState<StudentRecord | null>(null);
   const [selectedStudentForCoachNote, setSelectedStudentForCoachNote] = useState<StudentRecord | null>(null);
-  const [karneStudent, setKarneStudent] = useState<StudentRecord | null>(null);
 
   // WhatsApp Report Generator State
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);

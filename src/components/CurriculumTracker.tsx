@@ -509,7 +509,6 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
               <div className="space-y-6">
                 {(quizData || []).map((q, qIdx) => {
                   const selectedOpt = userQuizAnswers[q.id || qIdx];
-                  const isAnswered = !!selectedOpt;
                   const isCorrect = selectedOpt === q.correctAnswer;
 
                   return (
