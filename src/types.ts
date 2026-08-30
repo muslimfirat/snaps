@@ -190,8 +190,12 @@ export interface InstitutionPlanItem {
 
 export interface InstitutionAccount {
   id: string;
-  email: string;
-  password: string; // Stored securely in local storage
+  /** Firebase uid of the institution owner (creator). */
+  ownerUid: string;
+  /** Firebase uids allowed into this institution's portal. */
+  memberUids: string[];
+  /** Google e-mail of the owner, for display only. */
+  ownerEmail: string;
   name: string;
   branch: string;
   directorName: string;
@@ -204,16 +208,6 @@ export interface InstitutionAccount {
   institutionExams: InstitutionExam[];
   createdAt: string;
   lastLoginAt?: string;
-}
-
-export interface InstitutionAuthSession {
-  isAuthenticated: boolean;
-  institutionId: string;
-  email: string;
-  name: string;
-  branch: string;
-  directorName: string;
-  loginTimestamp: number;
 }
 
 export interface InstitutionConfig {

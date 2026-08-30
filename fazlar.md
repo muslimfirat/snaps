@@ -265,7 +265,66 @@ bu yüzden gerçek Google girişi lokalde test edilemiyor (beklenen, değişikli
 
 ---
 
-## Faz 3b — Kurum portalını gerçek özelliğe çevir (PLANLANDI — 2026-08-30, uygulanmadı)
+## Faz 3b — Kurum portalını gerçek özelliğe çevir  ✅ TAMAM (2026-08-30)
+
+Auth modeli: **Google hesabı + `/institutions/{id}.memberUids` üyeliği.** Ayrı
+e-posta/şifre sistemi tamamen kaldırıldı. Emulator (JDK 26 + firebase-tools) ile
+uçtan uca test edildi.
+
+### Uygulama sonucu (aşağıdaki plan büyük ölçüde izlendi)
+
+- [x] `src/types.ts` — `InstitutionAccount`: `password` SİLİNDİ; `ownerUid`,
+  `memberUids: string[]`, `ownerEmail` EKLENDİ. `InstitutionAuthSession` interface'i SİLİNDİ.
+- [x] `src/lib/institutionAuth.ts` (580 satır, 3 sahte kurum + parola mantığı) SİLİNDİ →
+  `src/lib/institutionStore.ts` (Firestore): `fetchMyInstitution(uid)` (`memberUids`
+  `array-contains` sorgusu), `createInstitution(uid, email, form)`,
+  `seedDemoInstitution(uid, email)` (örnek sınıf/öğrenci/deneme), `syncInstitutionToFirestore(id, partial)`
+  (`setDoc merge` — `ownerUid`/`memberUids` asla gönderilmez). Hepsinde `database?` param (test enjeksiyonu).
+- [x] `firestore.rules` — `instMember()` helper + `/institutions/{instId}` bloğu
+  (get=üye, list=authed, create=owner==uid ∧ uid∈memberUids, update=üye ∧ owner değişmez,
+  delete=owner). `data/institutionData.ts` DEFAULT_* seed'leri KALDI.
+- [x] `src/components/InstitutionLoginView.tsx` yeniden yazıldı (529 → ~340 satır):
+  3 faz — `NEEDS_GOOGLE` (`<GoogleAuthButton/>`), `CHECKING` (`fetchMyInstitution`),
+  `NO_INSTITUTION` (kurum oluştur formu + "örnek verilerle başlat" onay kutusu, ŞİFRE YOK).
+  Kurumu varsa effect `onLoginSuccess`. Demo rozeti/uyarı bandı/hızlı-demo-login KALDIRILDI.
+- [x] `src/App.tsx` — senkron localStorage init'leri kalktı; `useEffect([currentUser?.uid])`
+  → `fetchMyInstitution`. `handleInstitutionLogout` artık **Google oturumunu kapatmaz**,
+  sadece local state temizler. `handleUpdateInstitution*` → `persistInstitution()` helper
+  → `syncInstitutionToFirestore`. localStorage yazımları offline cache olarak kaldı.
+- [x] `src/components/InstitutionPortal.tsx` — `activeInstitutionId` prop; 3 `/api/institution/*`
+  çağrısına `institutionId` body'e eklendi.
+- [x] `server.ts` — `requireAuth` artık `req.idToken` saklıyor. Yeni `requireInstitutionMember`:
+  `req.body.institutionId` yoksa `400`; Firestore REST (`FIRESTORE_REST_BASE`, emulator-aware)
+  ile `institutions/{id}` dokümanını **kullanıcının token'ıyla** okur → 401/403 → `403
+  INSTITUTION_FORBIDDEN`, 404 → `404`, ağ → `502`; `memberUids`'te uid yoksa `403`.
+  `app.use('/api/institution', requireInstitutionMember)` (requireAuth'tan sonra).
+  Config okuması `FIREBASE_CONFIG` (projectId + firestoreDatabaseId).
+- [x] `test/firestore.test.mjs` — 4 yeni institution testi (owner create + non-member deny,
+  eklenen üye okur ama owner'ı ele geçiremez, sahte owner ile create reddi, seedDemo).
+
+**Doğrulama:**
+| Kontrol | Sonuç |
+|---------|-------|
+| `npm run test:rules` (emulator) | ✅ 11/11 pass (7 eski + 4 yeni) |
+| `npm run lint` (strict + noUnusedLocals) | ✅ 0 hata |
+| `npm run build` | ✅ 2326 modül, chunk bölme korundu, `server.mjs` OK |
+| dev `/api/health` `/` `/api/snap/solve` | ✅ 200 |
+| dev `/api/institution/analyze-class` (token'sız) | ✅ 401 AUTH_REQUIRED |
+| dev `/api/institution/generate-whatsapp-report` (geçersiz token) | ✅ 401 INVALID_TOKEN |
+| tarayıcı: Kurum Portalı → "Google ile giriş" ekranı render + konsol temiz | ✅ |
+
+**Bilinen sınır / devir:** `requireInstitutionMember`'ın `400 INSTITUTION_ID_REQUIRED` ve
+üye=200 / üye-değil=403 yolları geçerli imzalı token gerektirdiğinden dev'de doğrulanamadı
+(Faz 2b ile aynı sınır — staging). Firestore REST zaten kuralları uyguladığı için üye-değil
+kullanıcı REST'ten de 403 alır; sunucudaki `memberUids` kontrolü ek savunma. Kurum verisi
+ilk sürümde gömülü dizi (`students` vb.) — büyürse `/institutions/{id}/students/{sid}`
+ayrımı ayrı işe bırakıldı (Faz 2b deseni). Üye ekleme/çıkarma UI'si yok (Firestore'dan elle).
+
+---
+
+### Orijinal plan (referans)
+
+**Auth modeli kararı (kullanıcı, 2026-08-30): Google hesabı + üyelik.** Kurum yöneticisi
 
 **Auth modeli kararı (kullanıcı, 2026-08-30): Google hesabı + üyelik.** Kurum yöneticisi
 mevcut Google girişiyle oturum açar; uid'si bir `/institutions/{id}` dokümanının
@@ -598,5 +657,5 @@ handler'lar temizlendi, davranış aynı.
 | 0–7 | ✅ | `faa78ea`…`3b5fd93` |
 | 8 — ölü import temizliği | ✅ | `7a533f5` |
 | 8b — ölü local + `noUnusedLocals` | ✅ | `ed9c1c4` |
-| 2b — alt-koleksiyon migrasyonu | ✅ emulator ile test edildi (7/7) | — |
-| 3b — kurum portalı gerçek auth (Google+üyelik) | 📋 spec hazır (emulator artık kurulu) | — |
+| 2b — alt-koleksiyon migrasyonu | ✅ emulator ile test edildi (7/7) | `8cde320` |
+| 3b — kurum portalı gerçek auth (Google+üyelik) | ✅ emulator ile test edildi (11/11) | — |

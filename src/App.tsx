@@ -22,12 +22,7 @@ import { StreakAnalytics } from './components/StreakAnalytics';
 import { InstitutionLoginView } from './components/InstitutionLoginView';
 import { StudyInsightsToast } from './components/StudyInsightsToast';
 import { ApiErrorToast } from './components/ApiErrorToast';
-import { 
-  getCurrentInstitutionSession, 
-  getInstitutionAccountById, 
-  logoutInstitution, 
-  syncInstitutionData 
-} from './lib/institutionAuth';
+import { fetchMyInstitution, syncInstitutionToFirestore } from './lib/institutionStore';
 
 import { storage } from './lib/storage';
 import { initGlobalHaptics, haptics } from './lib/haptics';
@@ -136,56 +131,47 @@ export default function App() {
     };
   }, [currentUser?.uid]);
 
-  // Institution / Multi-Tenant Auth State
-  const [currentInstitutionAccount, setCurrentInstitutionAccount] = useState<InstitutionAccount | null>(() => {
-    const session = getCurrentInstitutionSession();
-    if (session) {
-      const acc = getInstitutionAccountById(session.institutionId);
-      if (acc) return acc;
-    }
-    return null;
-  });
+  // Institution / Multi-Tenant Auth State.
+  // The authoritative source is Firestore (`/institutions/{id}`); a signed-in
+  // Google user reaches the portal only if their uid is in `memberUids`.
+  // localStorage stays a per-device offline cache for the last active tenant.
+  const [currentInstitutionAccount, setCurrentInstitutionAccount] = useState<InstitutionAccount | null>(null);
+  const [isInstitutionAuthenticated, setIsInstitutionAuthenticated] = useState<boolean>(false);
+  const [institutionConfig, setInstitutionConfig] = useState<InstitutionConfig>(() => storage.getInstitutionConfig());
+  const [classGroups, setClassGroups] = useState<ClassGroup[]>(() => storage.getClassGroups());
+  const [students, setStudents] = useState<StudentRecord[]>(() => storage.getStudents());
+  const [institutionExams, setInstitutionExams] = useState<InstitutionExam[]>(() => storage.getInstitutionExams());
 
-  const [isInstitutionAuthenticated, setIsInstitutionAuthenticated] = useState<boolean>(() => {
-    return !!getCurrentInstitutionSession();
-  });
-
-  // Institution / Dershane State initialized from active tenant if authenticated
-  const [institutionConfig, setInstitutionConfig] = useState<InstitutionConfig>(() => {
-    const session = getCurrentInstitutionSession();
-    if (session) {
-      const acc = getInstitutionAccountById(session.institutionId);
-      if (acc) return acc.config;
+  // Resolve the signed-in user's institution membership. Runs on uid change:
+  // signing out of Google drops portal access; signing in restores it.
+  useEffect(() => {
+    if (!currentUser) {
+      setIsInstitutionAuthenticated(false);
+      setCurrentInstitutionAccount(null);
+      return;
     }
-    return storage.getInstitutionConfig();
-  });
 
-  const [classGroups, setClassGroups] = useState<ClassGroup[]>(() => {
-    const session = getCurrentInstitutionSession();
-    if (session) {
-      const acc = getInstitutionAccountById(session.institutionId);
-      if (acc) return acc.classGroups;
-    }
-    return storage.getClassGroups();
-  });
+    let cancelled = false;
+    (async () => {
+      try {
+        const account = await fetchMyInstitution(currentUser.uid);
+        if (cancelled || !account) return;
+        setCurrentInstitutionAccount(account);
+        setIsInstitutionAuthenticated(true);
+        setInstitutionConfig(account.config);
+        setClassGroups(account.classGroups || []);
+        setStudents(account.students || []);
+        setInstitutionExams(account.institutionExams || []);
+        storage.saveInstitutionConfig(account.config);
+      } catch (err) {
+        console.warn('Institution membership lookup failed:', err);
+      }
+    })();
 
-  const [students, setStudents] = useState<StudentRecord[]>(() => {
-    const session = getCurrentInstitutionSession();
-    if (session) {
-      const acc = getInstitutionAccountById(session.institutionId);
-      if (acc) return acc.students;
-    }
-    return storage.getStudents();
-  });
-
-  const [institutionExams, setInstitutionExams] = useState<InstitutionExam[]>(() => {
-    const session = getCurrentInstitutionSession();
-    if (session) {
-      const acc = getInstitutionAccountById(session.institutionId);
-      if (acc) return acc.institutionExams;
-    }
-    return storage.getInstitutionExams();
-  });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser?.uid]);
 
   // Initialize global tactile haptic feedback for all interactive elements
   useEffect(() => {
@@ -341,48 +327,55 @@ export default function App() {
     setActiveTab('institution');
   };
 
+  // Leaves the portal back to student mode. Does NOT sign out of Google —
+  // institution access follows the Google session now.
   const handleInstitutionLogout = () => {
     haptics.light();
-    logoutInstitution();
     setIsInstitutionAuthenticated(false);
     setCurrentInstitutionAccount(null);
     handleSelectTab('dashboard', 'HOME');
   };
 
+  const persistInstitution = (
+    partial: Parameters<typeof syncInstitutionToFirestore>[1],
+  ) => {
+    if (!currentInstitutionAccount) return;
+    setCurrentInstitutionAccount(prev => (prev ? { ...prev, ...partial } : null));
+    syncInstitutionToFirestore(currentInstitutionAccount.id, partial).catch(err => {
+      console.error('Institution cloud sync failed:', err);
+    });
+  };
+
   const handleUpdateInstitutionConfig = (config: InstitutionConfig) => {
     setInstitutionConfig(config);
     storage.saveInstitutionConfig(config);
-    if (currentInstitutionAccount) {
-      syncInstitutionData(currentInstitutionAccount.id, { config });
-      setCurrentInstitutionAccount(prev => prev ? { ...prev, config } : null);
-    }
+    persistInstitution({
+      config,
+      name: config.name,
+      branch: config.branch,
+      directorName: config.directorName,
+      phone: config.phone,
+      logoText: config.logoText,
+      themeColor: config.themeColor,
+    });
   };
 
   const handleUpdateClassGroups = (groups: ClassGroup[]) => {
     setClassGroups(groups);
     storage.saveClassGroups(groups);
-    if (currentInstitutionAccount) {
-      syncInstitutionData(currentInstitutionAccount.id, { classGroups: groups });
-      setCurrentInstitutionAccount(prev => prev ? { ...prev, classGroups: groups } : null);
-    }
+    persistInstitution({ classGroups: groups });
   };
 
   const handleUpdateStudents = (newStudents: StudentRecord[]) => {
     setStudents(newStudents);
     storage.saveStudents(newStudents);
-    if (currentInstitutionAccount) {
-      syncInstitutionData(currentInstitutionAccount.id, { students: newStudents });
-      setCurrentInstitutionAccount(prev => prev ? { ...prev, students: newStudents } : null);
-    }
+    persistInstitution({ students: newStudents });
   };
 
   const handleUpdateInstitutionExams = (exams: InstitutionExam[]) => {
     setInstitutionExams(exams);
     storage.saveInstitutionExams(exams);
-    if (currentInstitutionAccount) {
-      syncInstitutionData(currentInstitutionAccount.id, { institutionExams: exams });
-      setCurrentInstitutionAccount(prev => prev ? { ...prev, institutionExams: exams } : null);
-    }
+    persistInstitution({ institutionExams: exams });
   };
 
   // Daily Question / Study stats
@@ -575,7 +568,8 @@ export default function App() {
               onUpdateStudents={handleUpdateStudents}
               onUpdateInstitutionExams={handleUpdateInstitutionExams}
               onSwitchToStudentMode={() => handleSelectTab('dashboard', 'HOME')}
-              activeInstitutionEmail={currentInstitutionAccount?.email}
+              activeInstitutionId={currentInstitutionAccount?.id}
+              activeInstitutionEmail={currentInstitutionAccount?.ownerEmail}
               onLogoutInstitution={handleInstitutionLogout}
             />
           ) : (

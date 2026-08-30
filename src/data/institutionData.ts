@@ -1,7 +1,7 @@
 /**
- * ⚠️ DEMO DATA — all institutions, class groups, students, phone numbers and exam
- * results below are fictional sample data for the institution portal preview.
- * They are not real people. See [institutionAuth.ts] for the demo-mode caveat.
+ * ⚠️ SAMPLE DATA — the class groups, students, phone numbers and exam results
+ * below are fictional. They seed a new institution (and the "start with sample
+ * data" option in the portal login); they are not real people.
  */
 import { InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, InstitutionPlanItem } from '../types';
 

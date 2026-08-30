@@ -26,6 +26,8 @@ interface InstitutionPortalProps {
   onUpdateStudents: (students: StudentRecord[]) => void;
   onUpdateInstitutionExams: (exams: InstitutionExam[]) => void;
   onSwitchToStudentMode: () => void;
+  /** Firestore id of the active institution — sent with every /api/institution/* call. */
+  activeInstitutionId?: string;
   activeInstitutionEmail?: string;
   onLogoutInstitution?: () => void;
 }
@@ -40,6 +42,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
   onUpdateStudents,
   onUpdateInstitutionExams,
   onSwitchToStudentMode,
+  activeInstitutionId,
   activeInstitutionEmail,
   onLogoutInstitution,
 }) => {
@@ -170,6 +173,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
     try {
       const data = await apiFetch('/api/institution/analyze-class', {
+        institutionId: activeInstitutionId,
         institutionName: institutionConfig.name,
         className,
         examTitle: activeExam.title,
@@ -262,6 +266,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
     try {
       const data = await apiFetch('/api/institution/generate-whatsapp-report', {
+        institutionId: activeInstitutionId,
         student,
         institutionName: institutionConfig.name,
         latestExam: activeExam,
@@ -292,6 +297,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
     try {
       const data = await apiFetch('/api/institution/parse-optical-form', {
+        institutionId: activeInstitutionId,
         imageBase64: opticalImageBase64,
         examType: 'YKS_SAYISAL',
       });

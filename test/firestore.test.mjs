@@ -11,7 +11,7 @@ import {
   assertFails,
   assertSucceeds,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, getDocs, setDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, setDoc, updateDoc, collection } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 
 import {
@@ -20,6 +20,12 @@ import {
   fetchAllCollections,
   migrateUserToSubcollections,
 } from '../src/lib/firestoreSync.ts';
+import {
+  createInstitution,
+  seedDemoInstitution,
+  fetchMyInstitution,
+  syncInstitutionToFirestore,
+} from '../src/lib/institutionStore.ts';
 
 const PROJECT_ID = 'siapp-e1be9';
 
@@ -145,4 +151,80 @@ test('scenario 4: another user cannot touch someone else\'s subcollection', asyn
 test('fetchAllCollections returns null for a brand-new user with nothing stored', async () => {
   const ghostDb = testEnv.authenticatedContext('ghost').firestore();
   assert.equal(await fetchAllCollections('ghost', ghostDb), null);
+});
+
+// --- Faz 3b: institution portal membership -------------------------------------
+
+const CREATE_FORM = {
+  name: 'Zafer VIP Kursu',
+  branch: 'Çayyolu',
+  directorName: 'K. Vural',
+  phone: '0312 000 00 00',
+};
+
+test('institution: owner creates it, a non-member cannot read it', async () => {
+  const account = await createInstitution('alice', 'alice@example.com', CREATE_FORM, aliceDb);
+  assert.equal(account.ownerUid, 'alice');
+  assert.deepEqual(account.memberUids, ['alice']);
+  assert.equal(account.classGroups.length, 1);
+
+  // Owner reads their own institution back via the array-contains query.
+  const mine = await fetchMyInstitution('alice', aliceDb);
+  assert.equal(mine?.id, account.id);
+  assert.equal(mine?.name, 'Zafer VIP Kursu');
+
+  // Bob is not a member → get denied, and the query returns nothing.
+  await assertFails(getDoc(doc(bobDb, 'institutions', account.id)));
+  assert.equal(await fetchMyInstitution('bob', bobDb), null);
+});
+
+test('institution: added member reads it but cannot change the owner', async () => {
+  const account = await createInstitution('alice', 'alice@example.com', CREATE_FORM, aliceDb);
+
+  // Alice adds Bob as a member (allowed: owner unchanged, still a member herself).
+  await assertSucceeds(
+    updateDoc(doc(aliceDb, 'institutions', account.id), { memberUids: ['alice', 'bob'] }),
+  );
+
+  const bobView = await fetchMyInstitution('bob', bobDb);
+  assert.equal(bobView?.id, account.id);
+
+  // Bob (a member) may edit content...
+  await assertSucceeds(syncInstitutionToFirestore(account.id, { phone: '0312 111 11 11' }, bobDb));
+
+  // ...but may not seize ownership.
+  await assertFails(
+    updateDoc(doc(bobDb, 'institutions', account.id), { ownerUid: 'bob' }),
+  );
+});
+
+test('institution: cannot be created claiming someone else as owner', async () => {
+  await assertFails(
+    setDoc(doc(collection(bobDb, 'institutions')), {
+      ownerUid: 'alice',
+      memberUids: ['alice'],
+      ownerEmail: 'alice@example.com',
+      name: 'Fake',
+    }),
+  );
+  // ...nor with an owner who is not in memberUids.
+  await assertFails(
+    setDoc(doc(collection(bobDb, 'institutions')), {
+      ownerUid: 'bob',
+      memberUids: ['someone-else'],
+      ownerEmail: 'bob@example.com',
+      name: 'Fake',
+    }),
+  );
+});
+
+test('institution: seedDemoInstitution fills sample class/student/exam data', async () => {
+  const carolDb = testEnv.authenticatedContext('carol').firestore();
+  const account = await seedDemoInstitution('carol', 'carol@example.com', carolDb);
+  assert.ok(account.classGroups.length >= 1);
+  assert.ok(account.students.length >= 1);
+  assert.ok(account.institutionExams.length >= 1);
+
+  const stored = await fetchMyInstitution('carol', carolDb);
+  assert.equal(stored?.students.length, account.students.length);
 });

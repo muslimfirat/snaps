@@ -39,16 +39,30 @@ tüm AI özellikleri hazır (curated) yedek içerik döndürür — uygulama yin
 | Uç | Erişim |
 |----|--------|
 | `snap/solve`, `coach/chat` ve diğer öğrenme araçları | Girişsiz, rate-limit'li |
-| `institution/*`, `coach/generate-plan[-from-mock]` | Google girişi zorunlu |
+| `coach/generate-plan[-from-mock]` | Google girişi zorunlu |
+| `institution/*` | Google girişi + kurum üyeliği (`memberUids`) zorunlu → aksi halde `403` |
+
+## Kurum portalı
+
+Kurum ("dershane") portalı Firebase Auth ile korunur:
+
+- Yönetici mevcut **Google hesabıyla** giriş yapar; ayrı e-posta/şifre yoktur.
+- Her kurum `/institutions/{id}` Firestore dokümanıdır; erişim `memberUids`
+  dizisiyle sınırlıdır (`firestore.rules`). Öğrenci/veli iletişim bilgileri yalnızca
+  yetkili üyelere açıktır.
+- Sunucu `/api/institution/*` çağrılarında üyeliği kullanıcının ID token'ı ile
+  Firestore REST üzerinden doğrular (`firebase-admin` yok).
+- İlk girişte kurum bulunmazsa yönetici yeni kurum oluşturur (isteğe bağlı olarak
+  kurgusal örnek verilerle). Örnek veriler `src/data/institutionData.ts`.
+
+Kurallar + üyelik testleri: `npm run test:rules` (emulator, `test/firestore.test.mjs`).
 
 ## Bilinen sınırlamalar
 
-- **Kurum portalı (dershane girişi) bir DEMO'dur.** Gerçek kimlik doğrulama yoktur;
-  hesaplar ve öğrenci bilgileri yalnızca tarayıcının `localStorage`'ında tutulur ve
-  tamamen kurgusal örnek verilerden oluşur. Gerçek öğrenci verisi girmeyin.
-  Bkz. `src/lib/institutionAuth.ts`.
-- Bulut senkronu tek `/users/{uid}` dokümanı kullanır; snap fotoğrafları buluta
-  taşınmaz (yalnızca yerel). Ayrıntı ve gelecek planı: `fazlar.md`.
+- Snap fotoğrafları buluta taşınmaz (yalnızca yerel cihazda). Kullanıcı verisi
+  `/users/{uid}` ana dokümanı + alt-koleksiyonlarda tutulur. Ayrıntı: `fazlar.md`.
+- Gerçek Google popup + isimli Firestore veritabanı ile uçtan uca doğrulama ancak
+  staging'de yapılabilir; emulator kural + mantık katmanını kapsar.
 
 ## Yol haritası
 

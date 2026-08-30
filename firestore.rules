@@ -12,6 +12,10 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function instMember(inst) {
+      return isAuthenticated() && request.auth.uid in inst.memberUids;
+    }
+
     // User-specific data isolation
     match /users/{userId} {
       allow read, write: if isOwner(userId);
@@ -19,6 +23,20 @@ service cloud.firestore {
       match /{subcollection=**} {
         allow read, write: if isOwner(userId);
       }
+    }
+
+    // Institution ("dershane") portal — access gated by membership (Faz 3b).
+    match /institutions/{instId} {
+      allow get:    if instMember(resource.data);
+      // array-contains query on memberUids; get above still filters each doc.
+      allow list:   if isAuthenticated();
+      allow create: if isAuthenticated()
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.auth.uid in request.resource.data.memberUids;
+      allow update: if instMember(resource.data)
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && request.auth.uid in request.resource.data.memberUids;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerUid;
     }
 
     // Default deny

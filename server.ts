@@ -15,14 +15,26 @@ const __dirname = path.dirname(__filename);
 
 // --- Firebase ID token verification (public JWK, no service account) ---
 // Faz 1: /api/* uçlarını kimlik doğrulama + rate limit ile koruma.
-const FIREBASE_PROJECT_ID: string = (() => {
+const FIREBASE_CONFIG: { projectId: string; firestoreDatabaseId: string } = (() => {
   try {
     const cfg = JSON.parse(readFileSync(path.join(__dirname, 'firebase-applet-config.json'), 'utf-8'));
-    return cfg.projectId || '';
+    return {
+      projectId: cfg.projectId || '',
+      firestoreDatabaseId: cfg.firestoreDatabaseId || '(default)',
+    };
   } catch {
-    return process.env.FIREBASE_PROJECT_ID || '';
+    return {
+      projectId: process.env.FIREBASE_PROJECT_ID || '',
+      firestoreDatabaseId: process.env.FIRESTORE_DATABASE_ID || '(default)',
+    };
   }
 })();
+const FIREBASE_PROJECT_ID: string = FIREBASE_CONFIG.projectId;
+
+// Firestore REST base — points at the local emulator when FIRESTORE_EMULATOR_HOST is set.
+const FIRESTORE_REST_BASE: string = process.env.FIRESTORE_EMULATOR_HOST
+  ? `http://${process.env.FIRESTORE_EMULATOR_HOST}`
+  : 'https://firestore.googleapis.com';
 
 const FIREBASE_JWKS = createRemoteJWKSet(
   new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
@@ -30,6 +42,8 @@ const FIREBASE_JWKS = createRemoteJWKSet(
 
 interface AuthedRequest extends express.Request {
   uid?: string;
+  /** Raw bearer token, kept so downstream middleware can call Firestore REST as the user. */
+  idToken?: string;
 }
 
 /**
@@ -63,10 +77,70 @@ async function requireAuth(req: AuthedRequest, res: express.Response, next: expr
   }
   try {
     req.uid = await verifyFirebaseToken(match[1]);
+    req.idToken = match[1];
     next();
   } catch (err: any) {
     console.warn('Firebase token verification failed:', err?.message || err);
     res.status(401).json({ error: 'INVALID_TOKEN', message: 'Oturumun doğrulanamadı, lütfen tekrar giriş yap.' });
+  }
+}
+
+/**
+ * Reads `institutions/{institutionId}` from Firestore REST *as the requesting
+ * user*. Firestore security rules only return the document to a member, so a
+ * non-member gets 403/404 from Firestore directly; we additionally verify the
+ * uid is present in `memberUids` as a defence-in-depth check.
+ *
+ * Must run after {@link requireAuth} (needs `req.uid` + `req.idToken`) and after
+ * the JSON body parser (needs `req.body.institutionId`).
+ */
+async function requireInstitutionMember(
+  req: AuthedRequest,
+  res: express.Response,
+  next: express.NextFunction,
+): Promise<void> {
+  const institutionId = (req.body && req.body.institutionId) as string | undefined;
+  if (!institutionId || typeof institutionId !== 'string') {
+    res.status(400).json({ error: 'INSTITUTION_ID_REQUIRED', message: 'Kurum kimliği eksik.' });
+    return;
+  }
+
+  const dbId = FIREBASE_CONFIG.firestoreDatabaseId || '(default)';
+  const url =
+    `${FIRESTORE_REST_BASE}/v1/projects/${FIREBASE_PROJECT_ID}` +
+    `/databases/${encodeURIComponent(dbId)}/documents/institutions/${encodeURIComponent(institutionId)}`;
+
+  try {
+    const r = await fetch(url, { headers: { Authorization: `Bearer ${req.idToken}` } });
+
+    if (r.status === 401 || r.status === 403) {
+      res.status(403).json({ error: 'INSTITUTION_FORBIDDEN', message: 'Bu kuruma erişim yetkiniz yok.' });
+      return;
+    }
+    if (r.status === 404) {
+      res.status(404).json({ error: 'INSTITUTION_NOT_FOUND', message: 'Kurum bulunamadı.' });
+      return;
+    }
+    if (!r.ok) {
+      console.warn(`Institution check: Firestore REST returned ${r.status}`);
+      res.status(502).json({ error: 'INSTITUTION_CHECK_FAILED', message: 'Kurum doğrulaması yapılamadı.' });
+      return;
+    }
+
+    const doc: any = await r.json();
+    const members: string[] = (doc?.fields?.memberUids?.arrayValue?.values || [])
+      .map((v: any) => v?.stringValue)
+      .filter(Boolean);
+
+    if (!req.uid || !members.includes(req.uid)) {
+      res.status(403).json({ error: 'INSTITUTION_FORBIDDEN', message: 'Bu kuruma erişim yetkiniz yok.' });
+      return;
+    }
+
+    next();
+  } catch (err: any) {
+    console.warn('Institution membership check failed:', err?.message || err);
+    res.status(502).json({ error: 'INSTITUTION_CHECK_FAILED', message: 'Kurum doğrulaması yapılamadı.' });
   }
 }
 
@@ -340,6 +414,7 @@ async function startServer() {
   // --- Auth: institution portal + study-plan generation require a signed-in user ---
   // (Melez politika: snap/solve ve coach/chat girişsiz kullanılabilir, gerisi korunur.)
   app.use('/api/institution', requireAuth);
+  app.use('/api/institution', requireInstitutionMember);
   app.use(['/api/coach/generate-plan', '/api/coach/generate-plan-from-mock'], requireAuth);
 
   // 1. AI Coach Chat endpoint
