@@ -181,7 +181,7 @@ export const InstitutionLoginView: React.FC<InstitutionLoginViewProps> = ({
         {/* Phase: signed in, no institution yet → create one */}
         {phase === 'NO_INSTITUTION' && (
           <form onSubmit={handleCreate} className="max-w-2xl mx-auto space-y-4">
-            <div className="p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-[12px] text-indigo-100/90 leading-relaxed">
+            <div className="p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-xs text-indigo-100/90 leading-relaxed">
               <strong className="text-white">{currentUser?.email}</strong> hesabına bağlı bir kurum
               bulunamadı. Yeni bir kurum oluşturun; sahibi ve ilk yetkili üyesi siz olursunuz.
             </div>

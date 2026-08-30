@@ -154,7 +154,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
               <h2 className="text-xl font-extrabold text-white">
                 Snaps 7/24 AI Sınav Koçu
               </h2>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-3xs font-bold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                 Çevrimiçi
               </span>
@@ -185,7 +185,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
 
       {/* Quick Coaching Prompt Chips */}
       <div className="space-y-2">
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+        <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
           <Sparkles className="w-3 h-3 text-amber-400" />
           Hızlı Koçluk Konuları:
         </span>
@@ -237,7 +237,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
 
                   {/* Footer Info & Audio Button */}
                   <div
-                    className={`flex items-center justify-between pt-1 border-t text-[10px] ${
+                    className={`flex items-center justify-between pt-1 border-t text-3xs ${
                       isAI ? 'border-slate-800/80 text-slate-500' : 'border-indigo-500/50 text-indigo-200'
                     }`}
                   >

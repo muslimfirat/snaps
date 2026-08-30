@@ -110,7 +110,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded uppercase">
+                      <span className="text-3xs font-black text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded uppercase">
                         Adım {s.step}
                       </span>
                       <h4 className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">

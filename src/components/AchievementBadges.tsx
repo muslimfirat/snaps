@@ -77,7 +77,7 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
                 <h2 className="text-sm font-bold text-white">
                   Başarı Rozetleri & Ünvanlar
                 </h2>
-                <span className="text-[11px] font-semibold text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                <span className="text-2xs font-semibold text-amber-400/90 bg-amber-500/10 px-2 py-0.5 rounded-md">
                   {unlockedCount}/{badges.length} Açıldı
                 </span>
               </div>
@@ -234,11 +234,11 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h4 className="text-xs font-bold text-white truncate">{badge.title}</h4>
-                          <span className="text-[10px] uppercase font-semibold text-slate-400">
+                          <span className="text-3xs uppercase font-semibold text-slate-400">
                             {badge.tier}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                        <p className="text-2xs text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
                           {badge.description}
                         </p>
                       </div>
@@ -248,13 +248,13 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
                     <div className="mt-3 pt-2.5 border-t border-slate-800/80">
                       {badge.isUnlocked ? (
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-3xs text-slate-400">
                             Ünvan: <strong className="text-amber-300 font-semibold">{badge.statusTitle}</strong>
                           </span>
 
                           <button
                             onClick={() => handleSelectTitle(badge)}
-                            className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-colors flex items-center gap-1 ${
+                            className={`px-2 py-1 rounded-md text-2xs font-semibold transition-colors flex items-center gap-1 ${
                               isSelectedTitle
                                 ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40'
                                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
@@ -272,7 +272,7 @@ export const AchievementBadges: React.FC<AchievementBadgesProps> = ({
                         </div>
                       ) : (
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between text-[10px] text-slate-400">
+                          <div className="flex items-center justify-between text-3xs text-slate-400">
                             <span>İlerleme</span>
                             <span className="font-mono">%{badge.progress}</span>
                           </div>

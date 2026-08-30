@@ -207,6 +207,9 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
       setTimeout(() => inputRef.current?.focus(), 50);
       setQuery('');
       setSelectedIndex(0);
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
     }
   }, [isOpen]);
 
@@ -242,9 +245,18 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-start justify-center pt-16 sm:pt-24 p-4 animate-in fade-in duration-150">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-150">
-        
+    <div
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-start justify-center pt-16 sm:pt-24 p-4 animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Evrensel arama ve komut paleti"
+        className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+
         {/* Search Header Input */}
         <div className="relative border-b border-slate-800 p-4 flex items-center gap-3">
           <Search className="w-5 h-5 text-indigo-400 shrink-0" />
@@ -268,7 +280,7 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-slate-400 font-mono">
+          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-3xs text-slate-400 font-mono">
             ESC
           </kbd>
         </div>
@@ -276,7 +288,7 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
         {/* Quick Suggestion Chips */}
         {!query && (
           <div className="px-4 py-2 bg-slate-950/40 border-b border-slate-800/60 flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider shrink-0">
+            <span className="text-2xs text-slate-500 font-semibold uppercase tracking-wider shrink-0">
               Hızlı Öneriler:
             </span>
             {['📸 Soru Çöz', '🎙️ Sesli Koç', '🎯 Hedef Simülatörü', '⚡ Hızlı Okuma', '📲 WhatsApp Raporu'].map((chip, idx) => (
@@ -329,12 +341,12 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white truncate">{item.title}</span>
                         {item.badge && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                          <span className="text-3xs font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                             {item.badge}
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">{item.subtitle}</p>
+                      <p className="text-2xs text-slate-400 truncate mt-0.5">{item.subtitle}</p>
                     </div>
                   </div>
 
@@ -348,7 +360,7 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="p-3 bg-slate-950/60 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-between px-4">
+        <div className="p-3 bg-slate-950/60 border-t border-slate-800 text-2xs text-slate-500 flex items-center justify-between px-4">
           <span>Seçmek için <strong className="text-slate-400">↑↓</strong> ve <strong className="text-slate-400">Enter</strong></span>
           <span>4 Ana Kategori • 16 Entegre Araç</span>
         </div>

@@ -115,7 +115,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   <span>1. Öğrenci Ekranı (Bireysel 250 ₺ / Ay)</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-normal">
+                <p className="text-2xs text-slate-400 leading-normal">
                   Öğrenci yalnızca kendi bireysel <strong className="text-slate-200">250 TL/aylık</strong> PRO üyeliğini veya <strong className="text-slate-200">"Dershane Tarafından Karşılanıyor"</strong> lisans durumunu görür. Karmaşık 20.000 TL kurumsal rakamlar öğrenciye gösterilmez.
                 </p>
               </div>
@@ -125,7 +125,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
                   <span className="w-2 h-2 rounded-full bg-indigo-400" />
                   <span>2. Dershane Portalı (Yıllık 20.000 ₺ & Kademeli Kotasyon)</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-normal">
+                <p className="text-2xs text-slate-400 leading-normal">
                   Yalnızca kurum yetkilileri bu sekmede <strong className="text-slate-200">Yıllık 20.000 TL</strong> kurumsal paketi, 5-50 arası kademeli kotaları ve öğrenci başına 250 TL'lik birim maliyetleri yönetir.
                 </p>
               </div>
@@ -162,7 +162,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
               <h3 className="text-base font-bold text-white">
                 {institutionConfig.name} Lisans Durumu
               </h3>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-2xs font-bold">
                 Aktif Lisans
               </span>
             </div>
@@ -189,13 +189,13 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
                 style={{ width: `${Math.min(100, Math.round((studentsCount / currentQuota) * 100))}%` }}
               />
             </div>
-            <span className="text-[10px] text-slate-500 block text-right">
+            <span className="text-3xs text-slate-500 block text-right">
               {Math.max(0, currentQuota - studentsCount)} boş kontenjan mevcut
             </span>
           </div>
 
           <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-6">
-            <span className="text-[11px] text-slate-500 block">Yenileme Tarihi</span>
+            <span className="text-2xs text-slate-500 block">Yenileme Tarihi</span>
             <span className="text-xs font-bold text-slate-200">
               {institutionConfig.planExpiryDate || '01.09.2027'}
             </span>
@@ -241,7 +241,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
             }`}
           >
             <span>Yıllık Ödeme</span>
-            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-[10px] font-black text-slate-950">
+            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-3xs font-black text-slate-950">
               %20 İndirim
             </span>
           </button>
@@ -302,7 +302,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
                 </span>
                 <span className="text-xs font-bold text-slate-400">/ Yıllık</span>
               </div>
-              <span className="text-[11px] text-indigo-300 font-medium block pt-1">
+              <span className="text-2xs text-indigo-300 font-medium block pt-1">
                 (Aylık ~1.666 TL eşdeğeri • Sınırsız öğretmen & optik form okuyucu)
               </span>
             </div>
@@ -371,12 +371,12 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
                 className={`relative rounded-3xl p-6 flex flex-col justify-between gap-6 transition-all duration-200 ${
                   isSelected
                     ? 'bg-slate-900 border-2 border-emerald-500 shadow-xl shadow-emerald-950/40 ring-2 ring-emerald-500/20'
-                    : 'bg-[#12141a] border border-[#232733] hover:border-slate-700 hover:bg-[#161922]'
+                    : 'bg-canvas border border-surface-2 hover:border-slate-700 hover:bg-surface-0'
                 }`}
               >
                 {/* Popular Pill */}
                 {plan.isPopular && (
-                  <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-md">
+                  <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-emerald-500 text-slate-950 text-3xs font-black uppercase tracking-wider shadow-md">
                     Popüler
                   </div>
                 )}
@@ -393,7 +393,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
                     </div>
                     <span className="text-xs text-slate-400 font-medium">/ aylık</span>
                     {billingCycle === 'ANNUAL' && (
-                      <span className="block text-[10px] text-indigo-300 font-medium">
+                      <span className="block text-3xs text-indigo-300 font-medium">
                         (Yıllık peşin faturalandırılır)
                       </span>
                     )}
@@ -461,7 +461,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
             onChange={(e) => setSimulatedStudents(Number(e.target.value))}
             className="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-indigo-500"
           />
-          <div className="flex justify-between text-[11px] text-slate-500 font-semibold">
+          <div className="flex justify-between text-2xs text-slate-500 font-semibold">
             <span>5 Öğrenci</span>
             <span>25 Öğrenci</span>
             <span>50 Öğrenci</span>
@@ -480,7 +480,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
             <div className="text-xl font-black text-slate-300">
               {individualAnnualTotal.toLocaleString('tr-TR')} TL <span className="text-xs font-normal text-slate-500">/ yıl</span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-2xs text-slate-500">
               {simulatedStudents} öğrenci × 250 TL × 12 ay
             </p>
           </div>
@@ -493,7 +493,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
             <div className="text-xl font-black text-slate-200">
               {Math.round(tieredAnnualTotal).toLocaleString('tr-TR')} TL <span className="text-xs font-normal text-slate-500">/ yıl</span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-2xs text-slate-500">
               Aylık {matchedTier.monthlyPrice} TL baz alınarak
             </p>
           </div>
@@ -504,14 +504,14 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
               <span className="text-xs text-emerald-400 font-black">
                 Yıllık Kurumsal Dershane
               </span>
-              <span className="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[10px]">
+              <span className="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-3xs">
                 En Karlı
               </span>
             </div>
             <div className="text-xl font-black text-emerald-400">
               20.000 TL <span className="text-xs font-normal text-slate-400">/ yıl</span>
             </div>
-            <div className="text-[11px] text-emerald-300 font-bold flex items-center gap-1">
+            <div className="text-2xs text-emerald-300 font-bold flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>Yılda {enterpriseSavingsVsIndividual.toLocaleString('tr-TR')} TL Tasarruf!</span>
             </div>
@@ -576,7 +576,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
                   <tr>
                     <td className="py-3">
                       <strong className="text-white block font-bold">Yıllık Kurumsal Dershane Lisans Paketi</strong>
-                      <span className="text-[11px] text-slate-400">100+ Öğrenci, Sınırsız Öğretmen, AI Optik Okuma, WhatsApp Karne</span>
+                      <span className="text-2xs text-slate-400">100+ Öğrenci, Sınırsız Öğretmen, AI Optik Okuma, WhatsApp Karne</span>
                     </td>
                     <td className="py-3 text-center">12 Ay (1 Yıl)</td>
                     <td className="py-3 text-right font-black text-emerald-400 text-sm">20.000,00 TL</td>
@@ -591,7 +591,7 @@ export const InstitutionPricingPlans: React.FC<InstitutionPricingPlansProps> = (
               </div>
 
               {/* Notes */}
-              <div className="bg-slate-900/60 p-3 rounded-xl text-[11px] text-slate-400 space-y-1">
+              <div className="bg-slate-900/60 p-3 rounded-xl text-2xs text-slate-400 space-y-1">
                 <p>• Kurumunuz adına e-Fatura / Kurumsal Fatura düzenlenecektir.</p>
                 <p>• Bireysel öğrenciler için sistem kullanım bedeli standart 250 TL/ay olarak tanımlıdır.</p>
               </div>

@@ -17,6 +17,7 @@ interface BottomNavProps {
   onOpenSearch: () => void;
   onOpenSettings: () => void;
   isInstitutionAuthenticated?: boolean;
+  settingsOpen?: boolean;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -26,11 +27,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onSelectTab,
   onOpenSearch,
   onOpenSettings,
+  settingsOpen = false,
 }) => {
   // Check which main category is active
   const isHomeActive =
     activeCategory === 'HOME' ||
-    ['dashboard', 'curriculum', 'streak', 'institution'].includes(activeTab);
+    ['dashboard', 'curriculum', 'streak', 'achievements'].includes(activeTab);
 
   const isTrainingActive =
     activeCategory === 'TRAINING' ||
@@ -53,25 +55,27 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     activeCategory === 'CALENDAR' || 
     activeTab === 'planner';
 
-  const isProfileActive = 
-    activeCategory === 'PROFILE' || 
+  const isProfileActive =
+    settingsOpen ||
+    activeCategory === 'PROFILE' ||
     activeTab === 'settings';
 
   return (
     <nav 
       id="main-bottom-navigation"
       aria-label="Alt Navigasyon Menüsü"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/90 px-3 py-1.5 shadow-[0_-8px_25px_rgba(0,0,0,0.5)] select-none no-print"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-1/95 backdrop-blur-xl border-t border-border px-3 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] shadow-[0_-8px_25px_rgba(0,0,0,0.35)] select-none no-print"
     >
       <div className="max-w-md mx-auto grid grid-cols-5 items-end justify-items-center">
         
         {/* 1. ANASAYFA */}
         <button
           id="bottom-nav-home-btn"
+          aria-current={isHomeActive && !isCalendarActive && !isTrainingActive ? 'page' : undefined}
           onClick={() => {
             haptics.selection();
             onSelectCategory('HOME');
-            if (!['dashboard', 'curriculum', 'streak', 'institution'].includes(activeTab)) {
+            if (!['dashboard', 'curriculum', 'streak', 'achievements'].includes(activeTab)) {
               onSelectTab('dashboard');
             }
           }}
@@ -86,7 +90,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}>
             <Home className="w-5 h-5 shrink-0" />
           </div>
-          <span className="text-[10px] tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+          <span className="text-3xs tracking-tight leading-tight mt-0.5 whitespace-nowrap">
             Anasayfa
           </span>
         </button>
@@ -94,6 +98,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* 2. ANTRENMAN */}
         <button
           id="bottom-nav-training-btn"
+          aria-current={isTrainingActive ? 'page' : undefined}
           onClick={() => {
             haptics.selection();
             onSelectCategory('TRAINING');
@@ -115,7 +120,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}>
             <Dumbbell className="w-5 h-5 shrink-0" />
           </div>
-          <span className="text-[10px] tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+          <span className="text-3xs tracking-tight leading-tight mt-0.5 whitespace-nowrap">
             Antrenman
           </span>
         </button>
@@ -133,7 +138,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-600/40 border-2 border-slate-900 flex items-center justify-center transition-all duration-200 group-hover:scale-110 group-active:scale-95">
             <Search className="w-5 h-5 shrink-0" />
           </div>
-          <span className="text-[10px] font-bold text-indigo-300 tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+          <span className="text-3xs font-bold text-indigo-300 tracking-tight leading-tight mt-0.5 whitespace-nowrap">
             Arama
           </span>
         </button>
@@ -141,6 +146,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* 4. TAKVİM */}
         <button
           id="bottom-nav-calendar-btn"
+          aria-current={isCalendarActive ? 'page' : undefined}
           onClick={() => {
             haptics.selection();
             onSelectCategory('CALENDAR');
@@ -157,7 +163,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}>
             <Calendar className="w-5 h-5 shrink-0" />
           </div>
-          <span className="text-[10px] tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+          <span className="text-3xs tracking-tight leading-tight mt-0.5 whitespace-nowrap">
             Takvim
           </span>
         </button>
@@ -165,6 +171,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* 5. PROFİL */}
         <button
           id="bottom-nav-profile-btn"
+          aria-current={isProfileActive ? 'page' : undefined}
           onClick={() => {
             haptics.selection();
             onOpenSettings();
@@ -180,7 +187,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}>
             <User className="w-5 h-5 shrink-0" />
           </div>
-          <span className="text-[10px] tracking-tight leading-tight mt-0.5 whitespace-nowrap">
+          <span className="text-3xs tracking-tight leading-tight mt-0.5 whitespace-nowrap">
             Profil
           </span>
         </button>

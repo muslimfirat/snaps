@@ -219,7 +219,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
       {/* Quick Score Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-1">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <span className="text-2xs font-semibold text-slate-400 uppercase tracking-wider">
             Son Deneme Neti
           </span>
           <div className="flex items-baseline gap-2">
@@ -232,13 +232,13 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
               </span>
             )}
           </div>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-2xs text-slate-500">
             {latestExam ? latestExam.title : 'Henüz deneme eklenmedi'}
           </p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-1">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <span className="text-2xs font-semibold text-slate-400 uppercase tracking-wider">
             En Yüksek Net (Zirve)
           </span>
           <div className="flex items-baseline gap-2">
@@ -247,13 +247,13 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
             </span>
             <span className="text-xs text-slate-400">Rekor</span>
           </div>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-2xs text-slate-500">
             Hedef: {profile.targetScore} Puan
           </p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-1">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <span className="text-2xs font-semibold text-slate-400 uppercase tracking-wider">
             Ortalama Net
           </span>
           <div className="flex items-baseline gap-2">
@@ -262,7 +262,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
             </span>
             <span className="text-xs text-slate-400">({safeMockExams.length} Deneme)</span>
           </div>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-2xs text-slate-500">
             Gelişim ivmesi stabil
           </p>
         </div>
@@ -293,12 +293,12 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
                       <span>{exam.title}</span>
                       {exam.estimatedScore && (
-                        <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-3xs font-bold">
                           ~{exam.estimatedScore} Puan
                         </span>
                       )}
                     </h3>
-                    <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                    <span className="text-2xs text-slate-500 flex items-center gap-1 mt-0.5">
                       <Calendar className="w-3 h-3" />
                       {exam.date}
                     </span>
@@ -306,7 +306,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
 
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <span className="text-[10px] text-slate-400 block uppercase font-bold">Toplam Net</span>
+                      <span className="text-3xs text-slate-400 block uppercase font-bold">Toplam Net</span>
                       <span className="text-lg font-black text-emerald-400">
                         {exam.totalNet}
                       </span>
@@ -341,14 +341,14 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                       key={sIdx}
                       className="p-2 rounded-lg bg-slate-900/90 border border-slate-800/60 text-xs space-y-0.5"
                     >
-                      <span className="text-slate-400 block truncate font-medium text-[11px]">
+                      <span className="text-slate-400 block truncate font-medium text-2xs">
                         {sec.name}
                       </span>
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-white text-xs">
                           {sec.net} Net
                         </span>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-3xs text-slate-500 font-mono">
                           {sec.correct}D {sec.wrong}Y
                         </span>
                       </div>
@@ -357,7 +357,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                 </div>
 
                 {exam.notes && (
-                  <p className="text-[11px] text-amber-300/80 italic pt-1 border-t border-slate-900/60">
+                  <p className="text-2xs text-amber-300/80 italic pt-1 border-t border-slate-900/60">
                     💡 Not: {exam.notes}
                   </p>
                 )}
@@ -430,7 +430,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                 {/* 1. Summary & Score Target Assessment */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-2 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-2">
-                    <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-3xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Genel Koçluk Teşhisi</span>
                     </span>
@@ -440,7 +440,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-3xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
                       <Target className="w-3.5 h-3.5" />
                       <span>Hedef Puan Analizi</span>
                     </span>
@@ -465,7 +465,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                            <span className="text-3xs font-bold text-slate-400 uppercase block">
                               {topic?.subject || 'Genel'}
                             </span>
                             <h5 className="text-xs font-bold text-white mt-0.5">
@@ -473,7 +473,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                             </h5>
                           </div>
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${
+                            className={`px-2 py-0.5 rounded-full text-3xs font-black border ${
                               topic?.priority === 'KRİTİK'
                                 ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
                                 : topic?.priority === 'YÜKSEK'
@@ -485,11 +485,11 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                           </span>
                         </div>
 
-                        <p className="text-[11px] text-slate-400 bg-slate-900/80 p-2 rounded-lg border border-slate-800/80">
+                        <p className="text-2xs text-slate-400 bg-slate-900/80 p-2 rounded-lg border border-slate-800/80">
                           🔍 <strong>Neden:</strong> {topic?.reason || 'Tekrar gereksinimi'}
                         </p>
 
-                        <div className="text-[11px] text-emerald-300 bg-emerald-950/20 p-2 rounded-lg border border-emerald-900/30 flex items-start gap-1.5">
+                        <div className="text-2xs text-emerald-300 bg-emerald-950/20 p-2 rounded-lg border border-emerald-900/30 flex items-start gap-1.5">
                           <Zap className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
                           <span><strong>Telafi İpucu:</strong> {topic?.quickFixTip || 'Odaklı soru çözümü yapınız.'}</span>
                         </div>
@@ -512,8 +512,8 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
                           <span className="font-bold text-white text-xs">{sec?.sectionName || 'Branş'}</span>
                           <span className="text-xs font-extrabold text-rose-400">{sec?.netLoss || 'Net Kaybı'}</span>
                         </div>
-                        <p className="text-[11px] text-slate-400">{sec?.diagnosis || 'Gözlem yapılıyor'}</p>
-                        <div className="pt-1 text-[11px] font-bold text-indigo-300 flex items-center gap-1">
+                        <p className="text-2xs text-slate-400">{sec?.diagnosis || 'Gözlem yapılıyor'}</p>
+                        <div className="pt-1 text-2xs font-bold text-indigo-300 flex items-center gap-1">
                           <span>⏱️ Önerilen Çalışma:</span>
                           <span className="text-white font-black">{sec?.recommendedWeeklyHours || 4} Saat/Hafta</span>
                         </div>
@@ -524,7 +524,7 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
 
                 {/* 4. Strategy & Pacing Advice */}
                 <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 to-indigo-950/40 border border-slate-800 space-y-1.5">
-                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                  <span className="text-3xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
                     💡 Sınav Stratejisi & Turlama Tekniği
                   </span>
                   <p className="text-xs text-slate-300 leading-relaxed font-medium">
@@ -716,13 +716,13 @@ export const MockExamTracker: React.FC<MockExamTrackerProps> = ({
               {/* Total Calculated Net Summary Box */}
               <div className="bg-gradient-to-r from-indigo-950/80 to-slate-900 border border-indigo-500/40 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-semibold text-slate-400">Hesaplanan Toplam Net</span>
+                  <span className="text-2xs font-semibold text-slate-400">Hesaplanan Toplam Net</span>
                   <div className="text-xl font-black text-white">
                     {totalCalculatedNet.toFixed(2)} Net
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[11px] text-slate-400">Tahmini Puan</span>
+                  <span className="text-2xs text-slate-400">Tahmini Puan</span>
                   <div className="text-xl font-black text-emerald-400">
                     ~{estimatedScore}
                   </div>

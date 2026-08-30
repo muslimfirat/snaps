@@ -75,10 +75,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6">
       
       {/* 1. Karşılama Başlığı, Durum Rozetleri ve Sınav Sayacı */}
-      <div className="bg-[#1B1D27] border border-[#2D3245] rounded-2xl p-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+      <div className="bg-surface-1 border border-border rounded-2xl p-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5">
         
         {/* Sol: Karşılama, Aday Bilgisi & Rozetler */}
         <div className="space-y-2.5 max-w-xl">
@@ -90,7 +90,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               Hedef: <strong className="text-white">{profile.targetScore} Puan</strong>
             </span>
             {profile.activeTitle && (
-              <span className="text-xs font-medium text-slate-200 bg-[#222533] border border-[#3B4259] px-2.5 py-0.5 rounded-lg">
+              <span className="text-xs font-medium text-slate-200 bg-surface-2 border border-border-strong px-2.5 py-0.5 rounded-lg">
                 {profile.activeTitle}
               </span>
             )}
@@ -114,11 +114,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
               onNavigateTab('streak', 'HOME');
             }}
             title="Detaylı İstikrar Merkezini aç"
-            className="flex items-center gap-2 bg-[#161822] hover:bg-[#222533] border border-[#2D3245] hover:border-amber-500/40 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
+            className="flex items-center gap-2 bg-surface-0 hover:bg-surface-2 border border-border hover:border-amber-500/40 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
           >
             <Flame className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
             <div className="text-left">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase block">Seri</span>
+              <span className="text-3xs text-slate-400 font-semibold uppercase block">Seri</span>
               <span className="text-sm font-bold font-mono text-amber-400 leading-tight">
                 {currentStreak} Gün
               </span>
@@ -129,14 +129,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             onClick={() => {
               haptics.selection();
-              onNavigateTab('profile', 'PROFILE');
+              onNavigateTab('achievements', 'HOME');
             }}
             title="Tüm Başarı Rozetlerini gör"
-            className="flex items-center gap-2 bg-[#161822] hover:bg-[#222533] border border-[#2D3245] hover:border-indigo-500/40 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
+            className="flex items-center gap-2 bg-surface-0 hover:bg-surface-2 border border-border hover:border-indigo-500/40 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
           >
             <span className="text-base shrink-0">{latestBadge.icon}</span>
             <div className="text-left">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase block truncate max-w-[90px]">
+              <span className="text-3xs text-slate-400 font-semibold uppercase block truncate max-w-[90px]">
                 {latestBadge.isUnlocked ? 'Son Rozet' : 'Sıradaki'}
               </span>
               <span className="text-xs font-bold text-white truncate max-w-[110px] block leading-tight">
@@ -146,8 +146,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </button>
 
           {/* Kalan Gün Sayacı */}
-          <div className="bg-[#161822] border border-[#2D3245] rounded-xl px-3.5 py-2 text-center">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+          <div className="bg-surface-0 border border-border rounded-xl px-3.5 py-2 text-center">
+            <span className="text-3xs uppercase font-semibold text-slate-400 block">
               Kalan
             </span>
             <span className="text-sm font-bold text-white font-mono leading-tight">
@@ -158,7 +158,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Rehber Bilgi Butonu */}
           <button
             onClick={() => setIsQuickStartOpen(true)}
-            className="p-2.5 rounded-xl bg-[#161822] hover:bg-[#222533] border border-[#2D3245] text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-surface-0 hover:bg-surface-2 border border-border text-slate-400 hover:text-white transition-colors cursor-pointer"
             title="Nasıl Kullanılır?"
           >
             <HelpCircle className="w-4 h-4" />
@@ -168,7 +168,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* 2. 4 Hızlı Eylem Butonu (Soru Çözdür, Pomodoro, Deneme Kaydet, AI Koç) */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         
         {/* Buton 1: Soru Çözdür */}
         <button
@@ -176,16 +176,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             haptics.selection();
             onNavigateTab('snap', 'TRAINING');
           }}
-          className="p-4 rounded-2xl bg-[#1B1D27] hover:bg-[#222533] border border-[#2D3245] hover:border-indigo-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
+          className="p-4 rounded-2xl bg-surface-1 hover:bg-surface-2 border border-border hover:border-indigo-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
         >
           <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
             <Camera className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors truncate">
+            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
               Soru Çözdür
             </h3>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+            <p className="text-2xs text-slate-400 mt-0.5">
               Yapay zeka ile çöz
             </p>
           </div>
@@ -197,16 +197,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             haptics.selection();
             onNavigateTab('pomodoro', 'TRAINING');
           }}
-          className="p-4 rounded-2xl bg-[#1B1D27] hover:bg-[#222533] border border-[#2D3245] hover:border-indigo-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
+          className="p-4 rounded-2xl bg-surface-1 hover:bg-surface-2 border border-border hover:border-amber-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
         >
-          <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors truncate">
+            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
               Pomodoro
             </h3>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+            <p className="text-2xs text-slate-400 mt-0.5">
               Odak sayacını başlat
             </p>
           </div>
@@ -218,16 +218,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             haptics.selection();
             onNavigateTab('mock', 'TRAINING');
           }}
-          className="p-4 rounded-2xl bg-[#1B1D27] hover:bg-[#222533] border border-[#2D3245] hover:border-indigo-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
+          className="p-4 rounded-2xl bg-surface-1 hover:bg-surface-2 border border-border hover:border-emerald-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
         >
-          <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors shrink-0">
             <FileText className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors truncate">
+            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
               Deneme Kaydet
             </h3>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+            <p className="text-2xs text-slate-400 mt-0.5">
               Net analizlerini gir
             </p>
           </div>
@@ -239,16 +239,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             haptics.selection();
             onNavigateTab('voice_coach', 'TRAINING');
           }}
-          className="p-4 rounded-2xl bg-[#1B1D27] hover:bg-[#222533] border border-[#2D3245] hover:border-indigo-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
+          className="p-4 rounded-2xl bg-surface-1 hover:bg-surface-2 border border-border hover:border-sky-500/40 text-left transition-all group flex items-center gap-3.5 cursor-pointer shadow-sm"
         >
-          <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors truncate">
+            <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
               AI Sınav Koçu
             </h3>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+            <p className="text-2xs text-slate-400 mt-0.5">
               Strateji & brifing al
             </p>
           </div>
@@ -276,7 +276,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       />
 
       {/* 5. Ders İlerleme Durumu: Tek Satırlık Genel İlerleme & Müfredatı İncele Linki */}
-      <div className="bg-[#1B1D27] border border-[#2D3245] rounded-2xl p-5 shadow-sm space-y-3">
+      <div className="bg-surface-1 border border-border rounded-2xl p-5 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">
@@ -311,7 +311,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Single Sleek Progress Bar */}
-        <div className="w-full h-2.5 bg-[#161822] rounded-full overflow-hidden border border-[#2D3245]">
+        <div className="w-full h-2.5 bg-surface-0 rounded-full overflow-hidden border border-border">
           <div
             className="h-full bg-indigo-600 rounded-full transition-all duration-500"
             style={{ width: `${curriculumPercent}%` }}

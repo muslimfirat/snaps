@@ -21,8 +21,9 @@ import {
   Dumbbell, 
   Menu, 
   X, 
-  Lightbulb, 
-  ChevronRight 
+  Lightbulb,
+  ChevronRight,
+  Trophy
 } from 'lucide-react';
 import { GoogleAuthButton } from './GoogleAuthButton';
 import { UserProfile, InstitutionConfig, MainTabCategory, InstitutionAccount } from '../types';
@@ -66,6 +67,7 @@ export const CATEGORY_DEFINITIONS: {
       { id: 'dashboard', label: 'Genel Bakış', icon: BarChart3 },
       { id: 'curriculum', label: 'Müfredat & Konu', icon: BookOpen },
       { id: 'streak', label: 'İstikrar Analizi', icon: Flame },
+      { id: 'achievements', label: 'Başarılar & Rozetler', icon: Trophy },
     ],
   },
   {
@@ -188,7 +190,9 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     calculateCountdown();
-    const interval = setInterval(calculateCountdown, 1000);
+    // Header yalnız kalan GÜN sayısını gösteriyor → saniyelik tik yerine dakikalık
+    // yenileme yeterli (her saniye tüm Header'ı yeniden render etmesini önler).
+    const interval = setInterval(calculateCountdown, 60000);
     return () => clearInterval(interval);
   }, [profile?.examDate]);
 
@@ -219,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
     CATEGORY_DEFINITIONS[0];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0F111A]/95 backdrop-blur-md border-b border-[#242838] text-slate-100 shadow-sm transition-all w-full">
+    <header className="sticky top-0 z-40 bg-canvas/95 backdrop-blur-md border-b border-border text-slate-100 shadow-sm transition-all w-full">
       
       {/* 1. TOP BAR: Minimalist & Perfectly Responsive on Mobile, Tablet & Desktop */}
       <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
@@ -227,7 +231,8 @@ export const Header: React.FC<HeaderProps> = ({
           
           {/* Left: Brand Logo (Individual Snaps vs Institution) */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 min-w-0">
-            <div 
+            <button
+              type="button"
               onClick={() => {
                 haptics.selection();
                 onSelectCategory('HOME');
@@ -235,6 +240,7 @@ export const Header: React.FC<HeaderProps> = ({
               }}
               className="flex items-center gap-2 cursor-pointer group select-none shrink-0"
               title="Snaps Sınav Koçu"
+              aria-label="Anasayfaya git"
             >
               {/* Distinctive Snaps Logo */}
               {isInstitutionAuthenticated ? (
@@ -254,13 +260,13 @@ export const Header: React.FC<HeaderProps> = ({
                     ? (activeInstitutionAccount?.name || institutionConfig.name || 'Kurum Paneli')
                     : 'Snaps'}
                 </span>
-                <span className="text-[10px] font-medium text-slate-400 block mt-0.5 truncate">
+                <span className="text-3xs font-medium text-slate-400 block mt-0.5 truncate">
                   {isInstitutionAuthenticated 
                     ? (institutionConfig.branch || 'Kurumsal Portal')
                     : `${EXAM_METADATA[profile?.targetExam]?.shortName || 'KPSS'} • AI Sınav Koçu`}
                 </span>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Center: Minimalist Fluid Spotlight Search Trigger */}
@@ -268,7 +274,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="universal-search-trigger"
               onClick={onOpenSearch}
-              className="w-full h-8 sm:h-9 px-2.5 sm:px-3 bg-[#141622] hover:bg-[#1A1D2D] border border-[#262B3D] hover:border-indigo-500/40 rounded-xl flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-slate-400 hover:text-slate-200 transition-all shadow-inner group cursor-pointer min-w-0"
+              className="w-full h-8 sm:h-9 px-2.5 sm:px-3 bg-canvas hover:bg-surface-0 border border-border hover:border-indigo-500/40 rounded-xl flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-slate-400 hover:text-slate-200 transition-all shadow-inner group cursor-pointer min-w-0"
             >
               <Search className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition-colors shrink-0" />
               <span className="truncate text-slate-400 group-hover:text-slate-200 text-left">
@@ -289,7 +295,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onSelectCategory('HOME');
                 onSelectTab('streak');
               }}
-              className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-xl bg-[#141622] border border-[#262B3D] hover:border-amber-500/40 text-xs font-bold text-amber-400 transition-all cursor-pointer shadow-sm shrink-0"
+              className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-xl bg-canvas border border-border hover:border-amber-500/40 text-xs font-bold text-amber-400 transition-all cursor-pointer shadow-sm shrink-0"
               title="Çalışma Serisi"
             >
               <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
@@ -297,10 +303,10 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {/* Countdown Badge (Desktop & Tablet) */}
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl bg-[#141622] border border-[#262B3D] text-xs shrink-0">
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-xl bg-canvas border border-border text-xs shrink-0">
               <Clock className="w-3 h-3 text-indigo-400" />
               <span className="font-mono font-bold text-white">{timeLeft.days}</span>
-              <span className="text-[11px] text-slate-400">g</span>
+              <span className="text-2xs text-slate-400">g</span>
             </div>
 
             {/* Google Auth Button (Compact Avatar & Cloud Status) */}
@@ -310,6 +316,8 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative shrink-0 z-50" ref={menuRef}>
               <button
                 id="header-hamburger-menu-btn"
+                aria-label="Hızlı menü ve araçlar"
+                aria-expanded={isMenuOpen}
                 onClick={() => {
                   haptics.light();
                   setIsMenuOpen(!isMenuOpen);
@@ -317,7 +325,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className={`p-1.5 sm:p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                   isMenuOpen
                     ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm'
-                    : 'bg-[#141622] hover:bg-[#1E2132] border-[#262B3D] text-slate-300 hover:text-white'
+                    : 'bg-canvas hover:bg-surface-0 border-border text-slate-300 hover:text-white'
                 }`}
                 title="Hızlı Menü ve Araçlar"
               >
@@ -328,17 +336,17 @@ export const Header: React.FC<HeaderProps> = ({
               {isMenuOpen && (
                 <div 
                   id="header-tools-dropdown"
-                  className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-24px)] rounded-2xl bg-[#161826] border border-[#2B3045] p-2.5 shadow-2xl z-[100] animate-in fade-in zoom-in-95 space-y-1.5 pointer-events-auto"
+                  className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-24px)] rounded-2xl bg-surface-0 border border-border p-2.5 shadow-2xl z-[100] animate-in fade-in zoom-in-95 space-y-1.5 pointer-events-auto"
                 >
                   {/* User Header in Menu */}
-                  <div className="px-2 py-1.5 border-b border-[#242838] flex items-center justify-between">
+                  <div className="px-2 py-1.5 border-b border-border flex items-center justify-between">
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-white truncate">{profile.name || 'Öğrenci'}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{profile.targetScore || 85} Hedef Puan • {EXAM_METADATA[profile.targetExam]?.name}</p>
+                      <p className="text-3xs text-slate-400 truncate">{profile.targetScore || 85} Hedef Puan • {EXAM_METADATA[profile.targetExam]?.name}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0 ml-2">
                       <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}`} />
-                      <span className="text-[10px] text-slate-400 font-medium">{isOnline ? 'Online' : 'Offline'}</span>
+                      <span className="text-3xs text-slate-400 font-medium">{isOnline ? 'Online' : 'Offline'}</span>
                     </div>
                   </div>
 
@@ -349,13 +357,13 @@ export const Header: React.FC<HeaderProps> = ({
                       onSelectCategory('INSTITUTION');
                       onSelectTab('institution');
                     }}
-                    className="w-full px-2.5 py-2 rounded-xl bg-[#1A1D2D] hover:bg-indigo-950/50 border border-[#282D42] hover:border-indigo-500/40 text-left flex items-center justify-between text-xs font-semibold text-slate-200 transition-colors cursor-pointer group"
+                    className="w-full px-2.5 py-2 rounded-xl bg-surface-0 hover:bg-indigo-950/50 border border-border hover:border-indigo-500/40 text-left flex items-center justify-between text-xs font-semibold text-slate-200 transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <Building2 className="w-4 h-4 text-indigo-400 shrink-0" />
                       <div className="min-w-0">
                         <span className="block truncate">{isInstitutionAuthenticated ? 'Kurum Paneli' : 'Dershane Portalı'}</span>
-                        <span className="text-[10px] text-slate-400 block font-normal truncate">
+                        <span className="text-3xs text-slate-400 block font-normal truncate">
                           {isInstitutionAuthenticated ? activeInstitutionAccount?.name : 'Öğretmen & Kurum Girişi'}
                         </span>
                       </div>
@@ -366,7 +374,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {/* 2. Odak & Yağmur Sesi */}
                   <button
                     onClick={toggleAmbientSound}
-                    className="w-full px-2.5 py-2 rounded-xl bg-[#1A1D2D] hover:bg-[#22263A] border border-[#282D42] text-left flex items-center justify-between text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
+                    className="w-full px-2.5 py-2 rounded-xl bg-surface-0 hover:bg-surface-2 border border-border text-left flex items-center justify-between text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       {ambientSound !== 'off' ? (
@@ -376,7 +384,7 @@ export const Header: React.FC<HeaderProps> = ({
                       )}
                       <span>Odaklanma Sesi</span>
                     </div>
-                    <span className="text-[10px] font-mono uppercase font-bold text-indigo-300 bg-indigo-950/60 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="text-3xs font-mono uppercase font-bold text-indigo-300 bg-indigo-950/60 px-1.5 py-0.5 rounded shrink-0">
                       {ambientSound === 'off' ? 'Kapalı' : ambientSound}
                     </span>
                   </button>
@@ -384,7 +392,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {/* 3. Çalışma İpucu İste (On demand) */}
                   <button
                     onClick={handleTriggerInsight}
-                    className="w-full px-2.5 py-2 rounded-xl bg-[#1A1D2D] hover:bg-[#22263A] border border-[#282D42] text-left flex items-center gap-2 text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
+                    className="w-full px-2.5 py-2 rounded-xl bg-surface-0 hover:bg-surface-2 border border-border text-left flex items-center gap-2 text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
                   >
                     <Lightbulb className="w-4 h-4 text-amber-400 shrink-0" />
                     <span>Akıllı Çalışma İpucu Al</span>
@@ -397,7 +405,7 @@ export const Header: React.FC<HeaderProps> = ({
                         setIsMenuOpen(false);
                         onOpenQuickStart();
                       }}
-                      className="w-full px-2.5 py-2 rounded-xl bg-[#1A1D2D] hover:bg-[#22263A] border border-[#282D42] text-left flex items-center gap-2 text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
+                      className="w-full px-2.5 py-2 rounded-xl bg-surface-0 hover:bg-surface-2 border border-border text-left flex items-center gap-2 text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
                     >
                       <HelpCircle className="w-4 h-4 text-slate-400 shrink-0" />
                       <span>Nasıl Kullanılır? (Kılavuz)</span>
@@ -427,8 +435,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* 2. PRIMARY CATEGORIES BAR (Desktop & Tablet) */}
-        <div className="hidden md:grid grid-cols-4 gap-1 sm:gap-1.5 pt-1.5 pb-2 border-t border-[#242838] w-full">
-          {CATEGORY_DEFINITIONS.map((cat) => {
+        <div className="hidden md:grid grid-cols-3 gap-1 sm:gap-1.5 pt-1.5 pb-2 border-t border-border w-full">
+          {CATEGORY_DEFINITIONS.filter((c) => c.id !== 'INSTITUTION').map((cat) => {
             const Icon = cat.icon;
             const isSelected = activeCategory === cat.id;
             
@@ -445,6 +453,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={cat.id}
                 id={`primary-category-${cat.id}`}
+                aria-current={isSelected ? 'page' : undefined}
                 onClick={() => {
                   onSelectCategory(cat.id);
                   if (Array.isArray(cat?.subTabs) && cat.subTabs.length > 0) {
@@ -454,7 +463,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className={`py-1.5 sm:py-2 px-2 sm:px-3 rounded-xl flex items-center justify-start gap-1.5 sm:gap-2 transition-colors text-xs sm:text-sm font-semibold cursor-pointer min-w-0 ${
                   isSelected
                     ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-[#1E2132]'
+                    : 'text-slate-300 hover:text-white hover:bg-surface-0'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -465,14 +474,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* 2b. MOBILE HORIZONTAL CATEGORY SCROLLER (< 768px) */}
-        <div className="md:hidden flex items-center gap-1 py-1.5 overflow-x-auto no-scrollbar border-t border-[#242838] w-full">
-          {CATEGORY_DEFINITIONS.map((cat) => {
+        <div className="md:hidden flex items-center gap-1 py-1.5 overflow-x-auto no-scrollbar border-t border-border w-full">
+          {CATEGORY_DEFINITIONS.filter((c) => c.id !== 'INSTITUTION').map((cat) => {
             const Icon = cat.icon;
             const isSelected = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 id={`mobile-category-${cat.id}`}
+                aria-current={isSelected ? 'page' : undefined}
                 onClick={() => {
                   onSelectCategory(cat.id);
                   if (Array.isArray(cat?.subTabs) && cat.subTabs.length > 0) {
@@ -482,7 +492,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
                   isSelected
                     ? 'bg-indigo-600 text-white'
-                    : 'text-slate-300 hover:bg-[#1E2132]'
+                    : 'text-slate-300 hover:bg-surface-0'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -493,7 +503,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* 3. SECONDARY SUB-TABS (All Screen Sizes with Smooth Horizontal Scroll) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 py-2 overflow-x-auto no-scrollbar border-t border-[#242838]/60 w-full touch-pan-x">
+        <div className="flex items-center gap-1 sm:gap-1.5 py-2 overflow-x-auto no-scrollbar border-t border-border/60 w-full touch-pan-x">
           {(currentCategoryDef?.subTabs || []).map((sub) => {
             const SubIcon = sub.icon;
             const isSubActive = activeTab === sub.id;
@@ -501,11 +511,12 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={sub.id}
                 id={`sub-tab-${sub.id}`}
+                aria-current={isSubActive ? 'page' : undefined}
                 onClick={() => onSelectTab(sub.id)}
                 className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0 ${
                   isSubActive
-                    ? 'bg-[#1E2132] text-indigo-300 font-semibold border border-indigo-500/30'
-                    : 'text-slate-300 hover:text-white hover:bg-[#1E2132]/50'
+                    ? 'bg-surface-0 text-indigo-300 font-semibold border border-indigo-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-surface-0/50'
                 }`}
               >
                 <SubIcon className="w-3.5 h-3.5 shrink-0" />

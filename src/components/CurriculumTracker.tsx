@@ -171,11 +171,11 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
         {/* Total Progress Badge */}
         <div className="bg-slate-950/80 border border-indigo-500/30 rounded-xl p-4 flex items-center gap-4">
           <div className="text-right">
-            <span className="text-[11px] text-slate-400 block">Genel Müfredat İlerlemesi</span>
+            <span className="text-2xs text-slate-400 block">Genel Müfredat İlerlemesi</span>
             <span className="text-xl font-black text-emerald-400">
               %{overallProgress}
             </span>
-            <span className="text-[10px] text-slate-500 block">
+            <span className="text-3xs text-slate-500 block">
               {studiedTopics}/{totalTopics} Konu Tamamlandı
             </span>
           </div>
@@ -207,15 +207,15 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                   onClick={() => setSelectedSubjectId(sub.id)}
                   className={`w-full p-3.5 rounded-xl border text-left transition-all flex items-center justify-between group ${
                     isSelected
-                      ? 'bg-indigo-950/80 border-indigo-500 shadow-md ring-1 ring-indigo-500/40'
+                      ? 'bg-indigo-500/15 border-indigo-500 shadow-md ring-1 ring-indigo-500/40'
                       : 'bg-slate-900 hover:bg-slate-800/80 border-slate-800 text-slate-300'
                   }`}
                 >
                   <div className="space-y-1">
-                    <span className={`text-xs font-bold block ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                    <span className={`text-xs font-bold block ${isSelected ? 'text-indigo-300' : 'text-slate-200'}`}>
                       {sub.name}
                     </span>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                    <div className="flex items-center gap-2 text-2xs text-slate-400">
                       <span>{subTopics.length} Konu</span>
                       <span>•</span>
                       <span className="text-emerald-400 font-semibold">%{subPercent}</span>
@@ -262,7 +262,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                           {topic.name}
                         </span>
                         <span
-                          className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${
+                          className={`text-3xs font-bold px-1.5 py-0.2 rounded border ${
                             topic.weight === 'YÜKSEK'
                               ? 'bg-rose-950/60 border-rose-500/50 text-rose-300'
                               : topic.weight === 'ORTA'
@@ -282,7 +282,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                       {/* Konu Çalışıldı */}
                       <button
                         onClick={() => toggleTopicStatus(selectedSubject.id, topic.id, 'isStudied')}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors ${
+                        className={`px-2.5 py-1 rounded-lg text-2xs font-bold flex items-center gap-1 transition-colors ${
                           topic.isStudied
                             ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40'
                             : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
@@ -296,7 +296,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                       {/* Soru Çözüldü */}
                       <button
                         onClick={() => toggleTopicStatus(selectedSubject.id, topic.id, 'isPracticeDone')}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors ${
+                        className={`px-2.5 py-1 rounded-lg text-2xs font-bold flex items-center gap-1 transition-colors ${
                           topic.isPracticeDone
                             ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40'
                             : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
@@ -310,7 +310,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                       {/* Tekrar Yapıldı */}
                       <button
                         onClick={() => toggleTopicStatus(selectedSubject.id, topic.id, 'isReviewed')}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors ${
+                        className={`px-2.5 py-1 rounded-lg text-2xs font-bold flex items-center gap-1 transition-colors ${
                           topic.isReviewed
                             ? 'bg-purple-600/30 text-purple-300 border border-purple-500/40'
                             : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
@@ -325,7 +325,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                       <button
                         id={`ai-summary-btn-${topic.id}`}
                         onClick={() => handleOpenSummary(selectedSubject.name, topic.name)}
-                        className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                        className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-2xs font-bold flex items-center gap-1 transition-colors"
                         title="Yapay Zeka Hap Bilgi & Şifreleme Çıkar"
                       >
                         <Sparkles className="w-3 h-3" />
@@ -336,7 +336,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                       <button
                         id={`ai-quiz-btn-${topic.id}`}
                         onClick={() => handleOpenQuiz(selectedSubject.name, topic.name)}
-                        className="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold flex items-center gap-1 transition-colors"
+                        className="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-2xs font-bold flex items-center gap-1 transition-colors"
                         title="3 Soruluk Mini Quiz ile Test Et"
                       >
                         <Zap className="w-3 h-3" />
@@ -364,7 +364,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                   <h3 className="text-base font-bold text-white">
                     {summaryModalTopic.topic} Hap Özeti
                   </h3>
-                  <span className="text-[11px] text-slate-400">{summaryModalTopic.subject}</span>
+                  <span className="text-2xs text-slate-400">{summaryModalTopic.subject}</span>
                 </div>
               </div>
               <button
@@ -386,7 +386,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
               <div className="space-y-4 text-xs">
                 {/* Quick Summary */}
                 <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block mb-1">
+                  <span className="text-3xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">
                     Kilit Sınav Özeti
                   </span>
                   <p className="text-slate-200 leading-relaxed font-medium">
@@ -396,7 +396,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
 
                 {/* Key Rules and Formulas */}
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                  <span className="text-3xs font-bold text-emerald-400 uppercase tracking-wider block">
                     Altın Kurallar & Formüller
                   </span>
                   <div className="space-y-1.5">
@@ -412,7 +412,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                 {/* Mnemonic Code */}
                 {topicSummaryData.mnemonicCode && (
                   <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-1">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                    <span className="text-3xs font-bold text-amber-400 uppercase tracking-wider block">
                       ⚡ Hafıza Şifreleme / Kodlama Tekniği
                     </span>
                     <p className="text-amber-100 font-bold text-xs leading-relaxed">
@@ -424,10 +424,10 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                 {/* Frequent Questions */}
                 {topicSummaryData.frequentQuestionTypes && (
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-300">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    <span className="text-3xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
                       ÖSYM Soru Tipi Analizi
                     </span>
-                    <p className="text-[11px] leading-relaxed text-slate-300">
+                    <p className="text-2xs leading-relaxed text-slate-300">
                       {topicSummaryData.frequentQuestionTypes}
                     </p>
                   </div>
@@ -487,7 +487,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                   <h3 className="text-base font-bold text-white">
                     {quizModalTopic.topic} Mini Quiz
                   </h3>
-                  <span className="text-[11px] text-slate-400">{quizModalTopic.subject} • 3 Soru</span>
+                  <span className="text-2xs text-slate-400">{quizModalTopic.subject} • 3 Soru</span>
                 </div>
               </div>
               <button
@@ -557,7 +557,7 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                           <span className={`font-bold ${isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>
                             {isCorrect ? '✓ Doğru Cevap!' : `✗ Yanlış! Doğru Seçenek: ${q.correctAnswer}`}
                           </span>
-                          <p className="text-slate-400 text-[11px]">
+                          <p className="text-slate-400 text-2xs">
                             {q.explanation}
                           </p>
                         </div>

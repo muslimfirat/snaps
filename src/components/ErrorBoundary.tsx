@@ -52,7 +52,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           </div>
 
           {isDev && (
-            <pre className="text-left text-[11px] text-rose-300/90 bg-slate-950/80 border border-slate-800 rounded-xl p-3 overflow-auto max-h-40 whitespace-pre-wrap break-words">
+            <pre className="text-left text-2xs text-rose-300/90 bg-slate-950/80 border border-slate-800 rounded-xl p-3 overflow-auto max-h-40 whitespace-pre-wrap break-words">
               {error.name}: {error.message}
             </pre>
           )}

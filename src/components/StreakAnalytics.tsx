@@ -14,7 +14,10 @@ import { Flame, Zap, Trophy, TrendingUp, Calendar, Clock, Target, Sparkles, BarC
 import { UserProfile, DailyStudyLog, MainTabCategory } from '../types';
 import { loadWeeklyStudyLogs } from '../lib/storage';
 import { THEME } from '../theme';
+import { getChartColors } from '../lib/chartColors';
 import { haptics } from '../lib/haptics';
+
+const CHART = getChartColors();
 
 interface StreakAnalyticsProps {
   profile: UserProfile;
@@ -113,14 +116,14 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
             ? log.minuteTarget
             : 100,
         fillColor: isToday
-          ? '#F59E0B' // Amber for today
+          ? CHART.warning // bugün — mat altın
           : log.isStreakMaintained
           ? metricView === 'questions'
-            ? THEME.brand.primary // #4F46E5 Indigo
+            ? CHART.brand
             : metricView === 'minutes'
-            ? THEME.subjects.math.hex // #0284C7 Sky
-            : THEME.status.success.hex // #16A34A Green
-          : '#475569', // Slate
+            ? CHART.info
+            : CHART.success
+          : CHART.grid, // pasif gün
       };
     });
   }, [logs, metricView]);
@@ -139,9 +142,9 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
 
 
   return (
-    <div className="bg-[#1B1D27] border border-[#2D3245] rounded-3xl p-6 shadow-xl space-y-6">
+    <div className="bg-surface-1 border border-border rounded-3xl p-6 shadow-xl space-y-6">
       {/* Header: Title, Live Status & Quick Streaks */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#2D3245] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
             <Flame className="w-6 h-6 fill-amber-400" />
@@ -151,7 +154,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
                 Haftalık Çalışma & İstikrar Analitiği
               </h2>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${weeklyStats.statusClass}`}>
+              <span className={`text-2xs font-semibold px-2 py-0.5 rounded-md border ${weeklyStats.statusClass}`}>
                 {weeklyStats.statusLabel}
               </span>
             </div>
@@ -162,7 +165,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
         </div>
 
         {/* Big Streak Number & All-time Record Pill */}
-        <div className="flex items-center gap-3 self-start sm:self-auto bg-[#161822] border border-[#2D3245] rounded-2xl px-4 py-2">
+        <div className="flex items-center gap-3 self-start sm:self-auto bg-surface-0 border border-border rounded-2xl px-4 py-2">
           <div className="flex items-baseline gap-1.5">
             <Flame className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
             <span className="text-xl font-black font-mono text-white">
@@ -173,7 +176,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
             </span>
           </div>
 
-          <div className="h-5 w-px bg-[#2D3245]" />
+          <div className="h-5 w-px bg-surface-3" />
 
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <Trophy className="w-3.5 h-3.5 text-amber-400" />
@@ -186,7 +189,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
       {/* 4 Summary Metric Cards (Flat Theme Colors) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Metric 1: Weekly Consistency */}
-        <div className="p-4 rounded-2xl bg-[#161822] border border-[#2D3245] space-y-1">
+        <div className="p-4 rounded-2xl bg-surface-0 border border-border space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-medium">Haftalık İstikrar</span>
             <Zap className="w-3.5 h-3.5 text-green-400" />
@@ -195,11 +198,11 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
             <span className="text-2xl font-black font-mono text-green-400">
               %{weeklyStats.consistencyPercent}
             </span>
-            <span className="text-[11px] text-slate-400">
+            <span className="text-2xs text-slate-400">
               ({weeklyStats.activeDaysCount}/7 Gün)
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[#222533] rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden mt-2">
             <div
               className="h-full bg-green-600 rounded-full"
               style={{ width: `${weeklyStats.consistencyPercent}%` }}
@@ -208,7 +211,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
         </div>
 
         {/* Metric 2: Total Questions Solved */}
-        <div className="p-4 rounded-2xl bg-[#161822] border border-[#2D3245] space-y-1">
+        <div className="p-4 rounded-2xl bg-surface-0 border border-border space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-medium">Haftalık Çözülen Soru</span>
             <Target className="w-3.5 h-3.5 text-indigo-400" />
@@ -217,11 +220,11 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
             <span className="text-2xl font-black font-mono text-white">
               {weeklyStats.totalQuestions}
             </span>
-            <span className="text-[11px] text-indigo-300 font-medium">
+            <span className="text-2xs text-indigo-300 font-medium">
               / {weeklyStats.targetQuestionsTotal} Hedef
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[#222533] rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden mt-2">
             <div
               className="h-full bg-indigo-600 rounded-full"
               style={{
@@ -232,7 +235,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
         </div>
 
         {/* Metric 3: Total Study Minutes */}
-        <div className="p-4 rounded-2xl bg-[#161822] border border-[#2D3245] space-y-1">
+        <div className="p-4 rounded-2xl bg-surface-0 border border-border space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-medium">Toplam Çalışma Süresi</span>
             <Clock className="w-3.5 h-3.5 text-sky-400" />
@@ -241,11 +244,11 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
             <span className="text-2xl font-black font-mono text-white">
               {weeklyStats.totalHours}
             </span>
-            <span className="text-[11px] text-sky-300 font-medium">
+            <span className="text-2xs text-sky-300 font-medium">
               Saat ({weeklyStats.totalMinutes} dk)
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[#222533] rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden mt-2">
             <div
               className="h-full bg-sky-600 rounded-full"
               style={{
@@ -256,7 +259,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
         </div>
 
         {/* Metric 4: Average Goal Completion Rate */}
-        <div className="p-4 rounded-2xl bg-[#161822] border border-[#2D3245] space-y-1">
+        <div className="p-4 rounded-2xl bg-surface-0 border border-border space-y-1">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-medium">Ortalama Başarı Oranı</span>
             <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
@@ -265,11 +268,11 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
             <span className="text-2xl font-black font-mono text-amber-400">
               %{weeklyStats.avgCompletion}
             </span>
-            <span className="text-[11px] text-slate-400">
+            <span className="text-2xs text-slate-400">
               Genel Uyum
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[#222533] rounded-full overflow-hidden mt-2">
+          <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden mt-2">
             <div
               className="h-full bg-amber-600 rounded-full"
               style={{ width: `${weeklyStats.avgCompletion}%` }}
@@ -279,7 +282,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
       </div>
 
       {/* Interactive Chart Container with Segmented View Switcher */}
-      <div className="bg-[#161822] border border-[#2D3245] rounded-2xl p-5 space-y-4">
+      <div className="bg-surface-0 border border-border rounded-2xl p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-indigo-400" />
@@ -291,13 +294,13 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
           </div>
 
           {/* Metric View Switcher Buttons */}
-          <div className="flex items-center gap-1.5 bg-[#1B1D27] p-1 rounded-xl border border-[#2D3245]">
+          <div className="flex items-center gap-1.5 bg-surface-1 p-1 rounded-xl border border-border">
             <button
               onClick={() => handleMetricChange('questions')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 metricView === 'questions'
                   ? THEME.brand.tailwind.activeTab
-                  : 'text-slate-400 hover:text-white hover:bg-[#222533]'
+                  : 'text-slate-400 hover:text-white hover:bg-surface-2'
               }`}
             >
               Soru Sayısı
@@ -307,7 +310,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 metricView === 'minutes'
                   ? THEME.brand.tailwind.activeTab
-                  : 'text-slate-400 hover:text-white hover:bg-[#222533]'
+                  : 'text-slate-400 hover:text-white hover:bg-surface-2'
               }`}
             >
               Çalışma Süresi (dk)
@@ -317,7 +320,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 metricView === 'completion'
                   ? THEME.brand.tailwind.activeTab
-                  : 'text-slate-400 hover:text-white hover:bg-[#222533]'
+                  : 'text-slate-400 hover:text-white hover:bg-surface-2'
               }`}
             >
               Tamamlama %
@@ -338,16 +341,16 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
                 }
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#2D3245" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
               <XAxis
                 dataKey="dayLabel"
-                stroke="#64748b"
+                stroke={CHART.axis}
                 fontSize={12}
                 tickLine={false}
                 axisLine={{ stroke: '#2D3245' }}
               />
               <YAxis
-                stroke="#64748b"
+                stroke={CHART.axis}
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -359,13 +362,13 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="bg-[#1B1D27] border border-[#2D3245] rounded-xl p-3.5 shadow-2xl space-y-1.5 min-w-[160px]">
-                        <div className="flex items-center justify-between border-b border-[#2D3245] pb-1.5">
+                      <div className="bg-surface-1 border border-border rounded-xl p-3.5 shadow-2xl space-y-1.5 min-w-[160px]">
+                        <div className="flex items-center justify-between border-b border-border pb-1.5">
                           <span className="text-xs font-bold text-white">
                             {data.fullDayName}
                           </span>
                           {data.isToday && (
-                            <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-semibold border border-amber-500/30">
+                            <span className="text-3xs bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-semibold border border-amber-500/30">
                               Bugün
                             </span>
                           )}
@@ -383,7 +386,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
                             <span className="text-slate-400">Başarı Oranı:</span>
                             <span className="font-bold text-green-400 font-mono">%{data.completionRate}</span>
                           </div>
-                          <div className="flex justify-between pt-1 border-t border-[#2D3245]">
+                          <div className="flex justify-between pt-1 border-t border-border">
                             <span className="text-slate-400">Seri Durumu:</span>
                             <span className={`font-semibold ${data.isStreakMaintained ? 'text-amber-400' : 'text-slate-500'}`}>
                               {data.isStreakMaintained ? '✓ Korundu' : '✗ Pas Geçildi'}
@@ -398,7 +401,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
               />
               <ReferenceLine
                 y={targetLineValue}
-                stroke="#f59e0b"
+                stroke={CHART.warning}
                 strokeDasharray="4 4"
                 strokeWidth={1.5}
                 label={{
@@ -438,7 +441,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
         </div>
 
         {/* Legend Ribbon */}
-        <div className="flex flex-wrap items-center justify-between pt-3 border-t border-[#2D3245] text-xs text-slate-400 gap-2">
+        <div className="flex flex-wrap items-center justify-between pt-3 border-t border-border text-xs text-slate-400 gap-2">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-sm bg-amber-500 inline-block" />
@@ -454,7 +457,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
             </div>
           </div>
 
-          <span className="text-[11px] text-slate-500">
+          <span className="text-2xs text-slate-500">
             Detayları görmek için sütunlara tıklayabilirsiniz
           </span>
         </div>
@@ -490,8 +493,8 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
                     : isToday
                     ? 'bg-amber-500/10 border-amber-500/40 shadow-sm'
                     : dayLog.isStreakMaintained
-                    ? 'bg-[#161822] border-[#2D3245] hover:border-indigo-500/40'
-                    : 'bg-[#12141C] border-[#222533] opacity-60'
+                    ? 'bg-surface-0 border-border hover:border-indigo-500/40'
+                    : 'bg-canvas border-surface-2 opacity-60'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -509,13 +512,13 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
                   <span className="text-sm font-black font-mono text-white block">
                     {dayLog.questionsSolved} Soru
                   </span>
-                  <span className="text-[11px] text-slate-400 block">
+                  <span className="text-2xs text-slate-400 block">
                     {dayLog.minutesStudied} dk
                   </span>
                 </div>
 
                 {isToday && (
-                  <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-amber-500 text-slate-950 shadow-sm">
+                  <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.2 rounded-full text-3xs font-extrabold bg-amber-500 text-slate-950 shadow-sm">
                     BUGÜN
                   </span>
                 )}
@@ -526,7 +529,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
       </div>
 
       {/* Smart AI Streak Coaching & Action Suggestions */}
-      <div className="p-5 rounded-2xl bg-[#161822] border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-5 rounded-2xl bg-surface-0 border border-indigo-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
             <Sparkles className="w-5 h-5" />
@@ -558,7 +561,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
           </button>
           <button
             onClick={() => onNavigateTab && onNavigateTab('pomodoro', 'TRAINING')}
-            className="px-3.5 py-2 rounded-xl bg-[#161822] hover:bg-[#222533] border border-[#2D3245] text-slate-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-surface-0 hover:bg-surface-2 border border-border text-slate-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Clock className="w-3.5 h-3.5 text-indigo-400" />
             <span>Pomodoro Başlat</span>

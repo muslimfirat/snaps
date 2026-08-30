@@ -143,7 +143,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
               <TrendingUp className="w-4 h-4 text-emerald-400" />
               <span>Aylık Düzenli Gelir (MRR)</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-3xs font-bold">
               {activeStudentCount} Öğrenci
             </span>
           </div>
@@ -157,7 +157,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
             </span>
           </div>
 
-          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-400">
+          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-2xs text-slate-400">
             <span>Net Tahsilat ({collectionRatePercent}%):</span>
             <span className="font-bold text-slate-200">
               {Math.round((currentMonthlyTuitionRevenue * collectionRatePercent) / 100).toLocaleString('tr-TR')} TL
@@ -172,7 +172,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
               <Calendar className="w-4 h-4 text-indigo-400" />
               <span>Yıllık Ciro Projeksiyonu</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-3xs font-bold">
               {tuitionMonthsPerYear} Aylık Sezon
             </span>
           </div>
@@ -186,7 +186,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
             </span>
           </div>
 
-          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-400">
+          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-2xs text-slate-400">
             <span>Öğrenci Başı Yıllık Ciro:</span>
             <span className="font-bold text-slate-200">
               {(tuitionPerStudentMonth * tuitionMonthsPerYear).toLocaleString('tr-TR')} TL
@@ -201,7 +201,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>Öğrenci Yazılım Değeri</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-3xs font-bold">
               250 TL / ay
             </span>
           </div>
@@ -215,7 +215,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
             </span>
           </div>
 
-          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-400">
+          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-2xs text-slate-400">
             <span>Bireysel Paket Eşdeğeri:</span>
             <span className="font-bold text-slate-200">{activeStudentCount} × 250 ₺ × 12</span>
           </div>
@@ -228,7 +228,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
               <Award className="w-4 h-4 text-emerald-400" />
               <span>Yazılım Getirisi & ROI</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-black">
+            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-3xs font-black">
               +{currentSoftwareROI}%
             </span>
           </div>
@@ -242,7 +242,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
             </span>
           </div>
 
-          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-400">
+          <div className="pt-2 border-t border-slate-800/80 flex justify-between items-center text-2xs text-slate-400">
             <span>Öğrenci Başı Yazılım Maliyeti:</span>
             <span className="font-bold text-emerald-400">
               {Math.round(annualSoftwareLicenseCost / Math.max(1, activeStudentCount))} TL / Yıl
@@ -305,10 +305,10 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
           <ResponsiveContainer width="100%" height="100%">
             {chartViewMode === 'REVENUE' ? (
               <BarChart data={monthlyProjectionData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#232738" vertical={false} />
-                <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2f3340" vertical={false} />
+                <XAxis dataKey="month" stroke="#8b94a4" tick={{ fontSize: 11 }} />
                 <YAxis 
-                  stroke="#64748b" 
+                  stroke="#8b94a4" 
                   tick={{ fontSize: 11 }} 
                   tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} 
                 />
@@ -339,8 +339,8 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
                     return value;
                   }}
                 />
-                <Bar dataKey="tuitionRevenue" name="tuitionRevenue" fill="#6366f1" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="collectedRevenue" name="collectedRevenue" fill="#10b981" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="tuitionRevenue" name="tuitionRevenue" fill="#4f46e5" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="collectedRevenue" name="collectedRevenue" fill="#35c393" radius={[6, 6, 0, 0]} />
               </BarChart>
             ) : (
               <AreaChart data={monthlyProjectionData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -354,10 +354,10 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
                     <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#232738" vertical={false} />
-                <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#2f3340" vertical={false} />
+                <XAxis dataKey="month" stroke="#8b94a4" tick={{ fontSize: 11 }} />
                 <YAxis 
-                  stroke="#64748b" 
+                  stroke="#8b94a4" 
                   tick={{ fontSize: 11 }} 
                   tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} 
                 />
@@ -377,8 +377,8 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
                   wrapperStyle={{ fontSize: '11px', paddingTop: '12px' }}
                   formatter={(value) => (value === 'collectedRevenue' ? 'Tahsilat Akışı (TL)' : 'Öğrenci Yazılım Katma Değeri (TL)')}
                 />
-                <Area type="monotone" dataKey="collectedRevenue" stroke="#10b981" fillOpacity={1} fill="url(#colorCollected)" strokeWidth={2} />
-                <Area type="monotone" dataKey="softwareValue" stroke="#f59e0b" fillOpacity={1} fill="url(#colorSoftware)" strokeWidth={2} />
+                <Area type="monotone" dataKey="collectedRevenue" stroke="#35c393" fillOpacity={1} fill="url(#colorCollected)" strokeWidth={2} />
+                <Area type="monotone" dataKey="softwareValue" stroke="#dda544" fillOpacity={1} fill="url(#colorSoftware)" strokeWidth={2} />
               </AreaChart>
             )}
           </ResponsiveContainer>
@@ -435,7 +435,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
               }}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-500">
+            <div className="flex justify-between text-3xs text-slate-500">
               <span>5 Öğrenci</span>
               <span>100 Öğrenci</span>
               <span>250 Öğrenci</span>
@@ -460,7 +460,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
               }}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-500">
+            <div className="flex justify-between text-3xs text-slate-500">
               <span>1.500 TL</span>
               <span>7.500 TL</span>
               <span>15.000 TL</span>
@@ -485,7 +485,7 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
               }}
               className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-500">
+            <div className="flex justify-between text-3xs text-slate-500">
               <span>%70</span>
               <span>%85</span>
               <span>%100</span>
@@ -497,21 +497,21 @@ export const FinancialSummary: React.FC<FinancialSummaryProps> = ({
         {/* Live Scenario Outcome Banner */}
         <div className="bg-gradient-to-r from-slate-950 via-indigo-950/40 to-slate-950 border border-indigo-500/30 rounded-2xl p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center sm:text-left">
           <div>
-            <span className="text-[11px] text-slate-400 block font-semibold">Simüle Edilen Aylık Ciro</span>
+            <span className="text-2xs text-slate-400 block font-semibold">Simüle Edilen Aylık Ciro</span>
             <span className="text-xl font-black text-white">
               {simMonthlyTuitionRevenue.toLocaleString('tr-TR')} TL
             </span>
           </div>
 
           <div>
-            <span className="text-[11px] text-slate-400 block font-semibold">Yıllık Tahsil Edilen Net</span>
+            <span className="text-2xs text-slate-400 block font-semibold">Yıllık Tahsil Edilen Net</span>
             <span className="text-xl font-black text-emerald-400">
               {Math.round((simAnnualTuitionRevenue * collectionRatePercent) / 100).toLocaleString('tr-TR')} TL
             </span>
           </div>
 
           <div>
-            <span className="text-[11px] text-slate-400 block font-semibold">Yapay Zeka Değer Yaratımı</span>
+            <span className="text-2xs text-slate-400 block font-semibold">Yapay Zeka Değer Yaratımı</span>
             <span className="text-xl font-black text-amber-400">
               +{simAnnualSoftwareValue.toLocaleString('tr-TR')} TL / Yıl
             </span>

@@ -229,7 +229,7 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
               ⚡ Tek Tıkla Kolay Çalışma Programı Şablonları
             </h3>
           </div>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-2xs text-slate-400">
             Tempona uygun şablonu seç, AI anında 7 günlük planını oluştursun
           </span>
         </div>
@@ -243,9 +243,9 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-emerald-400">🟢 Hafif & Hızlı</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">2-3 Saat</span>
+              <span className="text-3xs bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">2-3 Saat</span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-2xs text-slate-400">
               Temel konu özeti, hap bilgiler ve günlük 50 soru çözümü.
             </p>
           </button>
@@ -258,9 +258,9 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-indigo-400">🟡 Dengeli & Standart</span>
-              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded font-bold">4-5 Saat</span>
+              <span className="text-3xs bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded font-bold">4-5 Saat</span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-2xs text-slate-400">
               Konu çalışması + Branş denemesi + 120 hedef soru.
             </p>
           </button>
@@ -273,9 +273,9 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-rose-400">🔴 Yoğun / Derece</span>
-              <span className="text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded font-bold">6-8 Saat</span>
+              <span className="text-3xs bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded font-bold">6-8 Saat</span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-2xs text-slate-400">
               Çift deneme, hata defteri taraması ve 200+ soru.
             </p>
           </button>
@@ -291,9 +291,9 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
                 <Brain className="w-3.5 h-3.5 text-purple-400" />
                 <span>Deneme Telafi Planı</span>
               </span>
-              <span className="text-[10px] bg-purple-500/30 text-purple-200 px-1.5 py-0.5 rounded font-bold">AI Teşhis</span>
+              <span className="text-3xs bg-purple-500/30 text-purple-200 px-1.5 py-0.5 rounded font-bold">AI Teşhis</span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-2xs text-slate-400">
               {latestMock ? `Son "${latestMock.title}" eksiklerine göre planla` : 'Önce bir deneme sonucu kaydet'}
             </p>
           </button>
@@ -329,12 +329,12 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
                     {isDayComplete ? (
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     ) : (
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-3xs text-slate-500">
                         {doneCount}/{blocks.length}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-indigo-300/80 truncate mt-1 font-medium">
+                  <p className="text-3xs text-indigo-300/80 truncate mt-1 font-medium">
                     {d?.focus || 'Çalışma Bloğu'}
                   </p>
                 </button>
@@ -372,7 +372,7 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
                   </button>
 
                   <div className="text-right">
-                    <span className="text-[11px] text-slate-400 block">Gün İlerlemesi</span>
+                    <span className="text-2xs text-slate-400 block">Gün İlerlemesi</span>
                     <span className="text-xs font-bold text-emerald-400">
                       %{dayProgressPercent} Tamamlandı
                     </span>
@@ -392,7 +392,7 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">
+                  <span className="text-2xs font-bold text-amber-400 uppercase tracking-wider block">
                     Günün Koçluk Tüyosu:
                   </span>
                   <p className="text-xs text-amber-100/90 leading-relaxed mt-0.5">
@@ -436,7 +436,7 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
                             <span className={`text-xs font-bold ${block.completed ? 'line-through text-slate-500' : 'text-indigo-400'}`}>
                               {block.subject}
                             </span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
+                            <span className="text-3xs px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
                               {block.duration}
                             </span>
                           </div>
@@ -447,7 +447,7 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
                       </div>
 
                       <div className="text-right flex-shrink-0">
-                        <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                        <span className="text-2xs font-mono text-slate-400 flex items-center gap-1">
                           <Clock className="w-3 h-3 text-slate-500" />
                           {block.time}
                         </span>

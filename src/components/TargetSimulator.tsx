@@ -162,7 +162,7 @@ export const TargetSimulator: React.FC<TargetSimulatorProps> = ({
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold border ${
+                  <span className={`px-2.5 py-0.5 rounded-lg text-3xs font-extrabold border ${
                     preset.category === 'KPSS'
                       ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
                       : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
@@ -175,7 +175,7 @@ export const TargetSimulator: React.FC<TargetSimulatorProps> = ({
                 </div>
                 <h3 className="text-sm font-bold text-white leading-snug">{preset.title}</h3>
                 <p className="text-xs text-indigo-300 font-medium">{preset.subTitle}</p>
-                <p className="text-[11px] text-slate-400 line-clamp-2">{preset.quotaOrInfo}</p>
+                <p className="text-2xs text-slate-400 line-clamp-2">{preset.quotaOrInfo}</p>
               </div>
 
               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs font-semibold text-slate-300">
@@ -249,7 +249,7 @@ export const TargetSimulator: React.FC<TargetSimulatorProps> = ({
                 <div key={item.section} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-white">{item.section}</span>
-                    <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
+                    <span className={`px-2 py-0.5 rounded-lg text-2xs font-bold ${
                       isAhead ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
                     }`}>
                       {isAhead ? `+${diff} Net Fazla` : `${diff} Net Eksik`}
@@ -266,14 +266,14 @@ export const TargetSimulator: React.FC<TargetSimulatorProps> = ({
                         style={{ width: `${progressPercent}%` }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <div className="flex items-center justify-between text-2xs text-slate-400">
                       <span>Mevcut: <strong className="text-slate-200">{currentNet} Net</strong></span>
                       <span>Hedef: <strong className="text-indigo-400">{item.targetNet} Net</strong></span>
                     </div>
                   </div>
 
                   {/* Quick adjustment input */}
-                  <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400 border-t border-slate-900">
+                  <div className="flex items-center justify-between pt-1 text-2xs text-slate-400 border-t border-slate-900">
                     <span>Mevcut Netini Düzenle:</span>
                     <input
                       type="number"

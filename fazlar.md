@@ -640,6 +640,343 @@ handler'lar temizlendi, davranış aynı.
 
 ---
 
+## Faz 9 — UI/UX bug ve davranış düzeltmeleri  🟡 KISMEN (2026-08-30)
+
+Amaç: analizde çıkan gerçek bug'ları ve mobil kullanılabilirlik kırıklarını gidermek.
+Kaynak: 2026-08-30 UI/UX + renk analizi (kod + canlı tarayıcı, mobil + masaüstü).
+
+### Uygulama sonucu — 1. tur (2026-08-30)
+- [x] **9.1 tamam:** Dashboard "Son Rozet" boş ekran → yeni `achievements` sekmesi
+  (`App.tsx` render dalı + `Header` HOME alt-sekmesi "Başarılar & Rozetler" + `BottomNav`
+  HOME listesi + `getCategoryForTab`). Ölü `AchievementBadges` bileşeni artık canlı yüzeyde.
+  `Dashboard.tsx:132` → `onNavigateTab('achievements','HOME')`.
+- [x] **9.1 tamam:** `index.css`'e `@keyframes enter` + `.animate-in/.fade-in/.zoom-in-95/
+  .slide-in-from-*` + `.animate-fadeIn/.animate-scaleUp` + `prefers-reduced-motion` guard.
+  Derlenmiş CSS'te doğrulandı → modal/toast/dropdown artık animasyonlu.
+- [x] **9.1 tamam:** `.no-scrollbar` tanımlandı → mobilde çift kaydırma çubuğu gitti (görsel teyit).
+- [x] **9.2 tamam:** `App.tsx` `<main>` `pb-28 md:pb-8`; kök `justify-between` kaldırıldı;
+  `BottomNav` `pb-[max(0.375rem,env(safe-area-inset-bottom))]`; footer `pb-24 md:pb-4` + `no-print`;
+  bileşenlerdeki tekil `pb-16`'lar kaldırıldı (Dashboard/InstitutionPortal/QuickFlashcards).
+  Doğrulama: JS ile main pb=112px, footer nav'ın üstünde, dev boşluk yok.
+- [x] **9.2 tamam:** Dashboard hızlı-eylem kartları mobilde tek sütun (`grid-cols-1 sm:grid-cols-2`) +
+  `truncate` kaldırıldı → metin kırpılmıyor (görsel teyit).
+- [x] **9.3 kısmi:** `Header` geri sayım `setInterval` 1000ms → 60000ms (saniyelik tam-Header
+  render'ı önlendi).
+- [x] **9.4 kısmi:** `Header` logo `<div onClick>` → `<button aria-label>`; `index.html`
+  `lang="tr"`, gerçek `<title>`/description/OG, `theme-color`, `apple-mobile-web-app-*`,
+  SVG favicon, `viewport-fit=cover`.
+
+### Uygulama sonucu — 2. tur (2026-08-30)
+- [x] **9.6 route lazy-load:** `App.tsx` 16 rota bileşeni `React.lazy` + `<Suspense>` (Skeleton
+  fallback). Sonuç: `index.js` **750 KB → 359 KB** (gzip 190→107). recharts (411 KB) artık ayrı
+  chunk (yalnız StreakAnalytics/InstitutionPortal). InstitutionPortal 151 KB ayrı — öğrenci hiç
+  yüklemiyor. Kritik yol ~1.9 MB → ~1.2 MB. Canlı: tüm rotalar tembel yükleniyor, hata yok.
+- [x] **9.5 onboarding + dürüstlük:**
+  - `DEFAULT_PROFILE` sahte ilerleme sıfırlandı (`streakDays/todayQuestions/todayMinutes 6/45/110
+    → 0`). `onboarded` alanı eklendi (`types.ts`).
+  - `loadMockExams` sahte deneme geçmişi + "kişisel notlar" kaldırıldı → `[]` (EmptyState yönlendirir).
+  - İlk açılışta `SettingsModal` `isOnboarding` modunda otomatik açılır: "Hoş Geldin" başlığı,
+    X/Vazgeç yok, "Kaydet ve Başla", isim alanı boş. Kayıtta `onboarded:true` + modal kapanır.
+    Canlı: uçtan uca doğrulandı (isim dashboard'a yansıyor, seri 1'den başlıyor).
+  - `SettingsModal` "Firestore Aktif" → `currentUser` varsa "Buluta bağlı", yoksa "Yalnız bu cihazda".
+  - "Aktif Lisans / PRO Aktif" → "Erken Erişim / Tüm özellikler açık" (satın-alma iddiası yumuşatıldı).
+
+### Uygulama sonucu — 3. tur (2026-08-30)
+- [x] **9.3:**
+  - `getCategoryForTab` — `institution` + `inst_*` artık `INSTITUTION` kategorisi (eskiden `HOME`).
+    `BottomNav` kurum sekmesindeyken "Anasayfa"yı yakmıyor (dürüst: kurum modunda alt-nav'da aktif yok).
+  - `BottomNav` "Profil" aktif durumu → yeni `settingsOpen` prop'u (ayarlar modalı açıkken yanar).
+  - `AuthContext` — 8 sn failsafe `setTimeout(setLoading(false))` → Firebase yavaş/engelliyse
+    header'da sonsuz spinner kalmıyor.
+- [x] **9.4:**
+  - `src/lib/useModalA11y.ts` — `<body>` scroll-lock + basit focus-trap + odak iadesi hook'u.
+  - `SettingsModal`: `role="dialog"` + `aria-modal` + `aria-labelledby` + hook. `CommandSearch`:
+    `role="dialog"` + `aria-modal` + `aria-label` + backdrop tıkla-kapat + scroll-lock.
+  - `aria-current="page"` — Header kategori (masaüstü+mobil) + alt-sekme butonları, `BottomNav` 4 buton.
+  - Hamburger `aria-label` + `aria-expanded`; SettingsModal toggle'ları `peer-focus-visible:ring-2`.
+  - Canlı doğrulama: dialog rolü + `aria-labelledby` + body kilidi + onboarding akışı — hepsi çalışıyor.
+
+### Uygulama sonucu — 4. tur (2026-08-30)
+- [x] **Ölü bileşen temizliği:** `SubjectProgressWidget` (296) + `DailyStreakBadge` (361) +
+  `ClassroomLeaderboard` (362) silindi — hiç render edilmiyorlardı (~1000 satır). `getSubjectTheme`
+  artık yalnız tanımlı (zararsız; StreakAnalytics `THEME.subjects.math.hex` kullanmaya devam).
+- [x] **10.6 (kısmi):** `@theme`'e `--text-2xs`/`--text-3xs` (11px/10px) + line-height. Codemod:
+  `text-[8px..12px]` (337 kullanım) → `text-3xs`/`text-2xs`/`text-xs`. 8-9px etiketler 10px'e çıktı
+  (erişilebilirlik). Boşluk/yarıçap/gölge ölçeği kaldı (görsel etki düşük).
+- [x] **10.5 (tamam):** `src/lib/chartColors.ts` — `getComputedStyle` ile `@theme` CSS var'larını
+  okur. `StreakAnalytics`, `DailyGoalProgressRing`, `PomodoroTimer` grafik/halka renkleri buradan
+  (iki tema uyumlu; tema değişince reload'da uygulanır).
+- [x] **10b — GÜNDÜZ TEMASI:**
+  - `index.css` `[data-theme="light"]` + `@media (prefers-color-scheme: light) [data-theme="system"]`
+    blokları — tüm token'lar (zemin/metin/semantik) gündüz değerleriyle. Varsayılan = Gece.
+  - Uyumluluk katmanı genişletildi: yarı-saydam `slate-900/950/*` panelleri (`/40`–`/95`) temayı
+    izliyor, tam ekran modal scrim'i gündüzde koyu kalıyor, renkli buton üstündeki `text-white`
+    gündüzde beyaz kalıyor.
+  - `src/lib/themeMode.ts` + `index.html` boyama-öncesi init script (yanıp sönme yok) +
+    `SettingsModal` "Görünüm" seçici (Sistem/Gündüz/Gece), `localStorage` + `<html data-theme>`.
+    `theme-color` meta dinamik.
+  - `BottomNav` zemini token'a taşındı (gündüzde artık koyu kalmıyor).
+  - Canlı doğrulama: Dashboard + StreakAnalytics + SettingsModal, gündüz↔gece anlık geçiş,
+    kontrast rahat, regresyon yok.
+
+### Uygulama sonucu — 5. tur (2026-08-30): tutarlılık gözden geçirme + düzeltmeler
+Canlı iki-tema incelemesi sonrası kullanıcı geri bildirimi ("dark monoton, gündüz koyu adalar,
+Kurum çift yol") üzerine:
+- [x] **Dark canlılık:** kart kenarlıkları belirginleşti (`--color-border #2f3340→#383d4d`); gold
+  parlatıldı (`#dda544→#ecb44e`); success/danger az miktar canlandırıldı; **Dashboard hızlı-eylem
+  ikon kutuları** artık 4 farklı renk (indigo/altın/yeşil/sky) — "kumarhane değil ama cansız da değil".
+- [x] **Gündüz koyu gradyan adaları:** `[data-theme="light"]` altında `from/via/to-slate-9xx` +
+  `*-95x` tint durakları açık yüzeye iniyor → başlık banner'ları sayfayla uyumlu. `text-white`
+  "beyaz kal" istisnası daralttıldı (yalnız marka/semantik dolgulu butonlar; slate gradyanı hariç)
+  → banner başlıkları gündüzde koyu ve okunur.
+- [x] **Koyu-indigo "seçili" zeminleri** (`bg-indigo-950/*`, `bg-indigo-900/*`) → her iki temada
+  çalışan marka tinti; `CurriculumTracker` seçili ders satırı düzeltildi.
+- [x] **Kurum çift yol:** üst kategori çubuğundan (masaüstü 4→3 kolon + mobil kaydırıcı) çıkarıldı;
+  hamburger'daki "Dershane Portalı" kısayolu korundu (kullanıcı tercihi). `CATEGORY_DEFINITIONS`
+  değişmedi → alt-sekme çözümü tutarlı.
+- [x] **"Sistem" teması** basitleştirildi: `themeMode.ts` tercihi (system/light/dark) `<html
+  data-theme>`'e çözer + `matchMedia` canlı dinleyici. `index.css` tek gündüz bloğu (media kopyası
+  kalktı). `index.html` init script system'i çözüyor.
+- [x] Doğrulama: `tsc` 0 · `build` OK · Dashboard/StreakAnalytics/CurriculumTracker iki temada,
+  anlık geçiş, kontrast rahat, regresyon yok.
+
+### Kalan (opsiyonel)
+- [ ] 9.4 tam `role="tablist/tab/tabpanel"` + ok tuşu (aria-current güvenli alt küme yapıldı).
+- [ ] 10.6 boşluk/yarıçap/gölge ölçeği (tipografi yapıldı).
+- [ ] 10b ince ayar: kalan birkaç bileşende `bg-*-950/*` seçili-zemin kalıbı; grafik renkleri tema
+  değişiminde reload istiyor (nadir kullanım).
+
+### Orijinal plan (referans)
+
+### 9.1 — Gerçek bug'lar
+- [ ] **Dashboard "Son Rozet" butonu boş ekran** — `Dashboard.tsx:132` `onNavigateTab('profile','PROFILE')`
+  çağırıyor ama `App.tsx`'te `activeTab === 'profile'` / `'settings'` için render dalı yok
+  (ayarlar bir modal). Rozet kartına tıklayınca `<main>` tamamen boşalıyor.
+  → Butonu `onOpenSettings()`'e bağla **veya** gerçek bir "Başarılar" sekmesi ekle.
+  `getCategoryForTab`'deki `'profile'`/`'settings'` → `PROFILE` eşlemesini de netleştir.
+- [ ] **Entrance animasyonları ölü** — 22 bileşende `animate-in fade-in zoom-in-95
+  slide-in-from-bottom-*` kullanılıyor ama `tw-animate-css` / `tailwindcss-animate` paketi yok,
+  `index.css`'te tanım yok, derlenmiş CSS'te bu sınıflar yok (doğrulandı). Tüm modal/toast/dropdown
+  animasyonsuz "zıplayarak" açılıyor. → `tw-animate-css` ekle + `index.css`'e `@import "tw-animate-css";`
+  (veya keyframe'leri elle tanımla).
+- [ ] **`no-scrollbar` sınıfı tanımsız** — `Header.tsx:468,496` yatay kaydırıcılarda kullanılıyor,
+  hiçbir yerde tanımlı değil → mobilde kategori + alt-sekme satırlarının altında çift gri kaydırma
+  çubuğu görünüyor (canlı testte doğrulandı). → `index.css`'e
+  `.no-scrollbar{scrollbar-width:none} .no-scrollbar::-webkit-scrollbar{display:none}`.
+
+### 9.2 — Mobil layout
+- [ ] **Sabit `BottomNav` içeriği örtüyor** — `App.tsx:421` `<main>`'de mobil alt boşluk yok.
+  Sadece 3 bileşende (`Dashboard`, `InstitutionPortal`, `QuickFlashcards`) `pb-16` var; diğer
+  ~12 görünüm (`SnapSolver`, `StudyPlanner`, `MockExamTracker`, `SmartMistakeBank`, `PomodoroTimer`,
+  `CurriculumTracker`, `StreakAnalytics`, `SpeedTrainer`, `QuestionDuel`, `VoiceAICoach`,
+  `AICoachChat`, `TargetSimulator`) alt menünün arkasında kalıyor. Footer da tamamen gizli.
+  → Boşluğu tek yerden `<main>`'e ver (`pb-24 md:pb-8`), bileşenlerdeki tekil `pb-16`'ları kaldır.
+- [ ] **iOS safe-area** — `BottomNav`'a `padding-bottom: max(6px, env(safe-area-inset-bottom))`;
+  `index.html` viewport'a `viewport-fit=cover`.
+- [ ] **Kısa sayfada dev boş alan** — `App.tsx:401` kök `flex flex-col justify-between`; `main`
+  zaten `flex-1`. `justify-between` gereksiz, içerik kısa olunca ~600px boşluk açıyor (canlı testte
+  görüldü). → `justify-between` kaldır.
+- [ ] **Mobil sticky header ~300px** (812px ekranın ~%38'i: üst bar + kategori kaydırıcı +
+  alt-sekme kaydırıcı). → Mobilde kategori satırını `BottomNav`'a devret veya scroll'da header'ı
+  collapse et; en az alt-sekme çubuğu sticky olmaktan çıksın.
+- [ ] **Dashboard hızlı-eylem kartlarında metin kırpılıyor** (`Dashboard.tsx:171-255`) — mobilde
+  2 sütun çok dar: "Yapay zeka il…", "Deneme Ka…", "AI Sınav Ko…". → Mobilde tek sütun veya
+  `truncate` yerine `line-clamp-2` + daha kısa açıklamalar.
+
+### 9.3 — Navigasyon tutarlılığı
+- [ ] `BottomNav` "Profil" butonu `isProfileActive`'i `activeTab === 'settings'` ile kontrol ediyor
+  ama bu asla true olmuyor (ayarlar modal) → Profil sekmesi hiç aktif görünmüyor.
+- [ ] Kurum Portalı `activeTab === 'institution'` iken `getCategoryForTab` bunu `HOME` sayıyor →
+  `BottomNav`'da "Anasayfa" yanıyor. `INSTITUTION` kategorisi tutarlı ele alınmalı.
+- [ ] Hamburger menüsündeki "Dershane Portalı" ile üst kategori çubuğundaki "Kurum Portalı" çift yol —
+  hamburger'dan kaldır veya kategori çubuğunu sadeleştir.
+- [ ] `GoogleAuthButton` — Firebase Auth yavaş/engelli olursa header'da sonsuz spinner (`loading`
+  timeout fallback'i yok). → ~8sn sonra "giriş yap" durumuna düş.
+
+### 9.4 — Erişilebilirlik
+- [ ] Logo tıklanabilir `<div>` (`Header.tsx:230`) → `<button>`.
+- [ ] Sekme çubukları `role="tablist"`/`role="tab"`/`aria-selected`; `BottomNav` butonlarına
+  `aria-current`.
+- [ ] İkon-only butonlara `aria-label` (hamburger, geri sayım, streak pill).
+- [ ] Toggle switch'lere görünür focus ring (`SettingsModal.tsx:301,352`).
+- [ ] Modallara `role="dialog"` + `aria-modal` + focus-trap + açılışta autofocus + kapanışta focus
+  iadesi + `body` scroll-lock; backdrop tıklamasında kaydedilmemiş değişiklik uyarısı
+  (`SettingsModal`).
+- [ ] `index.html`: `lang="en"` → `lang="tr"`; `<title>` "My Google AI Studio App" → "Snaps —
+  KPSS & YKS AI Sınav Koçu"; favicon, `theme-color`, `apple-mobile-web-app-*` meta ekle; OG açıklaması.
+
+### 9.5 — Ürün
+- [ ] **İlk açılış / onboarding** — `storage.ts:36` varsayılan profil "Sınav Adayı"; uygulama
+  6 günlük seri, sahte rozet, geçmiş deneme netleri, 45 çözülmüş soru ile açılıyor. Kurulum akışı yok.
+  → İlk açılışta zorunlu mini-onboarding (isim + sınav + tarih); demo veriyi
+  `hasCompletedOnboarding` flag'i arkasına al.
+- [ ] "PRO Aktif / Aktif Lisans / Firestore Aktif" hardcoded (`SettingsModal.tsx:284,411,421`,
+  `GoogleAuthButton.tsx:63` — `idle`'da da "Aktif") → gerçek duruma bağla.
+
+### 9.6 — Performans (opsiyonel, Faz 10 ile paralel)
+- [ ] İlk yük ~1.9 MB JS (`index` 742 KB + `firebase` 672 KB + `charts` 410 KB), route lazy-load yok.
+  → `React.lazy` ile ağır sekmeler (`StreakAnalytics`, `MockExamTracker`, `TargetSimulator`,
+  `ParentDashboard`, `InstitutionPortal` 2051 satır).
+
+**Kabul kriterleri:** `npm run lint` 0 hata · `npm run build` başarılı · Dashboard rozet butonu
+çalışan bir yüzeye gidiyor · mobilde hiçbir görünümün son elemanı `BottomNav` altında kalmıyor ·
+modallar animasyonlu açılıyor · `lang="tr"`.
+
+---
+
+## Faz 10 — Renk sistemi + tasarım ölçeği tam yenilemesi  🟡 KISMEN (2026-08-30)
+
+Amaç: 4 kopuk renk kaynağını (`theme.ts`, `index.css` `:root`, `!important` ezmeleri, ~297
+arbitrary hex) tek `@theme` kaynağına indirmek + öğrenci psikolojisi ve göz sağlığına göre paleti
+yeniden ayarlamak + tipografi/boşluk/gölge ölçeğini standardize etmek.
+**Karar (2026-08-30): "Tam yenileme" kapsamı seçildi. Işık teması Faz 10b'ye ertelendi.
+"Hata Defteri" kırmızıdan altın/indigo'ya çevrilecek.**
+
+### Uygulama sonucu — 1. tur (2026-08-30): temel + codemod
+- [x] **10.1:** `index.css`'e tek `@theme` bloğu — "Odak" paleti (canvas #13141a, surface-0..3,
+  border/-strong, fg/-secondary/-muted/-disabled, brand #5b5fd6, success/warning/danger/info,
+  6 ders token'ı). `:root` custom-prop bloğu ve kullanılmayan `.bg-surface-card` vb. helper'lar silindi.
+- [x] **10.1:** Metin `!important` ezmeleri kaldırıldı → yerine `@theme` var'larından okuyan
+  **uyumluluk katmanı**: ~1950 `slate-*` / `text-white` yardımcısı tek noktadan yeni palete bağlandı
+  (değerler @theme'den; `!important` yardımcıyı ezmek için zorunlu, aşamalı küçülecek).
+  `text-white`/`slate-100` → `--color-fg` (saf beyaz halation'ı bitti).
+- [x] **10.2:** codemod (`scratchpad/color_codemod.py`) — 291 arbitrary `prefix-[#hex]` → token
+  util (`bg-surface-1`, `border-border` …). Rol bazlı eşleme (bg/border/text ayrı). Kalan: 0
+  (SVG `stroke=/fill=` hariç). 15 dosya.
+- [x] **10.1/theme.ts:** `surfaces` + `text` blokları silindi (kullanılmıyordu); `brand` #5b5fd6'ya,
+  `status` semantik token'lara hizalandı; "@theme tek kaynak" başlık yorumu.
+- [x] Doğrulama: `tsc` 0 · `vite build` başarılı (2327 modül) · canlı mobil+masaüstü görsel:
+  regresyon yok, yüzeyler ılık/yumuşak, kontrast rahat, layout sağlam.
+
+### Uygulama sonucu — 2. tur (2026-08-30): aksan psikolojisi
+- [x] **10.3:** `index.css` uyumluluk katmanına **aksan bloğu** eklendi:
+  - Marka: `indigo-400/500/600/700` (metin/bg/border/gradyan durakları) → tek `--color-brand`
+    (indigo-600, beyaz metin AA). 4 kopuk indigo tonu bitti.
+  - `emerald/green/teal` → `--color-success` (#35c393, yumuşak); `amber/yellow/orange` →
+    `--color-warning` (#dda544, mat altın — alarm turuncusu değil); `rose/red` → `--color-danger`
+    (#e26571, yumuşak mercan). Metin varyantları `-fg` (açık) token'ına.
+  - Gradyan `from-/via-/to-` durakları da sakinleştirildi (hue tek sisteme iner) — "kumarhane"
+    etkisi kırıldı, seri rozeti artık yumuşak altın, alt-nav arama butonu düz marka indigo.
+    (Not: v4'te `--tw-gradient-from`'a pozisyon eklemek gradyanı bozuyor → yalnız renk override edildi.)
+  - `@theme`'e `--color-*-fg` (açık metin) + `--color-brand-fg` eklendi.
+- [x] **10.3 / Hata Defteri:** Leitner **1. Kutu** `rose` → `amber` ("gelişim alanı" tonu, utanç
+  kırmızısı yok). Modül başlığı zaten indigo'ydu. Yanlış-cevap geri bildirimi (`text-rose-*`)
+  uyumluluk katmanıyla yumuşak mercana indi — hâlâ ayırt edilir ama sert değil.
+- [x] Doğrulama: `tsc` 0 · `vite build` OK · canlı: Dashboard/StreakAnalytics/Hata Defteri/
+  Settings modal — tutarlı, sakin, kırmızı/neon yok, kontrast rahat, regresyon yok.
+
+### Kalan (3. tur)
+- [ ] 10.4 — **MOOT/gözden geçir:** `getSubjectTheme` + `SubjectProgressWidget` + `DailyStreakBadge` +
+  `ClassroomLeaderboard` **ölü bileşen** (0 render yeri — Faz 8 tarzı temizlik adayı). Canlı ders
+  renkleri yalnız `CurriculumTracker`/`MockExamTracker`'da ad-hoc; küçük iş.
+- [x] 10.5 — recharts/SVG `stroke=/fill=` literalleri palet hex'lerine hizalandı
+  (DailyGoalProgressRing, StreakAnalytics, PomodoroTimer, FinancialSummary; `THEME.*` kullanan
+  yerler zaten hizalıydı). Not: Faz 10b'de `getComputedStyle` ile CSS var'a çevrilecek (iki tema).
+- [ ] 10.6 — tipografi/boşluk/yarıçap/gölge ölçeği (`@theme`; `text-[10px/11px]` tek-kullanımları,
+  `p-3.5/p-4/p-5/p-6` karışıklığı, `rounded-xl/2xl/3xl`, `shadow-*` → 2 seviye).
+- [ ] Ölü bileşen temizliği: `SubjectProgressWidget`, `DailyStreakBadge`, `ClassroomLeaderboard`
+  (+ kullanımıysa `getSubjectTheme`/`THEME.subjects`).
+
+### Mevcut durum tespiti
+- Uygulama zemini 3 farklı değerde: `theme.ts` `#0F1117`, `index.css` `body #14151C !important`,
+  `App.tsx` `bg-slate-950` → `!important #161822`. Header kendi zemini `#0F111A`.
+- ~20 neredeyse-aynı koyu yüzey tonu (`#161822 #1B1D27 #222533 #141622 #1A1D2D #1E2132 #12141C
+  #1c1f2d #232733 …`) + slate-900/950 ezmeleri.
+- `theme.ts` semantik renkleri kodun kullanımıyla çelişiyor: theme `green/red/orange` diyor,
+  kod `emerald` (344×) / `rose` (165×) / `amber` (304×) kullanıyor. `theme.ts.status` ölü kod.
+- `getSubjectTheme` yalnız `SubjectProgressWidget`'ta kullanılıyor (ders renk sistemi %95 âtıl).
+- `index.css` 31 `!important` — 3'ü metin rengi ezmesi; hiyerarşiyi düzleştiriyor, bileşenler
+  override edemiyor, kontrast iddiası yanlış zemine (`#14151C`) göre ölçülmüş.
+- 451× `text-white`, 66 gradyan — saf beyaz/near-black kontrastı ~19:1 (halation, göz yorgunluğu).
+- Darklar mavi-soğuk (gece çalışması + melatonin için ideal değil).
+- recharts renkleri ayrı 4. kopya (`FinancialSummary`, `DailyGoalProgressRing`: `#6366f1 #10b981
+  #f59e0b #232738 …`).
+
+### 10.1 — Token kaynağı: tek `@theme` bloğu (`index.css`)
+- [ ] `@theme` bloğu ekle — "Odak" paleti (gece çalışmasına ayarlı, hafif ılık nötr, saf siyahtan uzak):
+  ```
+  --color-bg:#13141A  --color-surface-0:#181A22  --color-surface-1:#1F212B
+  --color-surface-2:#282B37  --color-surface-3:#333747
+  --color-border:#2F3340  --color-border-strong:#3E4353
+  --color-fg:#E8EBF1 (saf beyaz DEĞİL, ~12:1 tavan)  --color-fg-secondary:#B9C0CD
+  --color-fg-muted:#8B94A4  --color-fg-disabled:#5C6472
+  --color-brand:#5B5FD6  --color-brand-hover:#4C50C4
+  --color-success:#35C393  --color-warning:#DDA544  --color-danger:#E26571  --color-info:#4FA3D4
+  --color-subj-turkce:#2FA98C  --color-subj-matematik:#4F8FD6  --color-subj-tarih:#C1904A
+  --color-subj-cografya:#C06B8C  --color-subj-vatandaslik:#6C7590  --color-subj-fen:#6BA85D
+  ```
+  (Değerler uygulama sırasında gerçek zeminde kontrast ölçülerek ±%5 ince ayarlanabilir.)
+- [ ] `index.css`'ten metin `!important` ezmelerini (`.text-slate-300/400/500`) ve yüzey
+  `!important` ezmelerini kaldır. Print `!important`'ları kalır.
+- [ ] `theme.ts` küçült: `surfaces`/`text`/`status`/`brand` blokları silinir. `THEME.subjects` +
+  `getSubjectTheme` kalır (recharts/canvas hex ister) ama değerleri `@theme` ders token'larıyla
+  **birebir** eşitlenir + "kaynak: index.css @theme" yorumu. İdeal: JS tarafı
+  `getComputedStyle(document.documentElement).getPropertyValue('--color-…')` ile okur.
+
+### 10.2 — Codemod: ~297 arbitrary hex → token util
+- [ ] Eşleme tablosuyla toplu değişim (çoğu birebir):
+  | Eski | Yeni |
+  |---|---|
+  | `#0F1117 #0F111A #12141C #141620 #141622 #14151C` | `bg-bg` |
+  | `#161822 #161826 #161922 #1A1D2D #1c1f2d #1E2130 #1E2132` + `bg-slate-950` | `bg-surface-0` |
+  | `#1B1D27` + `bg-slate-900` | `bg-surface-1` |
+  | `#222533 #232733 #22263A #242838` | `bg-surface-2` |
+  | `#2A2E40 #2B3045` | `bg-surface-3` |
+  | `#2D3245 #262B3D #282D42` | `border-border` |
+  | `#3B4259 #3A405A` | `border-border-strong` |
+  | `#7FAE96` (2× SnapSolver) | `text-success` veya kaldır |
+- [ ] Her dosya değişiminden sonra mobil + masaüstü ekran görüntüsü diff (görsel regresyon).
+
+### 10.3 — Aksan sadeleştirme (psikoloji)
+- [ ] `emerald` → `success` token'ı (344 kullanım, semantik "başarı" olanlar).
+- [ ] `amber` kullanımını azalt (304→hedef ~%40): seri/streak `warning` altınına iner, **küçük**,
+  yanıp sönme yok. Kutlama anı (`canvas-confetti`) `success` + konfeti.
+- [ ] **`rose` yalnız yıkıcı eylemde** (sil/çıkış). "Hata Defteri" (`SmartMistakeBank` +
+  `mistakes/notebook/errors` sekmeleri) → `warning` altın veya `brand` indigo, "Gelişim Alanları"
+  tonu. İkonlar korunur.
+- [ ] 66 gradyanın ~%80'i düz `surface-*` / `brand`'e iner (dashboard "kumarhane" etkisini kır).
+- [ ] Renk körü güvenliği: success/danger her yerde ikon + şekil ile de ayrışsın.
+
+### 10.4 — Ders renkleri
+- [ ] `getSubjectTheme`'i tüm ders-renkli yüzeylerde kullan (`Dashboard`, `CurriculumTracker`,
+  `MockExamTracker`, `StudyPlanner`, `SubjectProgressWidget`). Ders renkleri **desatüre etiket**
+  (tint arka plan + renkli metin), asla tam dolgu.
+- [ ] Çakışmaları çöz: Türkçe (emerald) vs success, Coğrafya (pink) vs danger → ders token'ları
+  ayrı isim uzayında (`--color-subj-*`).
+
+### 10.5 — recharts / SVG
+- [ ] `FinancialSummary`, `DailyGoalProgressRing`, `StreakAnalytics`, `TargetSimulator`,
+  `MockExamTracker` grafik renklerini CSS var'dan besle (JS'te `getComputedStyle`).
+
+### 10.6 — Tipografi / boşluk / gölge ölçeği ("tam yenileme")
+- [ ] `@theme`'e tipografi ölçeği: `--text-xs…--text-3xl` + satır yüksekliği. Şu an `text-[10px]`,
+  `text-[11px]` gibi tek-kullanım boyutlar dolaşıyor — 5-6 basamaklı bir ölçeğe indir.
+- [ ] Boşluk: kart iç padding'i (`p-4/p-5/p-6/p-3.5` karışık) 2-3 standarda indir.
+- [ ] Köşe yarıçapı: `rounded-xl/2xl/3xl` karışık — kart `2xl`, buton/rozet `xl`, çip `lg` kuralı.
+- [ ] Gölge: `shadow-sm/md/lg/2xl/shadow-indigo-600/20` karışık — 2 seviyeli sistem
+  (`--shadow-card`, `--shadow-pop`).
+- [ ] `text-white` (451×) → başlıklarda `text-fg`, gövdede `text-fg-secondary`. Saf beyaz yalnız
+  1-2 kelimelik vurgu.
+- [ ] Font: `index.css` `-apple-system…` yığını kalır; opsiyonel `Inter` (self-host, Google Fonts
+  CSP riski yok — bkz. proje statik host değil).
+
+**Kabul kriterleri:** Tek `@theme` bloğu renk kaynağı · `theme.ts`'te yüzey/metin/status yok ·
+grep `\[#[0-9A-Fa-f]` → 0 (SVG marka logoları hariç) · `!important` yalnız `@media print` ·
+`npm run lint` 0 · `npm run build` başarılı · WCAG AA: tüm metin/zemin çiftleri gerçek zeminde
+≥4.5:1 (gövde ≥7:1) · mobil + masaüstü görsel regresyon onaylı · `text-white` ≤ ~40.
+
+---
+
+## Faz 10b — Işık (gündüz) teması  🚧 PLANLANDI (Faz 10 sonrası)
+
+- [ ] `@theme`'i `:root` (light) + `@media (prefers-color-scheme: dark)` + `[data-theme]` yapısına
+  böl; koyu paleti dark bloğa taşı.
+- [ ] `SettingsModal`'a tema geçişi (Sistem / Gündüz / Gece), `localStorage` + `<html data-theme>`.
+- [ ] `color-scheme` dinamik; recharts renkleri iki temada da AA.
+- [ ] Print CSS zaten beyaz — light tema ile tutarlılığı doğrula.
+
+---
+
 ## Öneri sıralama
 
 1. Faz 0 → 1 → 2 (production'da gerçek kırılma/maliyet)
@@ -659,3 +996,7 @@ handler'lar temizlendi, davranış aynı.
 | 8b — ölü local + `noUnusedLocals` | ✅ | `ed9c1c4` |
 | 2b — alt-koleksiyon migrasyonu | ✅ emulator ile test edildi (7/7) | `8cde320` |
 | 3b — kurum portalı gerçek auth (Google+üyelik) | ✅ emulator ile test edildi (11/11) | — |
+| 9 — UI/UX bug & davranış | 🟢 9.1–9.6 tamam; yalnız tam tablist ARIA opsiyonel | — |
+| 10 — renk sistemi + tasarım ölçeği | 🟢 10.1/10.2/10.3/10.5 + tipo ölçeği tamam; 10.4 moot; boşluk/gölge ölçeği kaldı | — |
+| 10b — gündüz teması | 🟢 tamam (Sistem/Gündüz/Gece seçici, token blokları, no-flash); ince ayar kaldı | — |
+| Ölü bileşen temizliği | 🟢 3 bileşen (~1000 satır) silindi | — |

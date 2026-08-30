@@ -395,10 +395,10 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
     return (
       <div 
         id="daily-tasks-widget-compact"
-        className="bg-[#1B1D27] border border-[#2D3245] rounded-2xl p-5 shadow-sm space-y-4 transition-all"
+        className="bg-surface-1 border border-border rounded-2xl p-5 shadow-sm space-y-4 transition-all"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#2D3245] pb-3">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">
               <CheckSquare className="w-4 h-4" />
@@ -406,7 +406,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
             <div>
               <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
                 <span>Günün Görevleri</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-[#161822] text-slate-300 border border-[#2D3245] font-mono">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-surface-0 text-slate-300 border border-border font-mono">
                   {completedCount}/{tasks.length}
                 </span>
               </h2>
@@ -437,8 +437,8 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                   onClick={() => toggleTaskCompletion(task.id)}
                   className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition-all cursor-pointer ${
                     task.completed
-                      ? 'bg-[#141620] border-[#222533] opacity-75'
-                      : 'bg-[#161822] border-[#2D3245] hover:border-indigo-500/40'
+                      ? 'bg-canvas border-surface-2 opacity-75'
+                      : 'bg-surface-0 border-border hover:border-indigo-500/40'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -469,7 +469,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                       </span>
                     </div>
 
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 ${catMeta.color}`}>
+                    <span className={`text-3xs font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 ${catMeta.color}`}>
                       <CatIcon className="w-3 h-3" />
                       <span className="hidden sm:inline">{catMeta.label}</span>
                     </span>
@@ -483,7 +483,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                         haptics.selection();
                         onNavigateTab(task.linkTab!, task.linkCategory);
                       }}
-                      className="px-2 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white text-[11px] font-semibold flex items-center gap-1 transition-colors shrink-0"
+                      className="px-2 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-indigo-300 hover:text-white text-2xs font-semibold flex items-center gap-1 transition-colors shrink-0"
                     >
                       <span>Başla</span>
                       <ArrowRight className="w-3 h-3" />
@@ -497,7 +497,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
 
         {/* Bottom Bar: Quick View All link */}
         {tasks.length > 3 && (
-          <div className="pt-2 text-center border-t border-[#2D3245]">
+          <div className="pt-2 text-center border-t border-border">
             <button
               type="button"
               onClick={() => onNavigateTab('planner', 'CALENDAR')}
@@ -515,10 +515,10 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
   return (
     <div 
       id="daily-tasks-widget"
-      className="bg-[#1B1D27] border border-[#2D3245] rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 transition-all"
+      className="bg-surface-1 border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 transition-all"
     >
       {/* 1. Header & Quick Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2D3245] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
         
         {/* Title & Date */}
         <div className="flex items-center gap-3">
@@ -530,7 +530,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
               <h2 className="text-lg font-bold text-white tracking-tight">
                 Günün Görevleri
               </h2>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-600/15 text-indigo-300 border border-indigo-500/30">
+              <span className="text-2xs font-semibold px-2 py-0.5 rounded-md bg-indigo-600/15 text-indigo-300 border border-indigo-500/30">
                 Kontrol Listesi
               </span>
             </div>
@@ -559,17 +559,17 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
             type="button"
             onClick={handleResetToSmartTasks}
             title="ÖSYM hedefine uygun önerilen günlük görevleri yükle"
-            className="p-1.5 rounded-xl bg-[#161822] hover:bg-[#222533] border border-[#2D3245] text-slate-400 hover:text-indigo-300 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-surface-0 hover:bg-surface-2 border border-border text-slate-400 hover:text-indigo-300 text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-indigo-400" />
-            <span className="hidden md:inline text-[11px]">Akıllı Sıfırla</span>
+            <span className="hidden md:inline text-2xs">Akıllı Sıfırla</span>
           </button>
         </div>
 
       </div>
 
       {/* 2. Progress Overview Bar (Flat Indigo Bar) */}
-      <div className="bg-[#161822] border border-[#2D3245] rounded-xl p-3.5 space-y-2">
+      <div className="bg-surface-0 border border-border rounded-xl p-3.5 space-y-2">
         <div className="flex items-center justify-between text-xs">
           <span className="font-semibold text-slate-300 flex items-center gap-1.5">
             <Target className="w-3.5 h-3.5 text-indigo-400" />
@@ -583,7 +583,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
         </div>
 
         {/* Progress Bar Track - Flat Color */}
-        <div className="w-full bg-[#222533] h-2.5 rounded-full overflow-hidden">
+        <div className="w-full bg-surface-2 h-2.5 rounded-full overflow-hidden">
           <div 
             className="bg-indigo-600 h-full rounded-full transition-all duration-300 ease-out"
             style={{ width: `${completionPercentage}%` }}
@@ -603,7 +603,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
           <button
             type="button"
             onClick={() => setShowRecommendations(!showRecommendations)}
-            className="text-[11px] text-indigo-300 hover:text-white transition-colors"
+            className="text-2xs text-indigo-300 hover:text-white transition-colors"
           >
             {showRecommendations ? 'Gizle' : 'Göster'}
           </button>
@@ -625,8 +625,8 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                   key={rec.id}
                   className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                     isAlreadyInTasks
-                      ? 'bg-[#161822]/70 border-indigo-500/20'
-                      : 'bg-[#161822] border-[#2D3245] hover:border-indigo-500/40'
+                      ? 'bg-surface-0/70 border-indigo-500/20'
+                      : 'bg-surface-0 border-border hover:border-indigo-500/40'
                   }`}
                 >
                   <div className="space-y-1">
@@ -641,7 +641,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                       </div>
 
                       {isAlreadyInTasks && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-green-600/15 text-green-300 border border-green-600/30 flex items-center gap-1 shrink-0">
+                        <span className="text-3xs font-semibold px-2 py-0.5 rounded-md bg-green-600/15 text-green-300 border border-green-600/30 flex items-center gap-1 shrink-0">
                           <Check className="w-3 h-3" />
                           <span>{matchingTask?.completed ? 'Tamamlandı' : 'Listede'}</span>
                         </span>
@@ -651,12 +651,12 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                     <h4 className="text-xs font-semibold text-slate-200 line-clamp-1">
                       {rec.title}
                     </h4>
-                    <p className="text-[11px] text-slate-400 line-clamp-1">
+                    <p className="text-2xs text-slate-400 line-clamp-1">
                       {rec.description}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#2D3245]/60">
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/60">
                     <button
                       type="button"
                       disabled={isAlreadyInTasks}
@@ -692,7 +692,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
 
       {/* 4. Celebration Banner when all tasks are complete */}
       {isAllDone && (
-        <div className="bg-[#161822] border border-green-600/40 rounded-xl p-3.5 flex items-center justify-between gap-3 animate-in fade-in duration-300">
+        <div className="bg-surface-0 border border-green-600/40 rounded-xl p-3.5 flex items-center justify-between gap-3 animate-in fade-in duration-300">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-green-600/20 text-green-400 flex items-center justify-center shrink-0 border border-green-600/30">
               <CheckCircle2 className="w-5 h-5" />
@@ -720,7 +720,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
       {isAddingOpen && (
         <form 
           onSubmit={handleAddTask}
-          className="bg-[#161822] border border-indigo-500/30 rounded-xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200"
+          className="bg-surface-0 border border-indigo-500/30 rounded-xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <div className="text-xs font-bold text-indigo-300 uppercase tracking-wider">
             Yeni Görev Tanımla
@@ -733,14 +733,14 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
               onChange={(e) => setNewTaskTitle(e.target.value)}
               placeholder="Örn: Matematik Fonksiyonlar 25 test sorusu çöz..."
               autoFocus
-              className="flex-1 bg-[#1B1D27] border border-[#2D3245] rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="flex-1 bg-surface-1 border border-border rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
 
             <div className="flex items-center gap-2">
               <select
                 value={newTaskCategory}
                 onChange={(e) => setNewTaskCategory(e.target.value as DailyTaskItem['category'])}
-                className="bg-[#1B1D27] border border-[#2D3245] text-slate-200 text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-indigo-500"
+                className="bg-surface-1 border border-border text-slate-200 text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-indigo-500"
               >
                 <option value="question">🎯 Soru Çözümü</option>
                 <option value="topic">📚 Konu Çalışması</option>
@@ -753,7 +753,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
               <select
                 value={newTaskPriority}
                 onChange={(e) => setNewTaskPriority(e.target.value as DailyTaskItem['priority'])}
-                className="bg-[#1B1D27] border border-[#2D3245] text-slate-200 text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-indigo-500"
+                className="bg-surface-1 border border-border text-slate-200 text-xs rounded-xl px-2.5 py-2 focus:outline-none focus:border-indigo-500"
               >
                 <option value="high">🔴 Yüksek Öncelik</option>
                 <option value="medium">🟡 Normal</option>
@@ -773,7 +773,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
 
       {/* 6. Filter Tabs & Quick Action Bar */}
       <div className="flex items-center justify-between gap-2 pt-1">
-        <div className="flex items-center gap-1.5 bg-[#161822] p-1 rounded-xl border border-[#2D3245]">
+        <div className="flex items-center gap-1.5 bg-surface-0 p-1 rounded-xl border border-border">
           <button
             type="button"
             onClick={() => {
@@ -824,7 +824,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
           <button
             type="button"
             onClick={handleClearCompleted}
-            className="text-[11px] text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
+            className="text-2xs text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <RotateCcw className="w-3 h-3" />
             <span className="hidden sm:inline">Bitenleri Temizle</span>
@@ -835,7 +835,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
       {/* 7. Tasks Checklist Rendering */}
       <div className="space-y-2">
         {filteredTasks.length === 0 ? (
-          <div className="text-center py-8 px-4 bg-[#161822] border border-[#2D3245] rounded-xl space-y-2">
+          <div className="text-center py-8 px-4 bg-surface-0 border border-border rounded-xl space-y-2">
             <CheckCircle2 className="w-8 h-8 text-slate-500 mx-auto" />
             <p className="text-sm font-semibold text-slate-300">
               {filter === 'completed' 
@@ -858,8 +858,8 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                 key={task.id}
                 className={`group flex items-center justify-between gap-3 p-3 sm:p-3.5 rounded-xl border transition-all duration-200 ${
                   task.completed
-                    ? 'bg-[#161822]/60 border-slate-800/80 opacity-75'
-                    : 'bg-[#161822] border-[#2D3245] hover:border-indigo-500/40 hover:bg-[#1c1f2d]'
+                    ? 'bg-surface-0/60 border-slate-800/80 opacity-75'
+                    : 'bg-surface-0 border-border hover:border-indigo-500/40 hover:bg-surface-0'
                 }`}
               >
                 {/* Left: Interactive Checkbox & Title */}
@@ -894,19 +894,19 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
 
                     {/* Metadata Subline */}
                     <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 ${catMeta.color}`}>
+                      <span className={`text-3xs font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 ${catMeta.color}`}>
                         <CatIcon className="w-3 h-3" />
                         <span>{catMeta.label}</span>
                       </span>
 
                       {task.priority === 'high' && !task.completed && (
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-red-600/15 text-red-300 border border-red-600/30">
+                        <span className="text-3xs font-semibold px-1.5 py-0.5 rounded-md bg-red-600/15 text-red-300 border border-red-600/30">
                           Önemli
                         </span>
                       )}
 
                       {task.completed && task.completedAt && (
-                        <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                        <span className="text-3xs text-slate-500 flex items-center gap-1">
                           <Clock className="w-2.5 h-2.5" />
                           <span>{task.completedAt}</span>
                         </span>

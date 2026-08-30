@@ -1,23 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Target, Smartphone, Check, Zap, ShieldCheck, Lightbulb, Cloud, X, CheckCircle2 } from 'lucide-react';
+import { Settings, Save, Target, Smartphone, Check, Zap, ShieldCheck, Lightbulb, Cloud, X, CheckCircle2, Sun, Moon, Monitor } from 'lucide-react';
 import { UserProfile, ExamCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { isHapticsSupported, getHapticsEnabled, setHapticsEnabled, triggerHaptic, haptics } from '../lib/haptics';
 import { INDIVIDUAL_STUDENT_PRICING } from '../data/institutionData';
 import { GoogleAuthButton } from './GoogleAuthButton';
+import { useAuth } from '../context/AuthContext';
+import { useModalA11y } from '../lib/useModalA11y';
+import { getThemeMode, setThemeMode, type ThemeMode } from '../lib/themeMode';
 
 interface SettingsModalProps {
   profile: UserProfile;
   onUpdateProfile: (profile: UserProfile) => void;
   onClose: () => void;
+  /** İlk açılış kurulum akışı: kapatma engellenir, hoş geldin metni gösterilir. */
+  isOnboarding?: boolean;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   profile,
   onUpdateProfile,
   onClose,
+  isOnboarding = false,
 }) => {
-  const [name, setName] = useState(profile.name);
+  const { currentUser } = useAuth();
+  const [theme, setThemeState] = useState<ThemeMode>(() => getThemeMode());
+  const [name, setName] = useState(profile.name === 'Sınav Adayı' ? '' : profile.name);
   const [targetExam, setTargetExam] = useState<ExamCategory>(profile.targetExam);
   const [targetScore, setTargetScore] = useState(profile.targetScore);
   const [dailyQuestionTarget, setDailyQuestionTarget] = useState(profile.dailyQuestionTarget);
@@ -116,16 +124,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     onClose();
   };
 
+  const dialogRef = useModalA11y<HTMLDivElement>();
+
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
-      <div 
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-modal-title"
         className="bg-slate-900 border border-slate-700 rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-2xl animate-in zoom-in-95 my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        
+
         {/* Sticky Modal Header (Always Visible) */}
         <div className="flex items-center justify-between border-b border-slate-800 px-4 sm:px-6 py-4 shrink-0 bg-slate-900/95 backdrop-blur-sm z-10">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -133,20 +147,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <Settings className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm sm:text-base font-bold text-white truncate">
-                Öğrenci Profili & Sınav Ayarları
+              <h3 id="settings-modal-title" className="text-sm sm:text-base font-bold text-white truncate">
+                {isOnboarding ? 'Snaps’e Hoş Geldin 👋' : 'Öğrenci Profili & Sınav Ayarları'}
               </h3>
-              <p className="text-[11px] text-slate-400 truncate">Hedef sınavınızı ve kişisel çalışma parametrelerinizi belirleyin</p>
+              <p className="text-2xs text-slate-400 truncate">
+                {isOnboarding
+                  ? 'Başlamadan önce hedef sınavını ve günlük hedeflerini belirle'
+                  : 'Hedef sınavınızı ve kişisel çalışma parametrelerinizi belirleyin'}
+              </p>
             </div>
           </div>
-          <button
-            id="close-settings-modal-btn"
-            onClick={onClose}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0 ml-2"
-            title="Kapat (Esc)"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {!isOnboarding && (
+            <button
+              id="close-settings-modal-btn"
+              onClick={onClose}
+              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0 ml-2"
+              title="Kapat (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Scrollable Form Body (Scrolls smoothly within modal) */}
@@ -160,7 +180,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Target className="w-4 h-4 text-indigo-400" />
                   <span>Hedef Sınavınızı Seçin</span>
                 </label>
-                <span className="text-[11px] text-indigo-400 font-medium">
+                <span className="text-2xs text-indigo-400 font-medium">
                   {EXAM_METADATA[targetExam]?.name}
                 </span>
               </div>
@@ -189,7 +209,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           <span className="w-3.5 h-3.5 rounded-full border border-slate-700 shrink-0" />
                         )}
                       </div>
-                      <span className="text-[11px] font-medium leading-tight text-slate-300 line-clamp-1">
+                      <span className="text-2xs font-medium leading-tight text-slate-300 line-clamp-1">
                         {meta.name}
                       </span>
                     </button>
@@ -281,9 +301,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Cloud className="w-4 h-4 text-indigo-400" />
                   <span>Bulut Yedekleme & Google Hesabı</span>
                 </div>
-                <span className="text-[11px] text-emerald-400 font-mono font-medium">Firestore Aktif</span>
+                <span className={`text-2xs font-mono font-medium ${currentUser ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  {currentUser ? 'Buluta bağlı' : 'Yalnız bu cihazda'}
+                </span>
               </div>
               <GoogleAuthButton />
+            </div>
+
+            {/* 5b. GÖRÜNÜM / TEMA */}
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+                <Sun className="w-4 h-4 text-indigo-400" />
+                <span>Görünüm</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {([
+                  { val: 'system', label: 'Sistem', Icon: Monitor },
+                  { val: 'light', label: 'Gündüz', Icon: Sun },
+                  { val: 'dark', label: 'Gece', Icon: Moon },
+                ] as const).map(({ val, label, Icon }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => { setThemeState(val); setThemeMode(val); haptics.selection(); }}
+                    className={`py-2 px-1 rounded-xl text-2xs font-semibold border transition-all flex flex-col items-center gap-1 cursor-pointer ${
+                      theme === val
+                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* 6. DOKUNSAL TİTREŞİM AYARLARI */}
@@ -293,7 +344,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Smartphone className="w-4 h-4 text-indigo-400" />
                   <div>
                     <span className="text-xs font-bold text-white block">Dokunsal Titreşim Geri Bildirimi</span>
-                    <span className="text-[11px] text-slate-400 block">
+                    <span className="text-2xs text-slate-400 block">
                       Buton tıklamalarında ve soru seanslarında fiziksel haptic titreşim
                     </span>
                   </div>
@@ -305,13 +356,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onChange={(e) => handleToggleHaptic(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                  <div className="w-9 h-5 bg-slate-800 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500/60 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                 </label>
               </div>
 
               {hapticEnabled && (
                 <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-2xs text-slate-400">
                     {isHapticsSupported()
                       ? '✓ Cihazınızda Web Vibration API destekleniyor'
                       : 'ℹ️ Cihazınız titreşim desteğini kısıtlamış olabilir'}
@@ -319,7 +370,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={handleTestHaptic}
-                    className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-2xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     {hasVibrated ? (
                       <>
@@ -344,7 +395,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <Lightbulb className="w-4 h-4 text-amber-400" />
                   <div>
                     <span className="text-xs font-bold text-white block">Çalışma İpuçları (Study Insights)</span>
-                    <span className="text-[11px] text-slate-400 block">
+                    <span className="text-2xs text-slate-400 block">
                       Çalışma esnasında rehberlik ve odaklanma stratejileri
                     </span>
                   </div>
@@ -356,7 +407,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onChange={(e) => handleToggleInsights(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                  <div className="w-9 h-5 bg-slate-800 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500/60 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
                 </label>
               </div>
 
@@ -383,7 +434,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           key={opt.val}
                           type="button"
                           onClick={() => handleFrequencyChange(opt.val)}
-                          className={`py-1.5 px-1 rounded-xl text-[11px] font-semibold border transition-all text-center cursor-pointer ${
+                          className={`py-1.5 px-1 rounded-xl text-2xs font-semibold border transition-all text-center cursor-pointer ${
                             insightsFrequency === opt.val
                               ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold shadow-sm'
                               : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
@@ -408,17 +459,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-white">{INDIVIDUAL_STUDENT_PRICING.name}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                        Aktif Lisans
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-3xs font-bold">
+                        Erken Erişim
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-2xs text-slate-400">
                       Öğrenci Sınav Koçluğu Paketi
                     </span>
                   </div>
                 </div>
                 <span className="text-xs font-extrabold text-emerald-400">
-                  PRO Aktif
+                  Tüm özellikler açık
                 </span>
               </div>
             </div>
@@ -427,20 +478,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Sticky Modal Footer (Always Visible at Bottom) */}
           <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-3.5 border-t border-slate-800 shrink-0 bg-slate-900/95 backdrop-blur-sm z-10">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-bold transition-colors cursor-pointer"
-            >
-              Vazgeç
-            </button>
+            {!isOnboarding && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-bold transition-colors cursor-pointer"
+              >
+                Vazgeç
+              </button>
+            )}
             <button
               id="save-settings-button"
               type="submit"
               className="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              <span>Değişiklikleri Kaydet</span>
+              <span>{isOnboarding ? 'Kaydet ve Başla' : 'Değişiklikleri Kaydet'}</span>
             </button>
           </div>
         </form>
