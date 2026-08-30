@@ -29,6 +29,21 @@ const HAPTIC_PATTERNS: Record<HapticType, number | number[]> = {
 
 const STORAGE_KEY = 'snaps_haptics_enabled';
 
+// Chrome, ilk gerçek dokunuş/tuş öncesi navigator.vibrate çağrılarını sessizce
+// engelleyip konsola uyarı basar. İlk kullanıcı jestine kadar vibrate'i atla.
+let hasUserGesture = false;
+if (typeof window !== 'undefined') {
+  const markGesture = () => {
+    hasUserGesture = true;
+    window.removeEventListener('pointerdown', markGesture);
+    window.removeEventListener('keydown', markGesture);
+    window.removeEventListener('touchstart', markGesture);
+  };
+  window.addEventListener('pointerdown', markGesture, { once: true });
+  window.addEventListener('keydown', markGesture, { once: true });
+  window.addEventListener('touchstart', markGesture, { once: true });
+}
+
 // Initialize state from localStorage with safe default
 let isHapticsEnabled = (() => {
   try {
@@ -166,6 +181,7 @@ export function triggerHaptic(type: HapticType = 'tap'): void {
 
   const supported = isHapticsSupported();
   if (supported) {
+    if (!hasUserGesture) return; // jest öncesi çağrı Chrome'da engelleniyor
     try {
       const pattern = HAPTIC_PATTERNS[type] || 12;
       navigator.vibrate(pattern);

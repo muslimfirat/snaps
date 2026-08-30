@@ -202,15 +202,30 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // `onClose` her App render'ında yeni referans → effect'i yalnız `isOpen`'a bağla,
+  // en güncel onClose'a ref üzerinden ulaş.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-      setQuery('');
-      setSelectedIndex(0);
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = prev; };
-    }
+    if (!isOpen) return;
+    setTimeout(() => inputRef.current?.focus(), 50);
+    setQuery('');
+    setSelectedIndex(0);
+
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    // Odak input'tan çıksa bile ESC modalı kapatsın (doküman düzeyi yedek)
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseRef.current();
+    };
+    document.addEventListener('keydown', onEsc);
+
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onEsc);
+    };
   }, [isOpen]);
 
   const filteredItems = COMMAND_ITEMS.filter((item) => {
