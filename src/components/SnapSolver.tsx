@@ -276,7 +276,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
                 <p className="text-xs font-bold text-slate-300">
                   Sorunun fotoğrafını buraya sürükleyin veya tıklayıp seçin
                 </p>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-2xs text-slate-500 mt-1">
                   JPG, PNG veya WEBP formatında net bir görsel yükleyin
                 </p>
               </div>
@@ -299,7 +299,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
 
             {/* Quick Sample Questions Selector */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
+              <label className="block text-2xs font-semibold text-slate-400 mb-1.5">
                 ⚡ Hızlı Deneme İçin Örnek Sorular:
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -310,11 +310,11 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
                     onClick={() => handleSelectSample(sample)}
                     className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-left transition-colors"
                   >
-                    <div className="text-[10px] font-bold text-indigo-400 flex items-center justify-between">
+                    <div className="text-3xs font-bold text-indigo-400 flex items-center justify-between">
                       <span>{sample.subject}</span>
-                      <span className="text-[9px] text-slate-400">{sample.topic}</span>
+                      <span className="text-3xs text-slate-400">{sample.topic}</span>
                     </div>
-                    <p className="text-[11px] text-slate-300 line-clamp-1 mt-0.5 font-medium">
+                    <p className="text-2xs text-slate-300 line-clamp-1 mt-0.5 font-medium">
                       {sample.text}
                     </p>
                   </button>
@@ -409,7 +409,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
                     disabled={isSaved}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
                       isSaved
-                        ? 'bg-[#7FAE96]/20 text-[#7FAE96] border border-[#7FAE96]/40'
+                        ? 'bg-success/20 text-success border border-success/40'
                         : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20'
                     }`}
                   >
@@ -422,7 +422,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
               {/* Big Correct Answer Banner */}
               <div className="bg-gradient-to-r from-emerald-950/60 to-slate-900 border border-emerald-500/40 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">
+                  <span className="text-2xs font-semibold text-emerald-400 uppercase tracking-wider">
                     ÖSYM Doğru Cevap
                   </span>
                   <h3 className="text-xl font-extrabold text-white flex items-center gap-2 mt-0.5">
@@ -448,7 +448,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
                   {(currentSolution?.stepByStepSolution || []).map((step, idx) => (
                     <div
                       key={idx}
-                      className="p-4 rounded-2xl bg-[#161822] border border-[#2D3245] flex items-start gap-3.5"
+                      className="p-4 rounded-2xl bg-surface-0 border border-border flex items-start gap-3.5"
                     >
                       <span className="w-7 h-7 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/60 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
                         {idx + 1}
@@ -462,7 +462,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
               </div>
 
               {/* Püf Noktası (Key Concept Box) */}
-              <div className="bg-[#222533] border border-[#3B4259] rounded-2xl p-4 space-y-2">
+              <div className="bg-surface-2 border border-border-strong rounded-2xl p-4 space-y-2">
                 <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
                   <Sparkles className="w-4 h-4 text-indigo-400" />
                   <span>💡 Altın Püf Nokta & Sınav Kuralı</span>
@@ -473,7 +473,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
               </div>
 
               {/* Çeldirici Uyarısı (Trap Explanation) */}
-              <div className="bg-[#222533] border border-rose-500/30 rounded-2xl p-4 space-y-2">
+              <div className="bg-surface-2 border border-rose-500/30 rounded-2xl p-4 space-y-2">
                 <div className="flex items-center gap-2 text-rose-300 font-bold text-sm">
                   <AlertTriangle className="w-4 h-4 text-rose-400" />
                   <span>⚠️ Çeldirici Tuzağı & Neden Yanılınır?</span>
@@ -485,7 +485,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
 
               {/* Interactive Similar Practice Question */}
               {currentSolution.similarPracticeQuestion && (
-                <div className="bg-[#161822] border border-[#2D3245] rounded-2xl p-5 space-y-4">
+                <div className="bg-surface-0 border border-border rounded-2xl p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-indigo-400" />
@@ -522,8 +522,8 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
                                 ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200'
                                 : isSelected
                                 ? 'bg-rose-950/60 border-rose-500 text-rose-200'
-                                : 'bg-[#1B1D27] border-[#2D3245] text-slate-400 opacity-60'
-                              : 'bg-[#1B1D27] hover:bg-[#222533] border-[#2D3245] text-slate-200 hover:border-indigo-500'
+                                : 'bg-surface-1 border-border text-slate-400 opacity-60'
+                              : 'bg-surface-1 hover:bg-surface-2 border-border text-slate-200 hover:border-indigo-500'
                           }`}
                         >
                           {opt}
@@ -534,10 +534,10 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
 
                   {/* Evaluation Box */}
                   {userSelectedOption && (
-                    <div className="p-4 rounded-xl bg-[#1B1D27] border border-[#2D3245] text-sm space-y-1.5 animate-in fade-in">
+                    <div className="p-4 rounded-xl bg-surface-1 border border-border text-sm space-y-1.5 animate-in fade-in">
                       <div className="font-bold flex items-center gap-2">
                         {userSelectedOption === currentSolution.similarPracticeQuestion.answer.trim().charAt(0) ? (
-                          <span className="text-[#7FAE96] flex items-center gap-1.5 font-semibold">
+                          <span className="text-success flex items-center gap-1.5 font-semibold">
                             <CheckCircle className="w-4 h-4" /> Doğru Cevap!
                           </span>
                         ) : (
@@ -622,14 +622,14 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
                       onClick={() => setCurrentSolution(snap)}
                       className="p-3.5 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800/80 hover:border-indigo-500/50 cursor-pointer transition-all space-y-2 group"
                     >
-                      <div className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center justify-between text-2xs">
                         <span className="font-bold text-indigo-400">{snap.subject}</span>
-                        <span className="text-slate-500 font-mono text-[10px]">{snap.timestamp}</span>
+                        <span className="text-slate-500 font-mono text-3xs">{snap.timestamp}</span>
                       </div>
                       <p className="text-xs text-slate-300 line-clamp-2 font-medium">
                         {snap.questionSummary}
                       </p>
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/60">
+                      <div className="flex items-center justify-between text-3xs text-slate-400 pt-1 border-t border-slate-800/60">
                         <span>Cevap: <strong className="text-emerald-400 font-bold">{snap.correctOption}</strong></span>
                         <span className="text-indigo-400 group-hover:underline flex items-center gap-0.5">
                           İncele <ExternalLink className="w-3 h-3" />

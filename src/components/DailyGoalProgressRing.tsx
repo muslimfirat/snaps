@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Target, Zap, CheckCircle2, Plus, Sparkles } from 'lucide-react';
 import { THEME } from '../theme';
+import { getChartColors } from '../lib/chartColors';
+
+const CHART = getChartColors();
 import { haptics } from '../lib/haptics';
 
 interface DailyGoalProgressRingProps {
@@ -100,9 +103,9 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
     return (
       <div 
         id="daily-goal-compact-card"
-        className="bg-[#1B1D27] border border-[#2D3245] rounded-2xl p-5 shadow-sm space-y-4"
+        className="bg-surface-1 border border-border rounded-2xl p-5 shadow-sm space-y-4"
       >
-        <div className="flex items-center justify-between border-b border-[#2D3245] pb-3">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">
               <Target className="w-4 h-4" />
@@ -111,12 +114,12 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
               <h2 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
                 <span>Günlük Hedef</span>
                 {isAllCompleted ? (
-                  <span className="text-[11px] font-semibold text-green-400 bg-green-600/15 border border-green-600/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                  <span className="text-2xs font-semibold text-green-400 bg-green-600/15 border border-green-600/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3 text-green-400" />
                     Tamamlandı
                   </span>
                 ) : (
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-[#161822] text-indigo-300 border border-indigo-500/30 font-mono">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-surface-0 text-indigo-300 border border-indigo-500/30 font-mono">
                     %{totalOverallPercent}
                   </span>
                 )}
@@ -144,7 +147,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
                 cx={compactSize / 2}
                 cy={compactSize / 2}
                 r={compactRadius}
-                stroke="#222533"
+                stroke={CHART.track}
                 strokeWidth={compactStroke}
                 fill="transparent"
               />
@@ -152,7 +155,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
                 cx={compactSize / 2}
                 cy={compactSize / 2}
                 r={compactRadius}
-                stroke={isAllCompleted ? '#16A34A' : '#4F46E5'}
+                stroke={isAllCompleted ? CHART.success : CHART.brand}
                 strokeWidth={compactStroke}
                 strokeDasharray={compactCircumference}
                 strokeDashoffset={compactOffset}
@@ -165,7 +168,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
               <span className="text-lg font-black font-mono text-white leading-none">
                 %{totalOverallPercent}
               </span>
-              <span className="text-[9px] font-semibold text-slate-400 uppercase mt-0.5">
+              <span className="text-3xs font-semibold text-slate-400 uppercase mt-0.5">
                 Hedef
               </span>
             </div>
@@ -174,39 +177,39 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
           {/* Metric 1 (Questions) & Metric 2 (Time) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
             {/* Questions Metric */}
-            <div className="p-3 rounded-xl bg-[#161822] border border-[#2D3245] space-y-1.5">
+            <div className="p-3 rounded-xl bg-surface-0 border border-border space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400 font-medium">Soru Çözümü</span>
                 <span className="font-bold font-mono text-white">
                   {solvedQ} / {targetQ}
                 </span>
               </div>
-              <div className="w-full h-2 bg-[#222533] rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-600 rounded-full transition-all duration-500"
                   style={{ width: `${questionPercent}%` }}
                 />
               </div>
-              <span className="text-[10px] text-indigo-300 font-mono block text-right">
+              <span className="text-3xs text-indigo-300 font-mono block text-right">
                 %{questionPercent} tamamlandı
               </span>
             </div>
 
             {/* Time Metric */}
-            <div className="p-3 rounded-xl bg-[#161822] border border-[#2D3245] space-y-1.5">
+            <div className="p-3 rounded-xl bg-surface-0 border border-border space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-400 font-medium">Çalışma Süresi</span>
                 <span className="font-bold font-mono text-white">
                   {formatHoursMinutes(studiedMin)} / {formatHoursMinutes(targetMinutes)}
                 </span>
               </div>
-              <div className="w-full h-2 bg-[#222533] rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-sky-600 rounded-full transition-all duration-500"
                   style={{ width: `${timePercent}%` }}
                 />
               </div>
-              <span className="text-[10px] text-sky-300 font-mono block text-right">
+              <span className="text-3xs text-sky-300 font-mono block text-right">
                 %{timePercent} tamamlandı
               </span>
             </div>
@@ -217,7 +220,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
   }
 
   return (
-    <div className="bg-[#1B1D27] border border-[#2D3245] rounded-2xl p-6 shadow-sm space-y-5">
+    <div className="bg-surface-1 border border-border rounded-2xl p-6 shadow-sm space-y-5">
       {/* Header bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -238,7 +241,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
         </div>
 
         {/* View switcher tabs */}
-        <div className="flex items-center bg-[#161822] p-1 rounded-xl border border-[#2D3245]">
+        <div className="flex items-center bg-surface-0 p-1 rounded-xl border border-border">
           <button
             onClick={() => setActiveView('both')}
             className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors duration-150 ${
@@ -276,7 +279,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
         
         {/* Left: SVG Concentric Rings */}
-        <div className="md:col-span-5 flex flex-col items-center justify-center p-4 bg-[#161822] rounded-2xl border border-[#2D3245]">
+        <div className="md:col-span-5 flex flex-col items-center justify-center p-4 bg-surface-0 rounded-2xl border border-border">
           <div className="relative w-[160px] h-[160px] flex items-center justify-center">
             <svg
               className="w-full h-full transform -rotate-90"
@@ -288,7 +291,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
                   cx={center}
                   cy={center}
                   r={outerRadius}
-                  stroke="#222533"
+                  stroke={CHART.track}
                   strokeWidth={outerStroke}
                   fill="transparent"
                 />
@@ -316,7 +319,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
                   cx={center}
                   cy={center}
                   r={innerRadius}
-                  stroke="#222533"
+                  stroke={CHART.track}
                   strokeWidth={innerStroke}
                   fill="transparent"
                 />
@@ -328,7 +331,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
                   cx={center}
                   cy={center}
                   r={innerRadius}
-                  stroke={isTimeDone ? THEME.status.success.hex : '#0284C7'}
+                  stroke={isTimeDone ? CHART.success : CHART.info}
                   strokeWidth={innerStroke}
                   strokeDasharray={innerCircumference}
                   strokeDashoffset={innerOffset}
@@ -416,8 +419,8 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
           <div
             className={`rounded-2xl p-4 space-y-2.5 transition-colors duration-150 ${
               isQuestionDone
-                ? 'bg-[#161822] border border-green-600/40'
-                : 'bg-[#161822] border border-[#2D3245]'
+                ? 'bg-surface-0 border border-green-600/40'
+                : 'bg-surface-0 border border-border'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -452,17 +455,17 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
             </div>
 
             {/* Quick Soru Increment Buttons */}
-            <div className="flex items-center gap-2 pt-2 border-t border-[#2D3245]">
+            <div className="flex items-center gap-2 pt-2 border-t border-border">
               <span className="text-sm text-slate-300 font-medium">Ekle:</span>
               <button
                 onClick={() => handleAddQ(10)}
-                className="px-3 py-1 rounded-lg bg-[#222533] hover:bg-[#2D3245] active:bg-[#3B4259] border border-[#2D3245] text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
+                className="px-3 py-1 rounded-lg bg-surface-2 hover:bg-surface-3 active:bg-surface-3 border border-border text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
               >
                 +10 Soru
               </button>
               <button
                 onClick={() => handleAddQ(25)}
-                className="px-3 py-1 rounded-lg bg-[#222533] hover:bg-[#2D3245] active:bg-[#3B4259] border border-[#2D3245] text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
+                className="px-3 py-1 rounded-lg bg-surface-2 hover:bg-surface-3 active:bg-surface-3 border border-border text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
               >
                 +25 Soru
               </button>
@@ -479,8 +482,8 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
           <div
             className={`rounded-2xl p-4 space-y-2.5 transition-colors duration-150 ${
               isTimeDone
-                ? 'bg-[#161822] border border-green-600/40'
-                : 'bg-[#161822] border border-[#2D3245]'
+                ? 'bg-surface-0 border border-green-600/40'
+                : 'bg-surface-0 border border-border'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -514,24 +517,24 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
             </div>
 
             {/* Quick Süre Increment Buttons & Pomodoro Link */}
-            <div className="flex items-center justify-between pt-2 border-t border-[#2D3245]">
+            <div className="flex items-center justify-between pt-2 border-t border-border">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-300 font-medium">Ekle:</span>
                 <button
                   onClick={() => handleAddM(15)}
-                  className="px-3 py-1 rounded-lg bg-[#222533] hover:bg-[#2D3245] active:bg-[#3B4259] border border-[#2D3245] text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
+                  className="px-3 py-1 rounded-lg bg-surface-2 hover:bg-surface-3 active:bg-surface-3 border border-border text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
                 >
                   +15 dk
                 </button>
                 <button
                   onClick={() => handleAddM(30)}
-                  className="px-3 py-1 rounded-lg bg-[#222533] hover:bg-[#2D3245] active:bg-[#3B4259] border border-[#2D3245] text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
+                  className="px-3 py-1 rounded-lg bg-surface-2 hover:bg-surface-3 active:bg-surface-3 border border-border text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
                 >
                   +30 dk
                 </button>
                 <button
                   onClick={() => handleAddM(45)}
-                  className="px-3 py-1 rounded-lg bg-[#222533] hover:bg-[#2D3245] active:bg-[#3B4259] border border-[#2D3245] text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
+                  className="px-3 py-1 rounded-lg bg-surface-2 hover:bg-surface-3 active:bg-surface-3 border border-border text-slate-200 text-sm font-medium transition-colors duration-150 cursor-pointer"
                 >
                   +45 dk
                 </button>
@@ -555,7 +558,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
 
       {/* Inviting Empty-Day Notice */}
       {isEmptyDay && (
-        <div className="p-4 bg-[#161822] border border-[#2D3245] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-4 bg-surface-0 border border-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-indigo-600/15 text-indigo-400 flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-4 h-4" />

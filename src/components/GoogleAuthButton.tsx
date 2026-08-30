@@ -33,7 +33,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   const SyncStatusRow = () => {
     if (syncStatus === 'error') {
       return (
-        <div className="flex items-center justify-between gap-2 text-[11px] text-rose-300">
+        <div className="flex items-center justify-between gap-2 text-2xs text-rose-300">
           <span className="flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             Bulut eşitlemesi başarısız
@@ -51,14 +51,14 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     }
     if (syncStatus === 'syncing') {
       return (
-        <div className="flex items-center gap-1.5 text-[11px] text-indigo-300">
+        <div className="flex items-center gap-1.5 text-2xs text-indigo-300">
           <Loader2 className="w-3.5 h-3.5 shrink-0 animate-spin" />
           <span>Eşitleniyor…</span>
         </div>
       );
     }
     return (
-      <div className="flex items-center gap-1.5 text-[11px] text-emerald-400">
+      <div className="flex items-center gap-1.5 text-2xs text-emerald-400">
         <Check className="w-3.5 h-3.5 shrink-0" />
         <span>Firestore Bulut Eşitlemesi Aktif</span>
       </div>
@@ -92,7 +92,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           <button
             id="google-user-compact-btn"
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-1.5 px-1.5 sm:px-2 py-1 rounded-xl bg-[#161822] hover:bg-[#1f2230] border border-[#2D3245] hover:border-emerald-500/40 text-xs text-slate-200 transition-all cursor-pointer shadow-sm shrink-0"
+            className="flex items-center gap-1.5 px-1.5 sm:px-2 py-1 rounded-xl bg-surface-0 hover:bg-surface-0 border border-border hover:border-emerald-500/40 text-xs text-slate-200 transition-all cursor-pointer shadow-sm shrink-0"
             title="Google Hesabı & Bulut Durumu"
           >
             <div className="relative shrink-0">
@@ -104,7 +104,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-[10px]">
+                <div className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-3xs">
                   {(currentUser.displayName || currentUser.email || 'U')[0].toUpperCase()}
                 </div>
               )}
@@ -136,7 +136,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-white truncate">{currentUser.displayName || 'Google Kullanıcısı'}</p>
-                  <p className="text-[10px] text-slate-400 truncate">{currentUser.email}</p>
+                  <p className="text-3xs text-slate-400 truncate">{currentUser.email}</p>
                 </div>
               </div>
 

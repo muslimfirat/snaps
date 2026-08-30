@@ -107,10 +107,10 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
             <h1 className="text-base sm:text-lg font-black text-slate-950 tracking-tight leading-tight uppercase">
               {institutionConfig.name}
             </h1>
-            <p className="text-[11px] font-bold text-indigo-900">
+            <p className="text-2xs font-bold text-indigo-900">
               {institutionConfig.branch || 'Merkez Şube'} • REHBERLİK & AKADEMİK GELİŞİM DİREKTÖRLÜĞÜ
             </p>
-            <div className="flex items-center gap-2 text-[10px] text-slate-600 pt-0.5">
+            <div className="flex items-center gap-2 text-3xs text-slate-600 pt-0.5">
               <span>Tel: {institutionConfig.phone || '0212 000 00 00'}</span>
               <span>•</span>
               <span>Yetkili: {institutionConfig.directorName || 'Rehberlik Koordinatörlüğü'}</span>
@@ -119,43 +119,43 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
         </div>
 
         <div className="text-right">
-          <div className="inline-block px-2.5 py-1 rounded bg-indigo-100 border border-indigo-300 text-indigo-950 font-black text-[10px] uppercase tracking-wider">
+          <div className="inline-block px-2.5 py-1 rounded bg-indigo-100 border border-indigo-300 text-indigo-950 font-black text-3xs uppercase tracking-wider">
             HAFTALIK VELİ BİLGİLENDİRME RAPORU
           </div>
-          <p className="text-[11px] font-black text-slate-900 pt-1">{academicWeek}</p>
-          <div className="text-[10px] text-slate-500 font-mono">
+          <p className="text-2xs font-black text-slate-900 pt-1">{academicWeek}</p>
+          <div className="text-3xs text-slate-500 font-mono">
             Rapor No: <span className="font-bold text-slate-700">{repId}</span>
           </div>
-          <div className="text-[10px] text-slate-500">
+          <div className="text-3xs text-slate-500">
             Tarih: {new Date().toLocaleDateString('tr-TR')}
           </div>
         </div>
       </div>
 
       {/* 2. STUDENT & ACADEMIC IDENTITY STRIP */}
-      <div className="grid grid-cols-4 gap-2.5 bg-slate-50 border border-slate-300 p-3 rounded-lg text-[11px]">
+      <div className="grid grid-cols-4 gap-2.5 bg-slate-50 border border-slate-300 p-3 rounded-lg text-2xs">
         <div>
-          <span className="text-[9px] font-bold uppercase text-slate-500 block">Öğrenci Adı Soyadı</span>
+          <span className="text-3xs font-bold uppercase text-slate-500 block">Öğrenci Adı Soyadı</span>
           <strong className="text-slate-950 text-xs font-black">{student.name}</strong>
-          <span className="text-[10px] text-slate-600 block">No: #{student.studentNumber}</span>
+          <span className="text-3xs text-slate-600 block">No: #{student.studentNumber}</span>
         </div>
 
         <div>
-          <span className="text-[9px] font-bold uppercase text-slate-500 block">Sınıf / Şube</span>
+          <span className="text-3xs font-bold uppercase text-slate-500 block">Sınıf / Şube</span>
           <strong className="text-slate-950 font-bold">{classGroup?.name || 'Genel Şube'}</strong>
-          <span className="text-[10px] text-slate-600 block">Grup: YKS / Sınav Grubu</span>
+          <span className="text-3xs text-slate-600 block">Grup: YKS / Sınav Grubu</span>
         </div>
 
         <div>
-          <span className="text-[9px] font-bold uppercase text-slate-500 block">Hedef Sınav & Puan</span>
+          <span className="text-3xs font-bold uppercase text-slate-500 block">Hedef Sınav & Puan</span>
           <strong className="text-indigo-900 font-bold">{examMeta.shortName}</strong>
-          <span className="text-[10px] text-emerald-800 font-semibold block">Hedef: {student.targetScore || 'Hedef Belirlendi'}</span>
+          <span className="text-3xs text-emerald-800 font-semibold block">Hedef: {student.targetScore || 'Hedef Belirlendi'}</span>
         </div>
 
         <div>
-          <span className="text-[9px] font-bold uppercase text-slate-500 block">Veli İletişim</span>
+          <span className="text-3xs font-bold uppercase text-slate-500 block">Veli İletişim</span>
           <span className="text-slate-900 font-mono font-bold block">{student.phone || '05xx xxx xx xx'}</span>
-          <span className="text-[10px] text-slate-600 block">Durum: <span className="font-bold text-indigo-900">{student.status === 'HIGH' ? 'Üstün Başarı' : student.status === 'STABLE' ? 'Düzenli' : 'Takipte'}</span></span>
+          <span className="text-3xs text-slate-600 block">Durum: <span className="font-bold text-indigo-900">{student.status === 'HIGH' ? 'Üstün Başarı' : student.status === 'STABLE' ? 'Düzenli' : 'Takipte'}</span></span>
         </div>
       </div>
 
@@ -163,54 +163,54 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
       <div className="grid grid-cols-4 gap-2.5">
         {/* Box 1: Soru Çözümü */}
         <div className="border border-slate-300 bg-slate-50 p-2.5 rounded-lg text-center">
-          <span className="text-[9px] font-bold uppercase text-slate-600 block">Haftalık Soru Pratiği</span>
+          <span className="text-3xs font-bold uppercase text-slate-600 block">Haftalık Soru Pratiği</span>
           <div className="text-base font-black text-emerald-900 font-mono">
-            {weeklyQuestions} <span className="text-[10px] text-slate-600">/ {targetQuestions}</span>
+            {weeklyQuestions} <span className="text-3xs text-slate-600">/ {targetQuestions}</span>
           </div>
           <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden my-1">
             <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${questionCompletionRate}%` }} />
           </div>
-          <span className="text-[10px] font-bold text-emerald-800">
+          <span className="text-3xs font-bold text-emerald-800">
             %{questionCompletionRate} Tamamlandı
           </span>
         </div>
 
         {/* Box 2: Son Deneme Neti */}
         <div className="border border-slate-300 bg-slate-50 p-2.5 rounded-lg text-center">
-          <span className="text-[9px] font-bold uppercase text-slate-600 block">Son Deneme Neti</span>
+          <span className="text-3xs font-bold uppercase text-slate-600 block">Son Deneme Neti</span>
           <div className="text-base font-black text-indigo-900 font-mono">
-            {Number(totalMockNet).toFixed(1)} <span className="text-[10px] text-slate-600">Net</span>
+            {Number(totalMockNet).toFixed(1)} <span className="text-3xs text-slate-600">Net</span>
           </div>
-          <div className="text-[10px] font-bold pt-1 flex items-center justify-center gap-1">
+          <div className="text-3xs font-bold pt-1 flex items-center justify-center gap-1">
             {netTrend === 'UP' && <span className="text-emerald-800">▲ +{netDiff} Net Artış</span>}
             {netTrend === 'DOWN' && <span className="text-rose-800">▼ {netDiff} Net Değişim</span>}
             {netTrend === 'EQUAL' && <span className="text-slate-700">İstikrarlı (±0.0)</span>}
           </div>
-          <span className="text-[9px] text-slate-500 block truncate">{student.latestMockTitle || 'TG Denemesi'}</span>
+          <span className="text-3xs text-slate-500 block truncate">{student.latestMockTitle || 'TG Denemesi'}</span>
         </div>
 
         {/* Box 3: Devamlılık */}
         <div className="border border-slate-300 bg-slate-50 p-2.5 rounded-lg text-center">
-          <span className="text-[9px] font-bold uppercase text-slate-600 block">Dershane Devamlılığı</span>
+          <span className="text-3xs font-bold uppercase text-slate-600 block">Dershane Devamlılığı</span>
           <div className="text-base font-black text-slate-950 font-mono">
             %{student.attendancePercent || 95}
           </div>
-          <span className="text-[10px] font-bold text-indigo-950 block pt-1">
+          <span className="text-3xs font-bold text-indigo-950 block pt-1">
             {(student.attendancePercent || 95) >= 95 ? 'Mükemmel Katılım' : (student.attendancePercent || 95) >= 85 ? 'Düzenli Katılım' : 'Öncelikli Takip'}
           </span>
-          <span className="text-[9px] text-slate-500 block">Etüt & Soru Çözüm</span>
+          <span className="text-3xs text-slate-500 block">Etüt & Soru Çözüm</span>
         </div>
 
         {/* Box 4: Odaklanma & Hata Analizi */}
         <div className="border border-slate-300 bg-slate-50 p-2.5 rounded-lg text-center">
-          <span className="text-[9px] font-bold uppercase text-slate-600 block">Çalışma Süresi & Hata</span>
+          <span className="text-3xs font-bold uppercase text-slate-600 block">Çalışma Süresi & Hata</span>
           <div className="text-base font-black text-amber-900 font-mono">
-            {Math.round(weeklyQuestions / 20) + 12} <span className="text-[10px] text-slate-600">Saat</span>
+            {Math.round(weeklyQuestions / 20) + 12} <span className="text-3xs text-slate-600">Saat</span>
           </div>
-          <span className="text-[10px] font-bold text-amber-950 block pt-1">
+          <span className="text-3xs font-bold text-amber-950 block pt-1">
             34 Soru Hata Defteri
           </span>
-          <span className="text-[9px] text-slate-500 block">Telafi Edildi</span>
+          <span className="text-3xs text-slate-500 block">Telafi Edildi</span>
         </div>
       </div>
 
@@ -221,15 +221,15 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
             <Calendar className="w-3.5 h-3.5 text-indigo-800" />
             <span>1. Haftalık Günlük Soru Pratiği ve Çalışma Dağılımı</span>
           </h2>
-          <span className="text-[10px] text-slate-500">Haftalık Toplam: <strong>{weeklyQuestions} Soru</strong></span>
+          <span className="text-3xs text-slate-500">Haftalık Toplam: <strong>{weeklyQuestions} Soru</strong></span>
         </div>
 
         <div className="grid grid-cols-7 gap-1.5 text-center">
           {dailyDistribution.map((d, i) => (
             <div key={i} className="bg-slate-50 border border-slate-200 p-1.5 rounded">
-              <span className="text-[9px] font-bold text-slate-500 block">{d.day}</span>
-              <strong className="text-[11px] font-black text-slate-900 font-mono">{d.count}</strong>
-              <span className="text-[8px] text-slate-500 block">Soru</span>
+              <span className="text-3xs font-bold text-slate-500 block">{d.day}</span>
+              <strong className="text-2xs font-black text-slate-900 font-mono">{d.count}</strong>
+              <span className="text-3xs text-slate-500 block">Soru</span>
             </div>
           ))}
         </div>
@@ -242,12 +242,12 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
             <Target className="w-3.5 h-3.5 text-indigo-800" />
             <span>2. Son Deneme Sınavı Branş & Net Dağılımı</span>
           </h2>
-          <span className="text-[10px] font-bold text-indigo-900">
+          <span className="text-3xs font-bold text-indigo-900">
             Sınav: {student.latestMockTitle || 'Haftalık Kurumsal Deneme Sınavı'}
           </span>
         </div>
 
-        <table className="w-full text-left border-collapse text-[10px]">
+        <table className="w-full text-left border-collapse text-3xs">
           <thead>
             <tr className="bg-slate-100 border-b border-slate-300 text-slate-700">
               <th className="py-1 px-2 font-bold">Ders / Bölüm Adı</th>
@@ -269,7 +269,7 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
                   <td className="py-1 px-2 text-center text-slate-600 font-mono">{sec.empty}</td>
                   <td className="py-1 px-2 text-center font-black text-indigo-950 font-mono">{sec.net.toFixed(2)}</td>
                   <td className="py-1 px-2 text-right">
-                    <span className={`inline-block px-1.5 py-0.2 rounded font-bold text-[9px] ${
+                    <span className={`inline-block px-1.5 py-0.2 rounded font-bold text-3xs ${
                       pct >= 80 ? 'bg-emerald-100 text-emerald-900' : pct >= 65 ? 'bg-indigo-100 text-indigo-900' : 'bg-amber-100 text-amber-900'
                     }`}>
                       %{pct}
@@ -305,11 +305,11 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
       {/* 6. SECTION: STRENGTHS & RECOMMENDED STUDY FOCUS */}
       <div className="grid grid-cols-2 gap-2.5">
         <div className="bg-emerald-50/70 border border-emerald-300 p-2.5 rounded-lg space-y-1">
-          <h3 className="text-[11px] font-black text-emerald-950 uppercase flex items-center gap-1">
+          <h3 className="text-2xs font-black text-emerald-950 uppercase flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
             <span>Öne Çıkan Güçlü Yönler & Kazanımlar</span>
           </h3>
-          <ul className="text-[10px] text-emerald-950 space-y-0.5 list-disc list-inside">
+          <ul className="text-3xs text-emerald-950 space-y-0.5 list-disc list-inside">
             <li>Konu kavrama testlerinde yüksek doğruluk oranı sergilendi.</li>
             <li>Deneme sınavında süre yönetimi ve odaklanma disiplini başarılı.</li>
             <li>Haftalık soru çözüm hedefine yüksek oranda riayet edildi.</li>
@@ -317,11 +317,11 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
         </div>
 
         <div className="bg-amber-50/70 border border-amber-300 p-2.5 rounded-lg space-y-1">
-          <h3 className="text-[11px] font-black text-amber-950 uppercase flex items-center gap-1">
+          <h3 className="text-2xs font-black text-amber-950 uppercase flex items-center gap-1">
             <BookOpen className="w-3.5 h-3.5 text-amber-700" />
             <span>Evde Öncelikli Tekrar Edilecek Konular</span>
           </h3>
-          <ul className="text-[10px] text-amber-950 space-y-0.5 list-disc list-inside">
+          <ul className="text-3xs text-amber-950 space-y-0.5 list-disc list-inside">
             {(student.weakSubjects && student.weakSubjects.length > 0)
               ? student.weakSubjects.slice(0, 2).map((s, i) => (
                   <li key={i}>{s} konusunda günlük 30 dk soru tekrarı ve video çözümü.</li>
@@ -340,42 +340,42 @@ export const PrintableParentReport: React.FC<PrintableReportProps> = ({
       {/* 7. SECTION: COUNSELOR & HOME SUPPORT NOTES */}
       <div className="border border-indigo-200 bg-indigo-50/60 p-2.5 rounded-lg space-y-2">
         <div>
-          <span className="text-[10px] font-black text-indigo-950 uppercase tracking-wide block">
+          <span className="text-3xs font-black text-indigo-950 uppercase tracking-wide block">
             👨‍🏫 Rehberlik Birimi & Danışman Öğretmen Görüşü:
           </span>
-          <p className="text-[10px] text-indigo-950 leading-relaxed font-medium italic pt-0.5">
+          <p className="text-3xs text-indigo-950 leading-relaxed font-medium italic pt-0.5">
             "{defaultCounselorNote}"
           </p>
         </div>
 
         <div className="border-t border-indigo-200 pt-1.5">
-          <span className="text-[10px] font-black text-indigo-950 uppercase tracking-wide block">
+          <span className="text-3xs font-black text-indigo-950 uppercase tracking-wide block">
             🏠 Veli İçin Evde Destek & Motivasyon Önerisi:
           </span>
-          <p className="text-[10px] text-indigo-900 leading-relaxed font-medium pt-0.5">
+          <p className="text-3xs text-indigo-900 leading-relaxed font-medium pt-0.5">
             {defaultHomeTip}
           </p>
         </div>
       </div>
 
       {/* 8. OFFICIAL STAMP & VERIFICATION SIGNATURE FOOTER */}
-      <div className="flex justify-between items-end border-t border-slate-300 pt-3 text-[10px] text-slate-600">
+      <div className="flex justify-between items-end border-t border-slate-300 pt-3 text-3xs text-slate-600">
         <div>
           <p className="font-bold text-slate-900">{institutionConfig.name}</p>
-          <p className="text-[9px] text-slate-500">Snaps AI Kurumsal Akademik Takip ve Karneleme Altyapısı</p>
-          <p className="text-[8px] text-slate-400 font-mono">Belge Doğrulama Kodu: {repId}</p>
+          <p className="text-3xs text-slate-500">Snaps AI Kurumsal Akademik Takip ve Karneleme Altyapısı</p>
+          <p className="text-3xs text-slate-400 font-mono">Belge Doğrulama Kodu: {repId}</p>
         </div>
 
         <div className="flex gap-8 text-center">
           <div>
-            <p className="font-bold text-slate-800 text-[10px]">Danışman Rehber Öğretmen</p>
-            <p className="text-[9px] text-slate-500">İmza</p>
+            <p className="font-bold text-slate-800 text-3xs">Danışman Rehber Öğretmen</p>
+            <p className="text-3xs text-slate-500">İmza</p>
             <div className="w-24 border-b border-slate-400 mt-3" />
           </div>
 
           <div>
-            <p className="font-bold text-slate-800 text-[10px]">Kurum Müdürü / Kaşe</p>
-            <p className="text-[9px] text-slate-500">Onay</p>
+            <p className="font-bold text-slate-800 text-3xs">Kurum Müdürü / Kaşe</p>
+            <p className="text-3xs text-slate-500">Onay</p>
             <div className="w-24 border-b border-slate-400 mt-3" />
           </div>
         </div>

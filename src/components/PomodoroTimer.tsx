@@ -5,6 +5,9 @@ import { UserProfile } from '../types';
 import { playCompletionBell, ambientManager } from '../lib/soundEffects';
 import { haptics } from '../lib/haptics';
 import { THEME } from '../theme';
+import { getChartColors } from '../lib/chartColors';
+
+const CHART = getChartColors();
 
 interface PomodoroTimerProps {
   profile: UserProfile;
@@ -138,7 +141,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       {/* Header */}
-      <div className="bg-[#1B1D27] border border-[#2D3245] rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-surface-1 border border-border rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-2">
             <Zap className="w-3.5 h-3.5 text-amber-400" />
@@ -154,7 +157,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 
         <div className="flex items-center gap-3">
           {/* Sound Notification Status and Test */}
-          <div className="flex items-center gap-2 bg-[#161822] border border-[#2D3245] p-2 rounded-xl">
+          <div className="flex items-center gap-2 bg-surface-0 border border-border p-2 rounded-xl">
             <button
               onClick={() => {
                 haptics.selection();
@@ -164,7 +167,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               className={`p-1.5 rounded-lg transition-colors ${
                 soundEnabled
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-[#222533] text-slate-400 hover:text-white'
+                  : 'bg-surface-2 text-slate-400 hover:text-white'
               }`}
             >
               {soundEnabled ? <BellRing className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -173,15 +176,15 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             <button
               onClick={testAlarmSound}
               title="Bildirim sesini test et"
-              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#222533] hover:bg-[#2D3245] text-slate-200 border border-[#2D3245] flex items-center gap-1 transition-colors"
+              className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-surface-2 hover:bg-surface-3 text-slate-200 border border-border flex items-center gap-1 transition-colors"
             >
               <Volume2 className="w-3.5 h-3.5 text-indigo-400" />
               <span>Sesi Dene</span>
             </button>
           </div>
 
-          <div className="text-right bg-[#161822] border border-[#2D3245] px-4 py-2 rounded-xl">
-            <span className="text-[11px] text-slate-400 block font-medium">Tamamlanan Oturum</span>
+          <div className="text-right bg-surface-0 border border-border px-4 py-2 rounded-xl">
+            <span className="text-2xs text-slate-400 block font-medium">Tamamlanan Oturum</span>
             <span className="text-base font-bold font-mono text-amber-400">
               {completedSessionsCount} Blok
             </span>
@@ -205,10 +208,10 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
       )}
 
       {/* Main Center Stage */}
-      <div className="bg-[#1B1D27] border border-[#2D3245] rounded-3xl p-8 shadow-2xl space-y-8 text-center flex flex-col items-center">
+      <div className="bg-surface-1 border border-border rounded-3xl p-8 shadow-2xl space-y-8 text-center flex flex-col items-center">
         
         {/* Mode Selector Tabs */}
-        <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-[#161822] border border-[#2D3245]">
+        <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-surface-0 border border-border">
           <button
             id="mode-pomodoro-25"
             onClick={() => switchMode('FOCUS_25')}
@@ -266,7 +269,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               cx="125"
               cy="125"
               r={radius}
-              stroke="#222533"
+              stroke={CHART.track}
               strokeWidth={strokeWidth}
               fill="transparent"
             />
@@ -306,12 +309,12 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 {isFocusMode ? `${sessionSubject} Odaklanması` : 'Zihinsel Dinlenme'}
               </span>
-              <span className="text-[11px] font-bold font-mono px-2 py-0.5 rounded-full bg-[#161822] text-slate-300 border border-[#2D3245]">
+              <span className="text-2xs font-bold font-mono px-2 py-0.5 rounded-full bg-surface-0 text-slate-300 border border-border">
                 %{progressPercent}
               </span>
             </div>
             {isRunning && (
-              <span className="text-[10px] text-green-400 font-semibold flex items-center gap-1 animate-pulse">
+              <span className="text-3xs text-green-400 font-semibold flex items-center gap-1 animate-pulse">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
                 Sayaç Devam Ediyor
               </span>
@@ -324,7 +327,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           <button
             id="reset-timer-button"
             onClick={resetTimer}
-            className="p-3.5 rounded-2xl bg-[#161822] hover:bg-[#222533] border border-[#2D3245] text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-3.5 rounded-2xl bg-surface-0 hover:bg-surface-2 border border-border text-slate-300 hover:text-white transition-colors cursor-pointer"
             title="Sıfırla"
           >
             <RotateCcw className="w-5 h-5" />
@@ -365,7 +368,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               haptics.light();
               window.dispatchEvent(new CustomEvent('trigger-study-insight'));
             }}
-            className="p-3.5 rounded-2xl bg-[#161822] hover:bg-[#222533] border border-[#2D3245] text-amber-400 hover:text-amber-300 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="p-3.5 rounded-2xl bg-surface-0 hover:bg-surface-2 border border-border text-amber-400 hover:text-amber-300 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             title="Çalışma & Odaklanma İpucu Al"
           >
             <Lightbulb className="w-5 h-5" />
@@ -373,10 +376,10 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         </div>
 
         {/* Bottom Tools: Subject select & Question Logger & Ambience */}
-        <div className="w-full max-w-xl grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#2D3245] text-left">
+        <div className="w-full max-w-xl grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border text-left">
           
           {/* Active Subject Selector */}
-          <div className="p-4 rounded-2xl bg-[#161822] border border-[#2D3245] space-y-2">
+          <div className="p-4 rounded-2xl bg-surface-0 border border-border space-y-2">
             <label className="block text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
               <span>Çalışılan Ders:</span>
@@ -384,7 +387,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             <select
               value={sessionSubject}
               onChange={(e) => setSessionSubject(e.target.value)}
-              className="w-full bg-[#1B1D27] border border-[#2D3245] rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
+              className="w-full bg-surface-1 border border-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"
             >
               <option value="Matematik">Matematik & Geometri</option>
               <option value="Tarih">Tarih</option>
@@ -397,13 +400,13 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           </div>
 
           {/* Question Logger in session */}
-          <div className="p-4 rounded-2xl bg-[#161822] border border-[#2D3245] space-y-2">
+          <div className="p-4 rounded-2xl bg-surface-0 border border-border space-y-2">
             <label className="block text-xs font-semibold text-slate-300 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-green-400" />
                 <span>Çözülen Soru Sayısı:</span>
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">Bu Blokta</span>
+              <span className="text-3xs text-slate-400 font-mono">Bu Blokta</span>
             </label>
             <div className="flex gap-2">
               <input
@@ -411,7 +414,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 min={0}
                 value={questionsSolvedInSession}
                 onChange={(e) => setQuestionsSolvedInSession(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-[#1B1D27] border border-[#2D3245] rounded-xl px-3 py-1.5 text-xs text-white font-bold text-center"
+                className="w-full bg-surface-1 border border-border rounded-xl px-3 py-1.5 text-xs text-white font-bold text-center"
               />
               <button
                 onClick={handleLogQuestions}
@@ -419,7 +422,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
                   questionsSolvedInSession > 0
                     ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-[#222533] text-slate-500 cursor-not-allowed'
+                    : 'bg-surface-2 text-slate-500 cursor-not-allowed'
                 }`}
               >
                 Kaydet +
@@ -448,7 +451,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                   className={`py-2 px-3 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                     isActive
                       ? 'bg-indigo-600/30 border-indigo-500 text-indigo-300 ring-1 ring-indigo-400/40'
-                      : 'bg-[#161822] hover:bg-[#222533] border-[#2D3245] text-slate-300'
+                      : 'bg-surface-0 hover:bg-surface-2 border-border text-slate-300'
                   }`}
                 >
                   {snd.label}

@@ -361,7 +361,7 @@ export const SpeedTrainer: React.FC<SpeedTrainerProps> = ({
                                   : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
                               }`}
                             >
-                              <span className="w-5 h-5 rounded-lg bg-slate-800 flex items-center justify-center text-[10px] text-white shrink-0">
+                              <span className="w-5 h-5 rounded-lg bg-slate-800 flex items-center justify-center text-3xs text-white shrink-0">
                                 {String.fromCharCode(65 + optIdx)}
                               </span>
                               <span>{opt}</span>
@@ -392,19 +392,19 @@ export const SpeedTrainer: React.FC<SpeedTrainerProps> = ({
                   <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
                     <span className="text-xs text-slate-400 block mb-1">Okuma Hızın (WPM)</span>
                     <span className="text-3xl font-extrabold text-amber-400">{sessionResult.wpm}</span>
-                    <span className="text-[11px] text-slate-400 block mt-1">Kelime / Dakika</span>
+                    <span className="text-2xs text-slate-400 block mt-1">Kelime / Dakika</span>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
                     <span className="text-xs text-slate-400 block mb-1">Anlama Oranı</span>
                     <span className="text-3xl font-extrabold text-emerald-400">%{sessionResult.comprehensionScorePercent}</span>
-                    <span className="text-[11px] text-slate-400 block mt-1">Doğruluk Puanı</span>
+                    <span className="text-2xs text-slate-400 block mt-1">Doğruluk Puanı</span>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
                     <span className="text-xs text-slate-400 block mb-1">Geçen Süre</span>
                     <span className="text-3xl font-extrabold text-white">{sessionResult.durationSeconds} sn</span>
-                    <span className="text-[11px] text-slate-400 block mt-1">Toplam Metin Süresi</span>
+                    <span className="text-2xs text-slate-400 block mt-1">Toplam Metin Süresi</span>
                   </div>
                 </div>
 
@@ -443,7 +443,7 @@ export const SpeedTrainer: React.FC<SpeedTrainerProps> = ({
               <div key={item.id} className="py-3 flex items-center justify-between text-xs">
                 <div>
                   <span className="font-bold text-white block">{item.textTitle}</span>
-                  <span className="text-slate-400 text-[11px]">{item.date} • {item.wordCount} Kelime</span>
+                  <span className="text-slate-400 text-2xs">{item.date} • {item.wordCount} Kelime</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-amber-400 font-bold">{item.wpm} WPM</span>

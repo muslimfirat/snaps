@@ -45,7 +45,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   currentUserRef.current = currentUser;
 
   useEffect(() => {
+    // Ağ engelli / Firebase yavaşsa header'da sonsuz spinner kalmasın (Faz 9.3).
+    const failsafe = setTimeout(() => setLoading(false), 8000);
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      clearTimeout(failsafe);
       setCurrentUser(user);
       setLoading(false);
       if (user) {
@@ -56,7 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(failsafe);
+      unsubscribe();
+    };
   }, []);
 
   const signInWithGoogle = async () => {

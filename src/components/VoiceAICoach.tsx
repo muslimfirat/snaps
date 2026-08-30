@@ -227,7 +227,7 @@ export const VoiceAICoach: React.FC<VoiceAICoachProps> = ({
                         speakText(spokenText);
                       }
                     }}
-                    className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                    className={`px-2 py-0.5 rounded text-2xs font-bold ${
                       audioSpeed === speed ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
                     }`}
                   >
@@ -318,7 +318,7 @@ export const VoiceAICoach: React.FC<VoiceAICoachProps> = ({
               onClick={() => {
                 setCustomQuestion(quickQ);
               }}
-              className="px-3 py-1 rounded-full bg-slate-950 border border-slate-800 hover:border-slate-700 text-[11px] text-slate-400 hover:text-slate-200 transition-colors"
+              className="px-3 py-1 rounded-full bg-slate-950 border border-slate-800 hover:border-slate-700 text-2xs text-slate-400 hover:text-slate-200 transition-colors"
             >
               {quickQ}
             </button>

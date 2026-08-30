@@ -40,14 +40,17 @@ export const DEFAULT_PROFILE: UserProfile = {
   examDate: EXAM_METADATA.KPSS_LISANS.defaultDate,
   dailyStudyHourTarget: 5,
   dailyQuestionTarget: 150,
-  todayQuestionsSolved: 45,
-  todayMinutesStudied: 110,
-  streakDays: 6,
-  maxStreakDays: 6,
+  // Kişisel ilerleme SIFIRDAN başlar — sahte "6 günlük seri" göstermek yeni
+  // kullanıcıyı yanıltıyordu (Faz 9.5).
+  todayQuestionsSolved: 0,
+  todayMinutesStudied: 0,
+  streakDays: 0,
+  maxStreakDays: 0,
   lastActiveDate: getLocalDateStr(),
   lastLoginDate: getLocalDateStr(),
   loginDates: [getLocalDateStr()],
   classGroupId: 'grp-kpss-1',
+  onboarded: false,
 };
 
 /**
@@ -240,41 +243,10 @@ export function loadMockExams(): MockExamRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.MOCK_EXAMS);
     if (raw) return JSON.parse(raw);
-    // Seed initial realistic mock exams
-    return [
-      {
-        id: 'mock-1',
-        title: 'Özdebir Türkiye Geneli Deneme-1',
-        date: '2026-08-05',
-        examType: 'KPSS_LISANS',
-        sections: [
-          { name: 'Türkçe', correct: 24, wrong: 4, blank: 2, net: 23.0 },
-          { name: 'Matematik', correct: 19, wrong: 3, blank: 8, net: 18.25 },
-          { name: 'Tarih', correct: 20, wrong: 5, blank: 2, net: 18.75 },
-          { name: 'Coğrafya', correct: 14, wrong: 2, blank: 2, net: 13.5 },
-          { name: 'Vatandaşlık & Güncel', correct: 10, wrong: 3, blank: 2, net: 9.25 },
-        ],
-        totalNet: 82.75,
-        estimatedScore: 84.8,
-        notes: 'Matematik problemlerinde vakit kaybettim. Tarihte kültür medeniyet tekrar edilmeli.',
-      },
-      {
-        id: 'mock-2',
-        title: 'Yediiklim / Pegem Branş Denemesi-2',
-        date: '2026-08-14',
-        examType: 'KPSS_LISANS',
-        sections: [
-          { name: 'Türkçe', correct: 26, wrong: 3, blank: 1, net: 25.25 },
-          { name: 'Matematik', correct: 22, wrong: 2, blank: 6, net: 21.5 },
-          { name: 'Tarih', correct: 22, wrong: 3, blank: 2, net: 21.25 },
-          { name: 'Coğrafya', correct: 16, wrong: 1, blank: 1, net: 15.75 },
-          { name: 'Vatandaşlık & Güncel', correct: 11, wrong: 2, blank: 2, net: 10.5 },
-        ],
-        totalNet: 94.25,
-        estimatedScore: 88.2,
-        notes: 'Netlerde gözle görülür artış var! Turlama tekniği çok işe yaradı.',
-      },
-    ];
+    // Deneme GEÇMİŞİ kullanıcının kendi verisidir — sahte "geçmiş denemeler +
+    // kişisel notlar" göstermek yanıltıcıydı (Faz 9.5). Boş başlar; MockExamTracker
+    // kendi EmptyState'iyle ilk kaydı yönlendirir.
+    return [];
   } catch {
     return [];
   }

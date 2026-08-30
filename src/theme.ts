@@ -1,9 +1,14 @@
-// src/theme.ts - Centralized Theme & Color System
+// src/theme.ts - JS renk sabitleri (recharts / SVG / dinamik className için)
+//
+// ⚠️ TEK RENK KAYNAĞI: src/index.css `@theme` bloğu. Buradaki hex değerleri onu
+// YANSITIR — ikisi birbirini tutmalı. Yeni renk eklerken önce @theme'e ekle.
+// Yüzey (surface) ve metin (text) renkleri artık burada TUTULMUYOR; onlar için
+// `bg-canvas / bg-surface-1 / text-fg-muted` gibi Tailwind util'lerini kullan.
 
 export const THEME = {
   brand: {
-    primary: '#4F46E5', // indigo-600 (Tek ton marka rengi: Butonlar ve aktif sekmeler için)
-    hover: '#4338CA',   // indigo-700
+    primary: '#4F46E5', // --color-brand (tek indigo tonu)
+    hover: '#4338CA',   // --color-brand-hover
     surface: 'rgba(79, 70, 229, 0.12)',
     border: 'rgba(79, 70, 229, 0.30)',
     tailwind: {
@@ -77,53 +82,35 @@ export const THEME = {
     },
   },
 
-  // Fonksiyonel Durum Renkleri (Sadece işlevsel amaçlar için sabit)
+  // Fonksiyonel Durum Renkleri — @theme semantik token'larını yansıtır
   status: {
     success: {
-      hex: '#16A34A', // green-600
-      lightHex: '#22C55E', // green-500
-      bg: 'rgba(22, 163, 74, 0.12)',
-      border: 'rgba(22, 163, 74, 0.30)',
-      textClass: 'text-green-400',
-      barBg: 'bg-green-600',
-      badgeClass: 'bg-green-600/15 text-green-300 border-green-600/30',
+      hex: '#35C393', // --color-success
+      lightHex: '#4CD3A6',
+      bg: 'rgba(53, 195, 147, 0.12)',
+      border: 'rgba(53, 195, 147, 0.30)',
+      textClass: 'text-emerald-400',
+      barBg: 'bg-emerald-500',
+      badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
     },
     error: {
-      hex: '#DC2626', // red-600
-      lightHex: '#EF4444', // red-500
-      bg: 'rgba(220, 38, 38, 0.12)',
-      border: 'rgba(220, 38, 38, 0.30)',
-      textClass: 'text-red-400',
-      barBg: 'bg-red-600',
-      badgeClass: 'bg-red-600/15 text-red-300 border-red-600/30',
+      hex: '#E26571', // --color-danger
+      lightHex: '#EC7B85',
+      bg: 'rgba(226, 101, 113, 0.12)',
+      border: 'rgba(226, 101, 113, 0.30)',
+      textClass: 'text-rose-400',
+      barBg: 'bg-rose-500',
+      badgeClass: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
     },
     warning: {
-      hex: '#EA580C', // orange-600
-      lightHex: '#F97316', // orange-500
-      bg: 'rgba(234, 88, 12, 0.12)',
-      border: 'rgba(234, 88, 12, 0.30)',
-      textClass: 'text-orange-400',
-      barBg: 'bg-orange-600',
-      badgeClass: 'bg-orange-600/15 text-orange-300 border-orange-600/30',
+      hex: '#DDA544', // --color-warning
+      lightHex: '#E6B968',
+      bg: 'rgba(221, 165, 68, 0.12)',
+      border: 'rgba(221, 165, 68, 0.30)',
+      textClass: 'text-amber-400',
+      barBg: 'bg-amber-500',
+      badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
     },
-  },
-
-  // Dark Theme Yüzey Renkleri
-  surfaces: {
-    app: '#0F1117',
-    card: '#1B1D27',
-    sub: '#161822',
-    channel: '#222533',
-    border: '#2D3245',
-    borderLight: '#3A405A',
-  },
-
-  // Tipografi
-  text: {
-    primary: '#FFFFFF',
-    secondary: '#CBD5E1', // slate-300
-    muted: '#94A3B8',     // slate-400
-    disabled: '#64748B',  // slate-500
   },
 } as const;
 

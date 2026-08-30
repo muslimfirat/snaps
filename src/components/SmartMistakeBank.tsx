@@ -72,9 +72,10 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
   const getStageLabel = (stage: LeitnerStage) => {
     switch (stage) {
       case 1:
-        return { label: '1. Kutu (1 Gün Sonra)', color: 'border-rose-500/40 text-rose-400 bg-rose-500/10' };
+        // "Gelişim alanı" tonu — kırmızı/utanç değil, dikkat çağrısı
+        return { label: '1. Kutu (1 Gün Sonra)', color: 'border-amber-500/50 text-amber-400 bg-amber-500/15' };
       case 2:
-        return { label: '2. Kutu (3 Gün Sonra)', color: 'border-amber-500/40 text-amber-400 bg-amber-500/10' };
+        return { label: '2. Kutu (3 Gün Sonra)', color: 'border-amber-500/30 text-amber-300 bg-amber-500/10' };
       case 3:
         return { label: '3. Kutu (1 Hafta Sonra)', color: 'border-blue-500/40 text-blue-400 bg-blue-500/10' };
       case 4:
@@ -257,7 +258,7 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
                   <span>Kutu {boxNum}</span>
                   <span className="font-bold text-white text-sm">{count}</span>
                 </div>
-                <div className="text-[11px] font-medium text-slate-300 truncate">
+                <div className="text-2xs font-medium text-slate-300 truncate">
                   {boxNum === 1 ? '1 Gün' : boxNum === 2 ? '3 Gün' : boxNum === 3 ? '1 Hafta' : boxNum === 4 ? '1 Ay' : 'Kalıcı Hafıza'}
                 </div>
               </button>
@@ -330,14 +331,14 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
                   {/* Top Badges */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-bold">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-2xs font-bold">
                         {item.subject}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-bold ${stage.color}`}>
+                      <span className={`px-2 py-0.5 rounded-lg border text-3xs font-bold ${stage.color}`}>
                         {stage.label}
                       </span>
                       {isDue && (
-                        <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-3xs font-bold flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           <span>Bugün Tekrar Zamanı</span>
                         </span>
@@ -366,13 +367,13 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
                   )}
 
                   {/* Answers summary */}
-                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="grid grid-cols-2 gap-2 text-2xs">
                     <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300">
-                      <span className="font-semibold text-rose-400 block text-[10px]">Senin Yanıtın:</span>
+                      <span className="font-semibold text-rose-400 block text-3xs">Senin Yanıtın:</span>
                       <span>{item.userWrongAnswer || 'Hatalı Çözüm'}</span>
                     </div>
                     <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-                      <span className="font-semibold text-emerald-400 block text-[10px]">Doğru Yanıt:</span>
+                      <span className="font-semibold text-emerald-400 block text-3xs">Doğru Yanıt:</span>
                       <span>{item.correctAnswer || 'Doğru Çözüm'}</span>
                     </div>
                   </div>
@@ -526,7 +527,7 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
                         <span>Soru {idx + 1} / {(twinQuestions || []).length}</span>
                         <button
                           onClick={() => setShowTwinHints((prev) => ({ ...prev, [q.id]: !prev[q.id] }))}
-                          className="text-[11px] text-amber-400 hover:underline flex items-center gap-1"
+                          className="text-2xs text-amber-400 hover:underline flex items-center gap-1"
                         >
                           <HelpCircle className="w-3 h-3" />
                           <span>{isHintOpen ? 'İpucunu Gizle' : 'İpucu Gör'}</span>
@@ -565,7 +566,7 @@ export const SmartMistakeBank: React.FC<SmartMistakeBankProps> = ({
                               }}
                               className={`p-2.5 rounded-xl border text-left text-xs transition-all flex items-center gap-2 ${btnStyle}`}
                             >
-                              <span className="w-5 h-5 rounded-lg bg-slate-800 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+                              <span className="w-5 h-5 rounded-lg bg-slate-800 flex items-center justify-center text-3xs font-bold text-white shrink-0">
                                 {opt.key}
                               </span>
                               <span className="truncate">{opt.text}</span>

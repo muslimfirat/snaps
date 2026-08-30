@@ -285,7 +285,7 @@ export const QuestionDuel: React.FC<QuestionDuelProps> = ({
               }`}>
                 {timeLeft}
               </div>
-              <div className="text-[10px] text-slate-400">Soru {currentQIndex + 1} / {(questions || []).length}</div>
+              <div className="text-3xs text-slate-400">Soru {currentQIndex + 1} / {(questions || []).length}</div>
             </div>
 
             <div className="text-right space-y-1">
@@ -415,12 +415,12 @@ export const QuestionDuel: React.FC<QuestionDuelProps> = ({
                 <span className="text-lg">{user.avatar}</span>
                 <div>
                   <span className="font-bold text-white block">{user.name}</span>
-                  <span className="text-[11px] text-slate-400">{user.questionsSolvedThisWeek} Soru Bu Hafta</span>
+                  <span className="text-2xs text-slate-400">{user.questionsSolvedThisWeek} Soru Bu Hafta</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-4">
-                <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold border ${
+                <span className={`px-2.5 py-0.5 rounded-lg text-3xs font-extrabold border ${
                   user.league === 'ELMAS'
                     ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
                     : user.league === 'ALTIN'

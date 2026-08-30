@@ -370,14 +370,14 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
               <Users className="w-4 h-4 text-indigo-400" />
               <span>Hazır Veli Karneleri</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-3xs font-bold">
               Bu Hafta
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-white">
             {safeStudents.length} <span className="text-xs font-normal text-slate-400">Öğrenci</span>
           </div>
-          <span className="text-[11px] text-slate-400 block">
+          <span className="text-2xs text-slate-400 block">
             Tüm şube ve sınıflar için haftalık veri güncel
           </span>
         </div>
@@ -389,7 +389,7 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
               <Send className="w-4 h-4 text-emerald-400" />
               <span>İletilen / Gönderilen</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-3xs font-bold">
               WhatsApp / PDF
             </span>
           </div>
@@ -411,14 +411,14 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
               <Clock className="w-4 h-4 text-amber-400" />
               <span>Ortalama Devamlılık</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-3xs font-bold">
               Dershane & Etüt
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-amber-400">
             %{averageWeeklyAttendance}
           </div>
-          <span className="text-[11px] text-slate-400 block">
+          <span className="text-2xs text-slate-400 block">
             Haftalık ders ve soru çözüm saatlerine katılım
           </span>
         </div>
@@ -430,14 +430,14 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
               <AlertCircle className="w-4 h-4 text-rose-400" />
               <span>Görüşme Önerilen</span>
             </span>
-            <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-3xs font-bold">
               Öncelikli Veli
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-rose-400">
             {attentionCount} <span className="text-xs font-normal text-slate-400">Öğrenci</span>
           </div>
-          <span className="text-[11px] text-slate-400 block">
+          <span className="text-2xs text-slate-400 block">
             Net düşüşü veya devamsızlık uyarısı olanlar
           </span>
         </div>
@@ -454,7 +454,7 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] text-slate-400 font-bold uppercase block">Rapor Dönemi / Hafta</span>
+              <span className="text-2xs text-slate-400 font-bold uppercase block">Rapor Dönemi / Hafta</span>
               <select
                 value={selectedWeek}
                 onChange={(e) => {
@@ -505,7 +505,7 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
             <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
               <button
                 onClick={() => setStatusFilter('ALL')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-2xs font-bold transition-all ${
                   statusFilter === 'ALL' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -513,7 +513,7 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
               </button>
               <button
                 onClick={() => setStatusFilter('HIGH')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-2xs font-bold transition-all ${
                   statusFilter === 'HIGH' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -521,7 +521,7 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
               </button>
               <button
                 onClick={() => setStatusFilter('NEEDS_ATTENTION')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-2xs font-bold transition-all ${
                   statusFilter === 'NEEDS_ATTENTION' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -586,11 +586,11 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="text-sm font-bold text-white">{student.name}</h4>
-                        <span className="px-2 py-0.5 rounded bg-slate-950 text-indigo-300 text-[10px] font-mono font-bold">
+                        <span className="px-2 py-0.5 rounded bg-slate-950 text-indigo-300 text-3xs font-mono font-bold">
                           #{student.studentNumber}
                         </span>
                         {isSent && (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-3xs font-bold flex items-center gap-1">
                             <Check className="w-3 h-3" /> İletildi
                           </span>
                         )}
@@ -598,7 +598,7 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
                       <p className="text-xs text-slate-400 pt-0.5">
                         {report.classGroupName} • <strong className="text-slate-300">{report.targetExamName}</strong>
                       </p>
-                      <p className="text-[11px] text-slate-500 pt-0.5">
+                      <p className="text-2xs text-slate-500 pt-0.5">
                         Veli İletişim: <span className="font-mono text-slate-400">{student.phone || 'Belirtilmedi'}</span>
                       </p>
                     </div>
@@ -609,33 +609,33 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
                     
                     {/* Soru Çözümü */}
                     <div className="text-center">
-                      <span className="text-[10px] text-slate-400 font-bold block uppercase">Haftalık Soru</span>
+                      <span className="text-3xs text-slate-400 font-bold block uppercase">Haftalık Soru</span>
                       <div className="text-sm font-black text-emerald-400 font-mono">
-                        {report.weeklyQuestionsSolved} <span className="text-[10px] text-slate-500">/ {report.weeklyQuestionsTarget}</span>
+                        {report.weeklyQuestionsSolved} <span className="text-3xs text-slate-500">/ {report.weeklyQuestionsTarget}</span>
                       </div>
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-3xs text-slate-500">
                         %{Math.round((report.weeklyQuestionsSolved / report.weeklyQuestionsTarget) * 100)} Hedef
                       </span>
                     </div>
 
                     {/* Deneme Neti */}
                     <div className="text-center border-x border-slate-800/80 px-2">
-                      <span className="text-[10px] text-slate-400 font-bold block uppercase">Son Deneme</span>
+                      <span className="text-3xs text-slate-400 font-bold block uppercase">Son Deneme</span>
                       <div className="text-sm font-black text-indigo-400 font-mono">
-                        {report.weeklyMockNet} <span className="text-[10px] text-slate-500">Net</span>
+                        {report.weeklyMockNet} <span className="text-3xs text-slate-500">Net</span>
                       </div>
-                      <span className={`text-[10px] font-bold ${report.netChange >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <span className={`text-3xs font-bold ${report.netChange >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {report.netChange >= 0 ? `▲ +${report.netChange}` : `▼ ${report.netChange}`} Net
                       </span>
                     </div>
 
                     {/* Devamsızlık */}
                     <div className="text-center">
-                      <span className="text-[10px] text-slate-400 font-bold block uppercase">Yoklama</span>
+                      <span className="text-3xs text-slate-400 font-bold block uppercase">Yoklama</span>
                       <div className="text-sm font-black text-white font-mono">
                         %{report.weeklyAttendancePercent}
                       </div>
-                      <span className={`text-[10px] font-bold ${
+                      <span className={`text-3xs font-bold ${
                         report.weeklyAttendanceStatus === 'Mükemmel' ? 'text-emerald-400' : 
                         report.weeklyAttendanceStatus === 'Düzenli' ? 'text-amber-400' : 'text-rose-400'
                       }`}>
@@ -794,12 +794,12 @@ Detaylı karne ve koçluk görüşmesi için kurumumuza her zaman bekleriz.`;
 
                 {/* Preset Guidance Bar */}
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] text-slate-400 font-medium">Şablon Not:</span>
+                  <span className="text-2xs text-slate-400 font-medium">Şablon Not:</span>
                   {COUNSELOR_PRESET_TEMPLATES.slice(0, 2).map((tpl) => (
                     <button
                       key={tpl.id}
                       onClick={() => handleApplyPreset(tpl)}
-                      className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-semibold transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-2xs font-semibold transition-colors"
                     >
                       {tpl.title}
                     </button>

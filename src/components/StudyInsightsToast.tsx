@@ -343,10 +343,10 @@ export const StudyInsightsToast: React.FC<StudyInsightsToastProps> = ({
                 <Lightbulb className="w-4 h-4" />
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-200">
+                <span className="text-2xs font-black uppercase tracking-wider text-slate-200">
                   Çalışma İpucu
                 </span>
-                <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${currentInsight.badgeColor}`}>
+                <span className={`px-2 py-0.5 rounded-full border text-3xs font-bold ${currentInsight.badgeColor}`}>
                   {currentInsight.categoryLabel}
                 </span>
               </div>
@@ -393,7 +393,7 @@ export const StudyInsightsToast: React.FC<StudyInsightsToastProps> = ({
             <div className="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
               <Sparkles className="w-3 h-3" />
             </div>
-            <div className="text-[11px] space-y-0.5">
+            <div className="text-2xs space-y-0.5">
               <span className="font-bold text-emerald-300 block">Hemen Uygula:</span>
               <p className="text-slate-300 font-medium leading-normal">
                 {currentInsight.actionStep}
@@ -403,7 +403,7 @@ export const StudyInsightsToast: React.FC<StudyInsightsToastProps> = ({
 
           {/* Scientific Reference / Footnote */}
           {currentInsight.scientificReference && (
-            <div className="flex items-center justify-between text-[10px] text-slate-500 px-0.5">
+            <div className="flex items-center justify-between text-3xs text-slate-500 px-0.5">
               <span className="italic truncate max-w-[220px]">
                 📌 {currentInsight.scientificReference}
               </span>
@@ -422,7 +422,7 @@ export const StudyInsightsToast: React.FC<StudyInsightsToastProps> = ({
               <button
                 id="study-insight-like-btn"
                 onClick={handleToggleLike}
-                className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1 text-[11px] font-bold transition-all ${
+                className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1 text-2xs font-bold transition-all ${
                   likedTips[currentInsight.id]
                     ? 'bg-indigo-600/30 border-indigo-500/50 text-indigo-300'
                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
@@ -447,7 +447,7 @@ export const StudyInsightsToast: React.FC<StudyInsightsToastProps> = ({
               <button
                 id="study-insight-snooze-btn"
                 onClick={handleSnooze}
-                className="px-2 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 text-[11px] font-medium transition-colors cursor-pointer"
+                className="px-2 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 text-2xs font-medium transition-colors cursor-pointer"
                 title="30 Dakika Sessize Al"
               >
                 30dk Sustur
@@ -458,7 +458,7 @@ export const StudyInsightsToast: React.FC<StudyInsightsToastProps> = ({
             <button
               id="study-insight-next-btn"
               onClick={handleNextTip}
-              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-1 text-[11px] transition-all hover:scale-105 active:scale-95 shadow-md shadow-indigo-600/30"
+              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-1 text-2xs transition-all hover:scale-105 active:scale-95 shadow-md shadow-indigo-600/30"
             >
               <span>Sonraki İpucu</span>
               <ChevronRight className="w-3 h-3" />

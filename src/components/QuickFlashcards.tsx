@@ -259,7 +259,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
   const progressPercent = safeFlashcards.length > 0 ? Math.round((learnedCount / safeFlashcards.length) * 100) : 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-16">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-2">
@@ -336,7 +336,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
         {/* Progress Card */}
         <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+            <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider block">
               Öğrenme İlerlemesi
             </span>
             <div className="flex items-baseline gap-2">
@@ -424,11 +424,11 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
             {/* Top Card Info */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-bold text-[11px]">
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-bold text-2xs">
                   {currentCard.category || 'Hap Bilgi'}
                 </span>
                 {currentCard.tag && (
-                  <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[10px] font-semibold">
+                  <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-3xs font-semibold">
                     #{currentCard.tag}
                   </span>
                 )}
@@ -468,7 +468,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
             {/* Middle Content */}
             <div className="py-6 text-center space-y-3">
               <div className="flex items-center justify-center gap-2">
-                <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                <span className={`text-2xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                   isFlipped ? 'bg-emerald-500/20 text-emerald-300' : 'bg-indigo-500/20 text-indigo-300'
                 }`}>
                   {isFlipped ? '💡 CEVAP / HAP NOT & ŞİFRE' : '❓ SORU / KAVRAM / KURAL'}
@@ -485,7 +485,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
             </div>
 
             {/* Bottom Card Footer */}
-            <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-slate-800/80">
+            <div className="flex items-center justify-between text-2xs text-slate-400 pt-3 border-t border-slate-800/80">
               <span className="flex items-center gap-1.5 text-indigo-400 group-hover:text-indigo-300 font-medium">
                 <RotateCw className="w-3.5 h-3.5 transition-transform group-hover:rotate-180 duration-500" />
                 <span>Kartı Çevir (Boşluk Tuşu)</span>
@@ -532,7 +532,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
             </button>
           </div>
 
-          <div className="text-[11px] text-slate-500 flex items-center gap-3">
+          <div className="text-2xs text-slate-500 flex items-center gap-3">
             <span>İpucu: <strong>Boşluk</strong> çevirir, <strong>← →</strong> kartlar arası geçiş yapar.</span>
           </div>
         </div>
@@ -575,7 +575,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
             <form onSubmit={handleSaveCustomCard} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-400">Ders / Kategori</label>
+                  <label className="text-2xs font-bold text-slate-400">Ders / Kategori</label>
                   <input
                     type="text"
                     required
@@ -586,7 +586,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-400">Etiket</label>
+                  <label className="text-2xs font-bold text-slate-400">Etiket</label>
                   <select
                     value={customTag}
                     onChange={(e) => setCustomTag(e.target.value)}
@@ -605,7 +605,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-400">Ön Yüz (Soru / Kavram)</label>
+                <label className="text-2xs font-bold text-slate-400">Ön Yüz (Soru / Kavram)</label>
                 <textarea
                   required
                   rows={2}
@@ -617,7 +617,7 @@ export const QuickFlashcards: React.FC<QuickFlashcardsProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-400">Arka Yüz (Cevap / Hap Not / Şifreleme)</label>
+                <label className="text-2xs font-bold text-slate-400">Arka Yüz (Cevap / Hap Not / Şifreleme)</label>
                 <textarea
                   required
                   rows={3}

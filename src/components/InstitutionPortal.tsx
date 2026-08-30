@@ -347,7 +347,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
   };
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-8">
       
       {/* Toast Notification Banner */}
       {saveSuccessToast && (
@@ -384,21 +384,21 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold">
                   {institutionConfig.branch}
                 </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-3xs font-bold">
                   Kurumsal Sürüm v2.5
                 </span>
               </div>
               <p className="text-xs text-indigo-300 font-medium">
                 "{institutionConfig.slogan}"
               </p>
-              <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-400 pt-1">
+              <div className="flex flex-wrap items-center gap-4 text-2xs text-slate-400 pt-1">
                 <span>Müdür / Koçluk Koordinatörü: <strong className="text-slate-200">{institutionConfig.directorName}</strong></span>
                 <span>•</span>
                 <span className="flex items-center gap-1"><Phone className="w-3 h-3 text-slate-500" /> {institutionConfig.phone}</span>
                 {activeInstitutionEmail && (
                   <>
                     <span>•</span>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-indigo-300 font-mono text-[10px] border border-slate-700">
+                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-indigo-300 font-mono text-3xs border border-slate-700">
                       🔒 Giriş: {activeInstitutionEmail}
                     </span>
                   </>
@@ -473,7 +473,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-1">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-2xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-indigo-400" />
             <span>Kayıtlı Öğrenci</span>
           </span>
@@ -483,11 +483,11 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
             </span>
             <span className="text-xs text-slate-400">({safeClassGroups.length} Sınıf)</span>
           </div>
-          <p className="text-[11px] text-slate-500">Aktif hazırlık dönemi</p>
+          <p className="text-2xs text-slate-500">Aktif hazırlık dönemi</p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-1">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-2xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
             <span>Kurum Ortalama Net</span>
           </span>
@@ -497,11 +497,11 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
             </span>
             <span className="text-xs text-slate-400 font-bold">ÖSYM Bandı</span>
           </div>
-          <p className="text-[11px] text-slate-500">Tüm şubeler dahil</p>
+          <p className="text-2xs text-slate-500">Tüm şubeler dahil</p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-1">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-2xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5 text-blue-400" />
             <span>Çözülen Soru Havuzu</span>
           </span>
@@ -511,11 +511,11 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
             </span>
             <span className="text-xs text-slate-400">Soru</span>
           </div>
-          <p className="text-[11px] text-slate-500">Öğrencilerin toplam pratiği</p>
+          <p className="text-2xs text-slate-500">Öğrencilerin toplam pratiği</p>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-1">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-2xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
             <span>Özel İlgi / Risk Grubu</span>
           </span>
@@ -525,7 +525,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
             </span>
             <span className="text-xs text-slate-400">Mentörlük</span>
           </div>
-          <p className="text-[11px] text-slate-500">Devamsızlık veya net düşüşü</p>
+          <p className="text-2xs text-slate-500">Devamsızlık veya net düşüşü</p>
         </div>
 
       </div>
@@ -539,11 +539,11 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-black text-white">Yönetici Finansal Ciro Göstergesi</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-3xs font-bold">
                 {safeStudents.length} Aktif Öğrenci
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-2xs text-slate-400">
               Tahmini Aylık: <strong className="text-emerald-400 font-bold">{(safeStudents.length * 4500).toLocaleString('tr-TR')} TL/ay</strong> • Yıllık Projeksiyon: <strong className="text-white font-bold">{(safeStudents.length * 4500 * 10).toLocaleString('tr-TR')} TL</strong> • Yazılım Katma Değeri: <strong className="text-amber-400 font-bold">+{(safeStudents.length * 250 * 12).toLocaleString('tr-TR')} TL/yıl</strong>
             </p>
           </div>
@@ -657,7 +657,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+                    <span className="text-2xs text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
                       Zirve: {activeExam.highestNet} Net
                     </span>
                   </div>
@@ -698,7 +698,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
                 {/* Critical Topic Deficiencies */}
                 <div className="space-y-2 pt-3 border-t border-slate-800">
-                  <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                  <span className="text-2xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     Sınıf Genelinde En Çok Yanlış Yapılan Konular:
                   </span>
@@ -725,7 +725,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                     <h3 className="text-base font-bold text-white">
                       Rehberlik & Zümre Raporu
                     </h3>
-                    <span className="text-[11px] text-slate-400">Yapay Zeka Kurumsal Teşhisi</span>
+                    <span className="text-2xs text-slate-400">Yapay Zeka Kurumsal Teşhisi</span>
                   </div>
                 </div>
 
@@ -739,7 +739,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
                     {/* Top Deficient Topics & Recommended actions */}
                     <div className="space-y-2">
-                      <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">
+                      <span className="text-2xs font-bold text-amber-400 uppercase tracking-wider block">
                         🚨 Zümre Telafi & Etüt Önerileri:
                       </span>
                       <div className="space-y-2">
@@ -749,11 +749,11 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                               <span className="font-bold text-white">
                                 {t.subject} • {t.topic}
                               </span>
-                              <span className="text-[10px] font-bold text-rose-400 bg-rose-950/60 px-1.5 py-0.2 rounded border border-rose-500/40">
+                              <span className="text-3xs font-bold text-rose-400 bg-rose-950/60 px-1.5 py-0.2 rounded border border-rose-500/40">
                                 %{t.failRate} Hata Oranı
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-400 font-medium">
+                            <p className="text-2xs text-slate-400 font-medium">
                               💡 {t.recommendedAction}
                             </p>
                           </div>
@@ -763,12 +763,12 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
                     {/* Institutional Action Plan */}
                     <div className="space-y-2">
-                      <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">
+                      <span className="text-2xs font-bold text-emerald-400 uppercase tracking-wider block">
                         📋 Kurumsal 2 Haftalık Eylem Planı:
                       </span>
                       <div className="space-y-1.5">
                         {(analysisReport?.institutionalActionPlan || []).map((step, sIdx) => (
-                          <div key={sIdx} className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-200 text-[11px] flex items-start gap-2">
+                          <div key={sIdx} className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-emerald-200 text-2xs flex items-start gap-2">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
                             <span>{step}</span>
                           </div>
@@ -874,7 +874,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
           <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-3xs">
                   <tr>
                     <th className="p-4">Öğrenci</th>
                     <th className="p-4">Sınıf & Hedef</th>
@@ -900,7 +900,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                             </div>
                             <div>
                               <span className="font-bold text-white block">{std.name}</span>
-                              <span className="text-[10px] text-slate-500 font-mono">No: {std.studentNumber}</span>
+                              <span className="text-3xs text-slate-500 font-mono">No: {std.studentNumber}</span>
                             </div>
                           </div>
                         </td>
@@ -910,7 +910,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                           <span className="font-semibold text-slate-200 block truncate max-w-[150px]">
                             {classObj?.name || 'Sınıf Belirtilmedi'}
                           </span>
-                          <span className="text-[10px] text-indigo-400">Hedef: {std.targetScore}</span>
+                          <span className="text-3xs text-indigo-400">Hedef: {std.targetScore}</span>
                         </td>
 
                         {/* Attendance */}
@@ -930,14 +930,14 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                         {/* Latest Mock */}
                         <td className="p-4 text-center font-mono">
                           <span className="text-emerald-400 font-bold block">{std.latestMockNet} Net</span>
-                          <span className="text-[9px] text-slate-500 truncate block max-w-[100px]">{std.latestMockTitle}</span>
+                          <span className="text-3xs text-slate-500 truncate block max-w-[100px]">{std.latestMockTitle}</span>
                         </td>
 
                         {/* Weak Subjects */}
                         <td className="p-4">
                           <div className="flex flex-wrap gap-1 max-w-[180px]">
                             {(std?.weakSubjects || []).map((sub, sIdx) => (
-                              <span key={sIdx} className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-[10px] text-slate-400">
+                              <span key={sIdx} className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-3xs text-slate-400">
                                 {sub}
                               </span>
                             ))}
@@ -946,7 +946,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
                         {/* Status */}
                         <td className="p-4 text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          <span className={`px-2.5 py-1 rounded-full text-3xs font-bold ${
                             std.status === 'HIGH'
                               ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                               : std.status === 'NEEDS_ATTENTION'
@@ -1034,11 +1034,11 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div>
                     <span className="font-bold text-white block text-sm">{session.studentName}</span>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-2xs text-slate-400 font-mono">
                       Görüşme Tarihi: {session.date} ({session.durationMinutes} dk)
                     </span>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${
+                  <span className={`px-2.5 py-1 rounded-lg text-3xs font-bold border ${
                     session.studentMood === 'Çok Yüksek' || session.studentMood === 'Motive'
                       ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
                       : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
@@ -1049,7 +1049,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
                 <div className="space-y-2 text-xs">
                   <div>
-                    <strong className="text-indigo-400 block text-[11px] uppercase tracking-wider">Gündem & Konu:</strong>
+                    <strong className="text-indigo-400 block text-2xs uppercase tracking-wider">Gündem & Konu:</strong>
                     <span className="text-slate-200 font-semibold">{session.agendaTopic}</span>
                   </div>
 
@@ -1058,10 +1058,10 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                   </div>
 
                   <div>
-                    <strong className="text-slate-400 block text-[11px] mb-1">Kararlaştırılan Aksiyonlar:</strong>
+                    <strong className="text-slate-400 block text-2xs mb-1">Kararlaştırılan Aksiyonlar:</strong>
                     <ul className="space-y-1">
                       {(session?.actionItems || []).map((item, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-[11px] text-slate-300">
+                        <li key={idx} className="flex items-center gap-2 text-2xs text-slate-300">
                           <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
                           <span>{item}</span>
                         </li>
@@ -1101,7 +1101,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">
+                      <span className="px-2.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-3xs font-bold">
                         {EXAM_METADATA[grp.examType]?.shortName || 'Sınav Grubu'}
                       </span>
                       <span className="text-xs text-slate-400 font-mono">
@@ -1338,19 +1338,19 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
             {/* Student Info Box */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs">
               <div>
-                <span className="text-[10px] text-slate-500 block">Öğrenci Adı</span>
+                <span className="text-3xs text-slate-500 block">Öğrenci Adı</span>
                 <span className="font-bold text-white">{selectedStudentForReport.name}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">Öğrenci No</span>
+                <span className="text-3xs text-slate-500 block">Öğrenci No</span>
                 <span className="font-bold text-indigo-400 font-mono">{selectedStudentForReport.studentNumber}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">Hedef Skor</span>
+                <span className="text-3xs text-slate-500 block">Hedef Skor</span>
                 <span className="font-bold text-emerald-400">{selectedStudentForReport.targetScore}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">Devamsızlık</span>
+                <span className="text-3xs text-slate-500 block">Devamsızlık</span>
                 <span className="font-bold text-slate-200">%{selectedStudentForReport.attendancePercent}</span>
               </div>
             </div>
@@ -1358,15 +1358,15 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
             {/* Performance Metrics */}
             <div className="grid grid-cols-3 gap-3">
               <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center space-y-1">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Genel Ortalama Net</span>
+                <span className="text-3xs text-slate-400 block uppercase font-bold">Genel Ortalama Net</span>
                 <span className="text-xl font-black text-emerald-400 font-mono">{selectedStudentForReport.averageNet}</span>
               </div>
               <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center space-y-1">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Son Deneme Neti</span>
+                <span className="text-3xs text-slate-400 block uppercase font-bold">Son Deneme Neti</span>
                 <span className="text-xl font-black text-indigo-400 font-mono">{selectedStudentForReport.latestMockNet}</span>
               </div>
               <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center space-y-1">
-                <span className="text-[10px] text-slate-400 block uppercase font-bold">Toplam Soru Pratiği</span>
+                <span className="text-3xs text-slate-400 block uppercase font-bold">Toplam Soru Pratiği</span>
                 <span className="text-xl font-black text-blue-400 font-mono">{selectedStudentForReport.totalQuestionsSolved}</span>
               </div>
             </div>
@@ -1387,7 +1387,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
             {/* Coach & Counselor Notes */}
             <div className="p-4 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-1">
-              <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider block">
+              <span className="text-2xs font-bold text-indigo-400 uppercase tracking-wider block">
                 Danışman & Koçluk Görüşü:
               </span>
               <p className="text-xs text-indigo-100/90 leading-relaxed font-medium">
@@ -1623,7 +1623,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                 />
 
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-2xs text-slate-400">
                     Öğrenci Tel: <strong className="text-slate-200">{whatsAppStudent.phone || 'Girilmedi'}</strong>
                   </span>
 
@@ -1689,7 +1689,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                   <div className="text-xs font-bold text-slate-200">
                     Optik Form veya Sınav Belgesi Fotoğrafını Seç / Sürükle
                   </div>
-                  <div className="text-[11px] text-slate-400">PNG, JPG veya JPEG desteklenir</div>
+                  <div className="text-2xs text-slate-400">PNG, JPG veya JPEG desteklenir</div>
                 </label>
               </div>
 
@@ -1731,14 +1731,14 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                     {opticalResult.sections?.map((sec: any, idx: number) => (
                       <div key={idx} className="flex items-center justify-between text-slate-300 bg-slate-900/60 p-2 rounded-lg">
                         <span className="font-medium">{sec.name}</span>
-                        <span className="font-mono text-[11px] text-slate-400">
+                        <span className="font-mono text-2xs text-slate-400">
                           {sec.correct} D / {sec.wrong} Y / {sec.empty} B = <strong className="text-emerald-400">{sec.net} Net</strong>
                         </span>
                       </div>
                     ))}
                   </div>
 
-                  <p className="text-[11px] text-slate-400 italic">{opticalResult.notes}</p>
+                  <p className="text-2xs text-slate-400 italic">{opticalResult.notes}</p>
                 </div>
               )}
             </div>
@@ -1902,7 +1902,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
 
             {/* Live Interactive Preview */}
             <div className="bg-gradient-to-r from-indigo-950/80 to-slate-950 border border-indigo-500/20 rounded-2xl p-4 space-y-2">
-              <div className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Canlı Önizleme</div>
+              <div className="text-3xs uppercase font-bold text-indigo-400 tracking-wider">Canlı Önizleme</div>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-indigo-600 border border-indigo-400/40 flex items-center justify-center font-black text-lg text-white shadow-md flex-shrink-0">
                   {editConfig.logoText || 'HA'}
@@ -1910,7 +1910,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm text-white">{editConfig.name || 'Dershane Adı'}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-3xs font-bold">
                       {editConfig.branch || 'Merkez Şube'}
                     </span>
                   </div>
@@ -1918,7 +1918,7 @@ export const InstitutionPortal: React.FC<InstitutionPortalProps> = ({
                 </div>
               </div>
               {editConfig.announcement && (
-                <div className="mt-2 text-[11px] text-amber-300 bg-amber-950/30 border border-amber-500/20 rounded-lg px-2.5 py-1.5 flex items-center gap-2">
+                <div className="mt-2 text-2xs text-amber-300 bg-amber-950/30 border border-amber-500/20 rounded-lg px-2.5 py-1.5 flex items-center gap-2">
                   <Megaphone className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
                   <span className="truncate">{editConfig.announcement}</span>
                 </div>

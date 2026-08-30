@@ -1,36 +1,46 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, type ComponentType } from 'react';
 import { Header, CATEGORY_DEFINITIONS } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { CommandSearch } from './components/CommandSearch';
 import { Dashboard } from './components/Dashboard';
-import { SnapSolver } from './components/SnapSolver';
-import { AICoachChat } from './components/AICoachChat';
-import { StudyPlanner } from './components/StudyPlanner';
-import { MockExamTracker } from './components/MockExamTracker';
-import { CurriculumTracker } from './components/CurriculumTracker';
-import { PomodoroTimer } from './components/PomodoroTimer';
-import { QuickFlashcards } from './components/QuickFlashcards';
-import { SettingsModal } from './components/SettingsModal';
-import { InstitutionPortal } from './components/InstitutionPortal';
-import { SmartMistakeBank } from './components/SmartMistakeBank';
-import { TargetSimulator } from './components/TargetSimulator';
-import { SpeedTrainer } from './components/SpeedTrainer';
-import { QuestionDuel } from './components/QuestionDuel';
-import { VoiceAICoach } from './components/VoiceAICoach';
 import { QuickStartModal } from './components/QuickStartModal';
-import { StreakAnalytics } from './components/StreakAnalytics';
-import { InstitutionLoginView } from './components/InstitutionLoginView';
 import { StudyInsightsToast } from './components/StudyInsightsToast';
 import { ApiErrorToast } from './components/ApiErrorToast';
+import { Skeleton } from './components/ui/Skeleton';
 import { fetchMyInstitution, syncInstitutionToFirestore } from './lib/institutionStore';
 
+// Rota düzeyi görünümler tembel yüklenir — ilk boyama yalnız Dashboard + kabuk.
+// recharts (~410 KB) sadece StreakAnalytics + InstitutionPortal'da → kritik yoldan çıktı.
+const named = <T,>(p: Promise<T>, k: keyof T) =>
+  p.then((m) => ({ default: m[k] as unknown as ComponentType<any> }));
+
+const SnapSolver = lazy(() => named(import('./components/SnapSolver'), 'SnapSolver'));
+const AICoachChat = lazy(() => named(import('./components/AICoachChat'), 'AICoachChat'));
+const StudyPlanner = lazy(() => named(import('./components/StudyPlanner'), 'StudyPlanner'));
+const MockExamTracker = lazy(() => named(import('./components/MockExamTracker'), 'MockExamTracker'));
+const CurriculumTracker = lazy(() => named(import('./components/CurriculumTracker'), 'CurriculumTracker'));
+const PomodoroTimer = lazy(() => named(import('./components/PomodoroTimer'), 'PomodoroTimer'));
+const QuickFlashcards = lazy(() => named(import('./components/QuickFlashcards'), 'QuickFlashcards'));
+const SettingsModal = lazy(() => named(import('./components/SettingsModal'), 'SettingsModal'));
+const InstitutionPortal = lazy(() => named(import('./components/InstitutionPortal'), 'InstitutionPortal'));
+const SmartMistakeBank = lazy(() => named(import('./components/SmartMistakeBank'), 'SmartMistakeBank'));
+const TargetSimulator = lazy(() => named(import('./components/TargetSimulator'), 'TargetSimulator'));
+const SpeedTrainer = lazy(() => named(import('./components/SpeedTrainer'), 'SpeedTrainer'));
+const QuestionDuel = lazy(() => named(import('./components/QuestionDuel'), 'QuestionDuel'));
+const VoiceAICoach = lazy(() => named(import('./components/VoiceAICoach'), 'VoiceAICoach'));
+const StreakAnalytics = lazy(() => named(import('./components/StreakAnalytics'), 'StreakAnalytics'));
+const AchievementBadges = lazy(() => named(import('./components/AchievementBadges'), 'AchievementBadges'));
+const InstitutionLoginView = lazy(() => named(import('./components/InstitutionLoginView'), 'InstitutionLoginView'));
+
 import { storage } from './lib/storage';
+import { watchSystemTheme } from './lib/themeMode';
 import { initGlobalHaptics, haptics } from './lib/haptics';
 import { useAuth } from './context/AuthContext';
 import { UserProfile, SnapSolution, MockExamRecord, WeeklyStudyPlan, Subject, Flashcard, InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, MistakeQuestionItem, MainTabCategory, InstitutionAccount } from './types';
 
 const getCategoryForTab = (tab: string): MainTabCategory => {
-  if (['dashboard', 'curriculum', 'streak', 'analytics', 'institution', 'inst_analysis', 'inst_students', 'inst_optical', 'inst_coaching'].includes(tab)) return 'HOME';
+  if (['institution', 'inst_analysis', 'inst_students', 'inst_optical', 'inst_coaching'].includes(tab)) return 'INSTITUTION';
+  if (['dashboard', 'curriculum', 'streak', 'analytics', 'achievements'].includes(tab)) return 'HOME';
   if (['snap', 'mock', 'mistakes', 'notebook', 'errors', 'pomodoro', 'simulator', 'voice_coach', 'coach', 'speed', 'duel', 'flashcards'].includes(tab)) return 'TRAINING';
   if (['planner', 'calendar'].includes(tab)) return 'CALENDAR';
   if (['settings', 'profile'].includes(tab)) return 'PROFILE';
@@ -54,6 +64,12 @@ export default function App() {
   const [flashcards, setFlashcards] = useState<Flashcard[]>(() => storage.getFlashcards());
   const [showSettings, setShowSettings] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(false);
+
+  // İlk açılış: profil hiç kurulmadıysa kurulum modalını aç (Faz 9.5).
+  const [isOnboarding, setIsOnboarding] = useState(() => !storage.getProfile().onboarded);
+  useEffect(() => {
+    if (isOnboarding) setShowSettings(true);
+  }, [isOnboarding]);
 
   // Keep the latest local state reachable from the login effect without
   // re-subscribing it on every mutation (the effect only fires on uid change).
@@ -179,6 +195,9 @@ export default function App() {
     return () => cleanupHaptics();
   }, []);
 
+  // "Sistem" teması seçiliyken cihaz açık/koyu tercihi değişirse canlı uygula
+  useEffect(() => watchSystemTheme(), []);
+
   // Global keyboard shortcut Ctrl+K / Cmd+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -220,7 +239,13 @@ export default function App() {
   };
 
   // Sync profile changes
-  const handleUpdateProfile = (newProfile: UserProfile) => {
+  const handleUpdateProfile = (incoming: UserProfile) => {
+    // İlk kurulum kaydında onboarding'i kapat ve modalı kapat
+    const newProfile: UserProfile = { ...incoming, onboarded: true };
+    if (isOnboarding) {
+      setIsOnboarding(false);
+      setShowSettings(false);
+    }
     setProfile(newProfile);
     storage.saveProfile(newProfile);
 
@@ -398,7 +423,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col justify-between w-full max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col w-full max-w-full overflow-x-hidden">
       
       {/* 4-Bar Modern Top Navigation Header with Universal Spotlight Search */}
       <Header
@@ -418,8 +443,9 @@ export default function App() {
       />
 
       {/* Main App Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-x-hidden">
-        
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 md:pb-8 overflow-x-hidden">
+       <Suspense fallback={<div className="space-y-4"><Skeleton className="h-40 w-full" /><Skeleton className="h-64 w-full" /></div>}>
+
         {/* Category 1: Overview & Planning Views */}
         {activeTab === 'dashboard' && (
           <Dashboard
@@ -472,6 +498,17 @@ export default function App() {
             onNavigateTab={handleSelectTab}
             onIncrementQuestionCount={handleIncrementQuestionCount}
           />
+        )}
+
+        {activeTab === 'achievements' && (
+          <div className="pb-4">
+            <AchievementBadges
+              profile={profile}
+              mockExams={mockExams}
+              snaps={snaps}
+              onUpdateProfile={handleUpdateProfilePartial}
+            />
+          </div>
         )}
 
         {/* Category 2: AI Studio Views */}
@@ -580,6 +617,7 @@ export default function App() {
           )
         )}
 
+       </Suspense>
       </main>
 
       {/* 5-Item Fixed Bottom Navigation Bar (Mobile) */}
@@ -591,6 +629,7 @@ export default function App() {
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenSettings={() => setShowSettings(true)}
         isInstitutionAuthenticated={isInstitutionAuthenticated}
+        settingsOpen={showSettings}
       />
 
       {/* Universal Search & Command Palette Modal */}
@@ -602,11 +641,14 @@ export default function App() {
 
       {/* Profile / Settings Modal */}
       {showSettings && (
-        <SettingsModal
-          profile={profile}
-          onUpdateProfile={handleUpdateProfile}
-          onClose={() => setShowSettings(false)}
-        />
+        <Suspense fallback={null}>
+          <SettingsModal
+            profile={profile}
+            onUpdateProfile={handleUpdateProfile}
+            onClose={() => { if (!isOnboarding) setShowSettings(false); }}
+            isOnboarding={isOnboarding}
+          />
+        </Suspense>
       )}
 
       {/* Quick Start Guide Modal */}
@@ -625,7 +667,7 @@ export default function App() {
       <ApiErrorToast />
 
       {/* Global Minimal Footer */}
-      <footer className="border-t border-slate-900 py-4 text-center text-xs text-slate-500">
+      <footer className="border-t border-slate-900 pt-4 pb-24 md:pb-4 text-center text-xs text-slate-500 no-print">
         <p>{institutionConfig.name} • Snaps KPSS & YKS Koçluk ve Kurumsal Sınav Analiz Portalı</p>
       </footer>
 

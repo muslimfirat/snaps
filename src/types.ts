@@ -148,6 +148,8 @@ export interface UserProfile {
   activeTitle?: string;
   unlockedBadges?: string[];
   classGroupId?: string;
+  /** İlk açılış kurulum akışı tamamlandı mı (Faz 9.5). */
+  onboarded?: boolean;
 }
 
 export interface DailyStudyLog {
