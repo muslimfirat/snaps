@@ -6,11 +6,12 @@ import {
   FirebaseUser 
 } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { 
-  fetchUserDataFromFirestore, 
-  syncUserDataToFirestore, 
-  SyncStatus, 
-  CloudUserData 
+import {
+  fetchAllCollections,
+  migrateUserToSubcollections,
+  syncUserDataToFirestore,
+  SyncStatus,
+  CloudUserData
 } from '../lib/firestoreSync';
 import { haptics } from '../lib/haptics';
 
@@ -121,14 +122,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!currentUser) return null;
     try {
       setSyncStatus('syncing');
-      const cloudData = await fetchUserDataFromFirestore(currentUser.uid);
+      // Move any legacy embedded arrays into subcollections before the first read.
+      // Idempotent + localStorage-guarded, so this is a no-op after the first run.
+      await migrateUserToSubcollections(currentUser.uid);
+      const cloudData = await fetchAllCollections(currentUser.uid);
       setSyncStatus('synced');
       setLastSyncedTime(new Date());
       return cloudData;
     } catch (err) {
       console.error('Fetch cloud data error:', err);
       setSyncStatus('error');
-      return null;
+      // Propagate so the caller does not mistake a failed read for "new user"
+      // and reseed / overwrite cloud data.
+      throw err;
     }
   };
 

@@ -104,11 +104,72 @@ kısmi senkron + uyarı. ✅ Kullanıcı senkron hatasını görüp tekrar deney
 
 ---
 
-## Faz 2b — Alt-koleksiyon migrasyonu (PLANLANDI — 2026-08-30, uygulanmadı)
+## Faz 2b — Alt-koleksiyon migrasyonu  ✅ TAMAM (2026-08-30)
 
 Tetik: bir kullanıcının `/users/{uid}` dokümanı 700 KB'ı geçerse veya çok-cihaz
-senaryosu gerçek ihtiyaç olursa. **Uygulama emulator gerektirir** (bu makinede Java yok
-→ `firebase emulators:start` çalışmıyor; kör yazılmamalı).
+senaryosu gerçek ihtiyaç olursa. **Uygulama emulator gerektirir** — bu turda
+`brew install openjdk` (JDK 26) + `npm i -g firebase-tools` (global, devDep değil) +
+`@firebase/rules-unit-testing` (devDep) kuruldu, emulator ile uçtan uca test edildi.
+Komut: `PATH="/usr/local/opt/openjdk/bin:$PATH" npm run test:rules`.
+
+### Uygulama sonucu (aşağıdaki plan büyük ölçüde birebir izlendi)
+
+- [x] `src/lib/firestoreSync.ts` yeniden yazıldı:
+  - `COLLECTION_FIELDS = ['snaps','mistakes','mockExams','flashcards']` → her biri
+    `/users/{uid}/{field}/{id}` alt-koleksiyonu. Ana doküman yalnız `profile`,
+    `studyPlan`, `subjects_*`, `userId`, `updatedAt` tutuyor
+  - `syncCollectionDelta(uid, coll, upserts, deleteIds, database?)` — `writeBatch`,
+    450-op'luk parçalara bölünür, `snaps`/`mistakes` için `stripImageField` (base64 çıkar)
+  - `syncUserDataToFirestore(userId, data, database?)` — ana doküman `setDoc(merge)` +
+    verilen her liste alanı için `syncFullList` (cloud id'leri `getDocs` → tam liste
+    upsert, listede olmayan cloud dokümanı sil). `trimOversizedPayload` ana doküman
+    için backstop olarak kaldı
+  - `fetchAllCollections(userId, database?)` — ana doküman + 4 alt-koleksiyon `getDocs`
+    (`Promise.all`). Hiç veri yoksa `null` (yeni kullanıcı → App seed dalı)
+  - `migrateUserToSubcollections(userId, database?)` — tek seferlik: eski gömülü diziler
+    varsa alt-koleksiyona yaz → başarılıysa `updateDoc(deleteField())` → `localStorage`
+    `snaps_migrated_v2_{uid}` işareti. Kısmi başarıda dizileri SİLMEZ, işaret koymaz (retry)
+  - `database` parametresi (`Firestore = db`) — sadece test için enjeksiyon; app çağrıları değişmedi
+- [x] `src/context/AuthContext.tsx` — `fetchUserDataFromFirestore` → `fetchAllCollections`;
+  `fetchCloudData` artık önce `migrateUserToSubcollections` (await) çalıştırıyor.
+  Hata artık yutulmuyor, `throw` ediliyor → App başarısız okumayı "yeni kullanıcı" sanıp
+  bulutu ezmiyor
+- [x] `src/App.tsx` — **değişmedi.** Handler'lar tüm listeyi geçmeye devam ediyor
+  (firestoreSync tam-liste→delta çeviriyor). Bulut-restore effect'i aynı
+- [x] `firebase.json` + `.firebaserc` (emulator: firestore 8080, auth 9099, UI kapalı,
+  singleProjectMode) · `firestore.rules` **değişmedi** (`{subcollection=**}` zaten kapsıyor)
+- [x] `test/firestore.test.mjs` + `npm run test:rules`
+  (`firebase emulators:exec ... "tsx --test"`) — `@firebase/rules-unit-testing`
+
+**Doğrulama:**
+| Kontrol | Sonuç |
+|---------|-------|
+| `npm run test:rules` (emulator) | ✅ 7/7 pass |
+| — senaryo 1: eski tek-doküman → migrate → alt-koleksiyonlar dolu, ana dokümanda dizi yok, 2. çağrı no-op | ✅ |
+| — senaryo 1b: eski dizi yok → migrasyon atlanır | ✅ |
+| — senaryo 2: 25 fotoğraflı snap → 25 ayrı doküman, hepsinde `imageUrl` yok, <900 KB | ✅ |
+| — senaryo 3: snap sil → cloud dokümanı siliniyor; 2. cihaz `fetchAllCollections` ile görüyor | ✅ |
+| — senaryo 3b: `syncCollectionDelta` upsert + delete | ✅ |
+| — senaryo 4: B kullanıcısı A'nın `users/A/snaps/*` dokümanına erişemiyor (get + set) | ✅ |
+| — `fetchAllCollections` boş kullanıcı → `null` | ✅ |
+| `npm run lint` (strict + noUnusedLocals) | ✅ 0 hata |
+| `npm run build` | ✅ 2326 modül, chunk bölme korundu, `server.mjs` OK |
+| dev `/api/health` `/` `/api/snap/solve` / `/api/institution/analyze-class` (token'sız) | ✅ 200/200/200/401 |
+| tarayıcı: Dashboard render + konsol temiz | ✅ |
+
+**Bilinen sınır / devir:** İlk sürüm "cloud authoritative tam senkron" (plan kararı).
+Anonim kullanımda biriken yerel liste, zaten cloud dokümanı olan bir hesaba ilk girişte
+bulut boşsa üzerine yazılır — bu davranış Faz 2b öncesiyle **aynı** (yeni regresyon değil),
+gerçek merge semantiği ayrı bir işe bırakıldı. Gerçek Google popup + isimli
+Firestore veritabanı (`ai-studio-...`) ile canlı E2E ancak staging'de doğrulanabilir;
+emulator default-db + kural + mantık katmanını kapsıyor.
+
+---
+
+### Orijinal plan (referans)
+
+Tetik: bir kullanıcının `/users/{uid}` dokümanı 700 KB'ı geçerse veya çok-cihaz
+senaryosu gerçek ihtiyaç olursa.
 
 ### Hedef veri modeli
 
@@ -537,5 +598,5 @@ handler'lar temizlendi, davranış aynı.
 | 0–7 | ✅ | `faa78ea`…`3b5fd93` |
 | 8 — ölü import temizliği | ✅ | `7a533f5` |
 | 8b — ölü local + `noUnusedLocals` | ✅ | `ed9c1c4` |
-| 2b — alt-koleksiyon migrasyonu | 📋 spec hazır, emulator bekliyor | — |
-| 3b — kurum portalı gerçek auth (Google+üyelik) | 📋 spec hazır, emulator bekliyor | — |
+| 2b — alt-koleksiyon migrasyonu | ✅ emulator ile test edildi (7/7) | — |
+| 3b — kurum portalı gerçek auth (Google+üyelik) | 📋 spec hazır (emulator artık kurulu) | — |
