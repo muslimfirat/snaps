@@ -740,11 +740,27 @@ Kurum çift yol") üzerine:
 - [x] Doğrulama: `tsc` 0 · `build` OK · Dashboard/StreakAnalytics/CurriculumTracker iki temada,
   anlık geçiş, kontrast rahat, regresyon yok.
 
+### Uygulama sonucu — 6. tur (2026-08-30): gündüz teması ince ayar
+- [x] **Renkli koyu-tint zeminleri (`bg-<renk>-900/950/*`)** — tüm opaklık varyantları explicit
+  sınıf listesiyle token tintine (`color-mix + transparent`) çevrildi → gece/gündüz ikisinde de
+  alttaki yüzey görünür (seçili satır, vurgu paneli, rozet arkası). `hover:bg-*` etkilenmez.
+- [x] **Gündüz gradyan başlık banner'ları** — `from/via/to-slate-9xx` + `*-95x` durakları geniş
+  attribute-selector'la açık yüzeye iner.
+- [x] **`--color-brand-fg` çift-görev bug'ı** çözüldü: `--color-brand-fg` (indigo VURGU METNİ,
+  gündüzde koyulaşır) + `--color-on-brand` (renkli BUTON metni, iki temada açık) ayrıldı.
+  `text-indigo/violet/purple/pink/fuchsia-*` → brand-fg; buton metni → on-brand.
+  (Gündüzde "Dengeli & Standart", "Deneme Telafi Planı" gibi soluk başlıklar düzeldi.)
+- [x] **Grafik renkleri:** `useChartColors` hook'u (`useState` lazy init + `snaps:themechange`
+  dinleyici) — modül-yükleme yerine mount'ta okuyor → Pomodoro/DailyGoalRing/StreakAnalytics
+  halka + grid renkleri artık doğru (eskiden fallback koyu değere düşüyordu) + tema değişiminde
+  reload'sız güncelleniyor. `themeMode.applyTheme` olay yayıyor.
+- [x] `[data-theme="light"]` semantik `-fg` token'ları beyazda kontrast için biraz koyulaştırıldı.
+- [x] Doğrulama: `tsc` 0 · `build` OK · iki temada 8+ ekran (Dashboard/Snap/Mock/Pomodoro/Planner/
+  Müfredat/StreakAnalytics/CommandSearch) canlı — regresyon yok, anlık geçiş çalışıyor.
+
 ### Kalan (opsiyonel)
 - [ ] 9.4 tam `role="tablist/tab/tabpanel"` + ok tuşu (aria-current güvenli alt küme yapıldı).
 - [ ] 10.6 boşluk/yarıçap/gölge ölçeği (tipografi yapıldı).
-- [ ] 10b ince ayar: kalan birkaç bileşende `bg-*-950/*` seçili-zemin kalıbı; grafik renkleri tema
-  değişiminde reload istiyor (nadir kullanım).
 
 ### Orijinal plan (referans)
 

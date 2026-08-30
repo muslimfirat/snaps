@@ -20,10 +20,11 @@
   --color-fg-muted:      #8b94a4;
   --color-fg-disabled:   #5c6472;
 
-  /* Marka — tek indigo tonu (butonlarda beyaz metin okunabilirliği için indigo-600) */
+  /* Marka — tek indigo tonu */
   --color-brand:         #4f46e5;
   --color-brand-hover:   #4338ca;
-  --color-brand-fg:      #f2f2fd;
+  --color-brand-fg:      #a5b4fc;  /* indigo VURGU METNİ (kart üstünde) — gündüzde koyulaşır */
+  --color-on-brand:      #f2f2fd;  /* marka RENKLİ BUTON üstündeki metin — iki temada da açık */
 
   /* Semantik — sakin ama cansız değil; ikonla pekiştirilerek ve ölçülü kullanılır */
   --color-success:       #3ccf9e;
@@ -72,31 +73,47 @@
   --color-fg-secondary:  #454d5d;
   --color-fg-muted:      #697180;
   --color-fg-disabled:   #99a0ab;
-  --color-brand-fg:      #ffffff;
+  --color-brand-fg:      #4338ca;  /* gündüz: indigo vurgu metni beyazda okunur */
+  --color-on-brand:      #ffffff;
   --color-success:       #0d9b76;
-  --color-success-fg:    #0b7357;
+  --color-success-fg:    #0a6b52;
   --color-warning:       #b57d17;
-  --color-warning-fg:    #8a5f11;
+  --color-warning-fg:    #7d550f;
   --color-danger:        #d4454d;
-  --color-danger-fg:     #ad353b;
+  --color-danger-fg:     #a83239;
   color-scheme: light;
 }
 
-/* Gündüz: koyu gradyan başlık banner'ları (from/via/to-slate-900/950,
-   *-950 tint durakları) sayfayla uyumlu açık yüzeye iner — indigo tint korunur. */
-:root[data-theme="light"] :is(.from-slate-900, .from-slate-950, .from-gray-900, .from-zinc-900) {
+/* Gündüz: koyu gradyan başlık banner'ları (from/via/to-slate-900/950 ve *-950
+   tint durakları) sayfayla uyumlu açık yüzeye iner — hafif indigo tint korunur. */
+:root[data-theme="light"] :is(
+  .from-slate-900, .from-slate-950, .from-gray-900, .from-zinc-900,
+  [class*="from-slate-90"], [class*="from-slate-95"], [class*="from-gray-95"], [class*="from-zinc-95"]
+) {
   --tw-gradient-from: var(--color-surface-1) !important;
 }
-:root[data-theme="light"] :is(.to-slate-900, .to-slate-950, .to-gray-900, .to-zinc-900) {
+:root[data-theme="light"] :is(
+  .to-slate-900, .to-slate-950, .to-gray-900, .to-zinc-900,
+  [class*="to-slate-90"], [class*="to-slate-95"], [class*="to-gray-95"], [class*="to-zinc-95"]
+) {
   --tw-gradient-to: var(--color-surface-1) !important;
 }
-:root[data-theme="light"] :is([class*="via-slate-9"], [class*="via-indigo-95"], [class*="via-slate-95"]) {
-  --tw-gradient-via: color-mix(in srgb, var(--color-brand) 7%, var(--color-surface-1)) !important;
+:root[data-theme="light"] :is(
+  [class*="via-slate-9"], [class*="via-gray-9"], [class*="via-zinc-9"],
+  [class*="via-indigo-95"], [class*="via-purple-95"], [class*="via-violet-95"]
+) {
+  --tw-gradient-via: color-mix(in srgb, var(--color-brand) 6%, var(--color-surface-1)) !important;
 }
-:root[data-theme="light"] :is([class*="from-indigo-95"], [class*="from-slate-95"], [class*="from-emerald-95"], [class*="from-amber-95"], [class*="from-purple-95"], [class*="from-rose-95"]) {
+:root[data-theme="light"] :is(
+  [class*="from-indigo-95"], [class*="from-purple-95"], [class*="from-violet-95"],
+  [class*="from-emerald-95"], [class*="from-amber-95"], [class*="from-rose-95"], [class*="from-blue-95"]
+) {
   --tw-gradient-from: color-mix(in srgb, var(--color-brand) 9%, var(--color-surface-1)) !important;
 }
-:root[data-theme="light"] :is([class*="to-indigo-95"], [class*="to-slate-95"], [class*="to-emerald-95"], [class*="to-purple-95"]) {
+:root[data-theme="light"] :is(
+  [class*="to-indigo-95"], [class*="to-purple-95"], [class*="to-violet-95"],
+  [class*="to-emerald-95"], [class*="to-amber-95"], [class*="to-rose-95"], [class*="to-blue-95"]
+) {
   --tw-gradient-to: color-mix(in srgb, var(--color-brand) 9%, var(--color-surface-1)) !important;
 }
 
@@ -155,9 +172,28 @@ html, body {
 .bg-slate-800\/50 { background-color: color-mix(in srgb, var(--color-surface-2) 50%, transparent) !important; }
 .bg-slate-800\/40 { background-color: color-mix(in srgb, var(--color-surface-2) 40%, transparent) !important; }
 
-/* Koyu-indigo "seçili/vurgulu" zeminleri → her iki temada çalışan marka tinti */
-.bg-indigo-950\/80, .bg-indigo-950\/60, .bg-indigo-950\/50, .bg-indigo-950\/40, .bg-indigo-950\/30, .bg-indigo-900\/60, .bg-indigo-900\/40, .bg-indigo-900\/30 {
-  background-color: color-mix(in srgb, var(--color-brand) 15%, transparent) !important;
+/* Renkli "koyu-tint" zeminleri (seçili satır, vurgu paneli, hafif rozet arkası) →
+   token tinti; color-mix + transparent sayesinde altındaki yüzey (gece/gündüz)
+   görünür kalır. `hover:bg-*` varyantları tam sınıf eşleşmediği için etkilenmez. */
+.bg-indigo-950, .bg-indigo-950\/80, .bg-indigo-950\/60, .bg-indigo-950\/50, .bg-indigo-950\/40,
+.bg-indigo-950\/30, .bg-indigo-950\/20, .bg-indigo-900, .bg-indigo-900\/60, .bg-indigo-900\/40,
+.bg-indigo-900\/30, .bg-purple-950\/40, .bg-violet-950\/40 {
+  background-color: color-mix(in srgb, var(--color-brand) 16%, transparent) !important;
+}
+.bg-emerald-950, .bg-emerald-950\/60, .bg-emerald-950\/40, .bg-emerald-950\/20,
+.bg-green-950\/40, .bg-teal-950\/40 {
+  background-color: color-mix(in srgb, var(--color-success) 15%, transparent) !important;
+}
+.bg-rose-950, .bg-rose-950\/95, .bg-rose-950\/80, .bg-rose-950\/60, .bg-rose-950\/40,
+.bg-rose-950\/20, .bg-rose-900, .bg-rose-900\/60, .bg-red-950\/40 {
+  background-color: color-mix(in srgb, var(--color-danger) 14%, transparent) !important;
+}
+.bg-amber-950, .bg-amber-950\/60, .bg-amber-950\/40, .bg-amber-950\/30, .bg-amber-950\/20,
+.bg-yellow-950\/40, .bg-orange-950\/40 {
+  background-color: color-mix(in srgb, var(--color-warning) 15%, transparent) !important;
+}
+.bg-sky-950\/40, .bg-blue-950\/40, .bg-cyan-950\/40 {
+  background-color: color-mix(in srgb, var(--color-info) 15%, transparent) !important;
 }
 
 /* Gündüz: tam ekran modal scrim'i koyu kalır (aydınlık sayfada modal öne çıksın) */
@@ -199,11 +235,11 @@ html, body {
   color: var(--color-fg-disabled) !important;
 }
 
-/* Gündüz: MARKA/semantik dolgulu (koyu) buton üstündeki beyaz metin beyaz kalır.
-   Slate gradyanları hariç — onlar gündüzde açık yüzeye indiği için metin koyulaşmalı. */
-:root[data-theme="light"] :is(.bg-indigo-500, .bg-indigo-600, .bg-indigo-700, .bg-emerald-500, .bg-emerald-600, .bg-rose-500, .bg-rose-600, .bg-amber-500, .bg-amber-600, [class*="from-indigo-5"], [class*="from-indigo-6"], [class*="from-violet-5"], [class*="from-violet-6"], [class*="from-emerald-5"], [class*="from-emerald-6"], [class*="from-rose-5"], [class*="from-rose-6"], [class*="from-amber-4"], [class*="from-amber-5"]).text-white,
-:root[data-theme="light"] :is(.bg-indigo-500, .bg-indigo-600, .bg-indigo-700, .bg-emerald-500, .bg-emerald-600, .bg-rose-500, .bg-rose-600, .bg-amber-500, .bg-amber-600, [class*="from-indigo-5"], [class*="from-indigo-6"], [class*="from-violet-5"], [class*="from-violet-6"], [class*="from-emerald-5"], [class*="from-emerald-6"], [class*="from-rose-5"], [class*="from-rose-6"], [class*="from-amber-4"], [class*="from-amber-5"]) :is(.text-white, .text-slate-100) {
-  color: #ffffff !important;
+/* Renkli/gradyan dolgulu (koyu) buton üstündeki açık metin — İKİ TEMADA da açık kalır
+   (`--color-on-brand`). Slate gradyanları hariç (gündüzde açık yüzeye iner). */
+:is(.bg-indigo-500, .bg-indigo-600, .bg-indigo-700, .bg-emerald-500, .bg-emerald-600, .bg-rose-500, .bg-rose-600, .bg-amber-500, .bg-amber-600, [class*="from-indigo-5"], [class*="from-indigo-6"], [class*="from-violet-5"], [class*="from-violet-6"], [class*="from-purple-5"], [class*="from-purple-6"], [class*="from-emerald-5"], [class*="from-emerald-6"], [class*="from-rose-5"], [class*="from-rose-6"], [class*="from-amber-4"], [class*="from-amber-5"]):is(.text-white, .text-slate-100, [class*="text-indigo-"], [class*="text-emerald-"], [class*="text-white"]),
+:is(.bg-indigo-500, .bg-indigo-600, .bg-indigo-700, .bg-emerald-500, .bg-emerald-600, .bg-rose-500, .bg-rose-600, .bg-amber-500, .bg-amber-600, [class*="from-indigo-5"], [class*="from-indigo-6"], [class*="from-violet-5"], [class*="from-violet-6"], [class*="from-purple-5"], [class*="from-purple-6"], [class*="from-emerald-5"], [class*="from-emerald-6"], [class*="from-rose-5"], [class*="from-rose-6"], [class*="from-amber-4"], [class*="from-amber-5"]) :is(.text-white, .text-slate-100) {
+  color: var(--color-on-brand) !important;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -218,11 +254,17 @@ html, body {
 .hover\:bg-indigo-500:hover, .hover\:bg-indigo-600:hover, .hover\:bg-indigo-700:hover {
   background-color: var(--color-brand-hover) !important;
 }
-.text-indigo-300, .text-indigo-400, .text-indigo-500, .text-indigo-600 {
+.text-indigo-200, .text-indigo-300, .text-indigo-400, .text-indigo-500, .text-indigo-600,
+.text-violet-300, .text-violet-400, .text-purple-200, .text-purple-300, .text-purple-400,
+.text-fuchsia-300, .text-fuchsia-400, .text-pink-300, .text-pink-400 {
   color: var(--color-brand-fg) !important;
 }
-.border-indigo-400, .border-indigo-500, .border-indigo-600 {
+.border-indigo-400, .border-indigo-500, .border-indigo-600,
+.border-violet-500, .border-purple-500 {
   border-color: var(--color-brand) !important;
+}
+.bg-violet-500, .bg-violet-600, .bg-purple-500, .bg-purple-600, .bg-fuchsia-500, .bg-pink-500, .bg-pink-600 {
+  background-color: var(--color-brand) !important;
 }
 
 /* Başarı: emerald/green/teal → success */

@@ -5,9 +5,7 @@ import { UserProfile } from '../types';
 import { playCompletionBell, ambientManager } from '../lib/soundEffects';
 import { haptics } from '../lib/haptics';
 import { THEME } from '../theme';
-import { getChartColors } from '../lib/chartColors';
-
-const CHART = getChartColors();
+import { useChartColors } from '../lib/chartColors';
 
 interface PomodoroTimerProps {
   profile: UserProfile;
@@ -29,6 +27,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   onIncrementQuestionCount,
   onIncrementStudyMinutes,
 }) => {
+  const CHART = useChartColors();
   const [mode, setMode] = useState<Mode>('FOCUS_25');
   const [timeLeft, setTimeLeft] = useState<number>(MODE_DURATIONS.FOCUS_25);
   const [isRunning, setIsRunning] = useState(false);

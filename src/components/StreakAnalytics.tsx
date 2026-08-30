@@ -14,10 +14,8 @@ import { Flame, Zap, Trophy, TrendingUp, Calendar, Clock, Target, Sparkles, BarC
 import { UserProfile, DailyStudyLog, MainTabCategory } from '../types';
 import { loadWeeklyStudyLogs } from '../lib/storage';
 import { THEME } from '../theme';
-import { getChartColors } from '../lib/chartColors';
+import { useChartColors } from '../lib/chartColors';
 import { haptics } from '../lib/haptics';
-
-const CHART = getChartColors();
 
 interface StreakAnalyticsProps {
   profile: UserProfile;
@@ -32,6 +30,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
   onNavigateTab,
   onIncrementQuestionCount,
 }) => {
+  const CHART = useChartColors();
   const [metricView, setMetricView] = useState<MetricView>('questions');
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
@@ -126,7 +125,7 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
           : CHART.grid, // pasif gün
       };
     });
-  }, [logs, metricView]);
+  }, [logs, metricView, CHART]);
 
   const targetLineValue =
     metricView === 'questions'

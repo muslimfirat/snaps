@@ -31,6 +31,8 @@ export function applyTheme(mode: ThemeMode): void {
   document.documentElement.setAttribute('data-theme', resolved);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', resolved === 'light' ? '#f4f5f7' : '#13141A');
+  // Grafikler CSS var'larını okuyor → yeniden okumaları için haber ver
+  window.dispatchEvent(new CustomEvent('snaps:themechange', { detail: resolved }));
 }
 
 export function setThemeMode(mode: ThemeMode): void {

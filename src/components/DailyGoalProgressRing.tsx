@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Target, Zap, CheckCircle2, Plus, Sparkles } from 'lucide-react';
 import { THEME } from '../theme';
-import { getChartColors } from '../lib/chartColors';
-
-const CHART = getChartColors();
+import { useChartColors } from '../lib/chartColors';
 import { haptics } from '../lib/haptics';
 
 interface DailyGoalProgressRingProps {
@@ -29,6 +27,7 @@ export const DailyGoalProgressRing: React.FC<DailyGoalProgressRingProps> = ({
   onOpenPomodoro,
   compact = false,
 }) => {
+  const CHART = useChartColors();
   const [activeView, setActiveView] = useState<'both' | 'questions' | 'time'>('both');
 
   // Question calculations
