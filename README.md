@@ -42,21 +42,37 @@ tüm AI özellikleri hazır (curated) yedek içerik döndürür — uygulama yin
   ("Odak" paleti — öğrenci psikolojisine ve uzun çalışma seanslarında göz
   yorgunluğunu azaltmaya göre ayarlı: kırık beyaz metin, ılık nötr zeminler,
   tek indigo marka tonu, ölçülü semantik renkler). `src/theme.ts` yalnızca
-  JS'te hex gereken yerler (grafik/SVG) için bu değerleri yansıtır.
-- **Gündüz / Gece / Sistem teması:** Ayarlar → Görünüm'den seçilir
-  (`src/lib/themeMode.ts`, `<html data-theme>` + boyama-öncesi init, yanıp sönme
-  yok). Varsayılan: Gece.
-- Mevcut `slate-*` / aksan yardımcı sınıflarını token'lara bağlayan bir
-  uyumluluk katmanı var (`index.css`); bileşenler token util'lerine geçtikçe
-  küçülüyor.
+  JS'te hex gereken yerler için bu değerleri yansıtır; grafik/SVG renkleri
+  `src/lib/chartColors.ts` üzerinden CSS değişkenlerinden okunur.
+- **Ölçekler:** tipografi `--text-3xs..3xl`, gölge `--shadow-1/2/3` (2 tema için
+  ayrı), köşe yarıçapı kart `2xl` / buton `xl` / modal `3xl` kuralı.
+
+### Gündüz / Gece / Sistem teması
+
+- **Ayarlar → Görünüm**'den seçilir. Varsayılan: **Gece**. "Sistem" cihaz
+  tercihini izler ve tercih değişince canlı güncellenir.
+- Mekanik: `src/lib/themeMode.ts` tercihi çözüp `<html data-theme="light|dark">`
+  yazar; `index.html` içindeki boyama-öncesi script yanıp sönmeyi engeller.
+  `@theme` = Gece varsayılanı, `:root[data-theme="light"]` = Gündüz paleti.
+- Uyumluluk katmanı (`index.css`) mevcut ~1950 `slate-*` / aksan / gölge / gradyan
+  yardımcı sınıfını token'lara bağlar → tek blok her iki temayı da çevirir.
+  Gündüzde koyu gradyan banner'ları açık yüzeye iner, renkli buton üstündeki metin
+  açık kalır, tam ekran modal karartması koyu kalır.
+- Grafikler (`useChartColors`) tema değişiminde `snaps:themechange` olayıyla
+  reload'suz güncellenir.
+- Bileşenler token util'lerine (`bg-surface-1`, `text-fg-muted`, …) geçtikçe
+  uyumluluk katmanı küçülüyor.
 
 ## Performans & erişilebilirlik
 
 - Rota düzeyi görünümler `React.lazy` + `<Suspense>` ile tembel yüklenir; ilk
   boyama yalnızca Dashboard + kabuk. Recharts ve kurum portalı ayrı chunk'ta.
 - Modallar: `role="dialog"` + `aria-modal`, `<body>` scroll kilidi, focus-trap
-  ve odak iadesi (`src/lib/useModalA11y.ts`). Sekme/nav butonlarında
-  `aria-current`, `prefers-reduced-motion` desteği.
+  ve odak iadesi (`src/lib/useModalA11y.ts`).
+- Üst navigasyon tam WAI-ARIA tab paterni: `role="tablist/tab/tabpanel"`,
+  `aria-selected`, roving `tabindex`, ←/→/Home/End ok tuşu navigasyonu
+  (`src/lib/useTablistKeys.ts`). Alt navigasyonda `aria-current`.
+- `prefers-reduced-motion` desteği; `theme-color` meta temaya göre.
 
 ## API erişim politikası
 
@@ -90,8 +106,8 @@ Kurallar + üyelik testleri: `npm run test:rules` (emulator, `test/firestore.tes
   `/users/{uid}` ana dokümanı + alt-koleksiyonlarda tutulur. Ayrıntı: `fazlar.md`.
 - Gerçek Google popup + isimli Firestore veritabanı ile uçtan uca doğrulama ancak
   staging'de yapılabilir; emulator kural + mantık katmanını kapsar.
-- Gündüz teması ince ayar aşamasında: birkaç bileşende koyu-zemin "seçili" kalıbı
-  ve grafik renkleri tema değişiminde sayfa yenilemesi isteyebilir.
+- Renk uyumluluk katmanı geçiş dönemine ait bir köprü; hedef, bileşenlerin
+  doğrudan `@theme` token util'lerini kullanması.
 
 ## Yol haritası
 
