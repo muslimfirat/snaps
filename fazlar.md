@@ -104,16 +104,81 @@ kısmi senkron + uyarı. ✅ Kullanıcı senkron hatasını görüp tekrar deney
 
 ---
 
-## Faz 2b — Alt-koleksiyon migrasyonu (ERTELENDİ)
+## Faz 2b — Alt-koleksiyon migrasyonu (PLANLANDI — 2026-08-30, uygulanmadı)
 
 Tetik: bir kullanıcının `/users/{uid}` dokümanı 700 KB'ı geçerse veya çok-cihaz
-senaryosu gerçek ihtiyaç olursa.
+senaryosu gerçek ihtiyaç olursa. **Uygulama emulator gerektirir** (bu makinede Java yok
+→ `firebase emulators:start` çalışmıyor; kör yazılmamalı).
 
-- [ ] `snaps`, `mistakes`, `mockExams`, `flashcards` → `/users/{uid}/{coll}/{id}` alt-koleksiyonları
-  - `firestore.rules` zaten izin veriyor; `firebase-blueprint.json` zaten böyle tasarlanmış
-  - `firestoreSync.ts`: per-document `setDoc`/`deleteDoc`, okuma `getDocs`
-  - App.tsx handler'ları delta (upsert/delete) geçecek şekilde uyarla
-- [ ] Eski tek-doküman formatını ilk açılışta migrate et, sonra ana dokümandan sil
+### Hedef veri modeli
+
+```
+/users/{uid}                      → profile, studyPlan, subjects_*, updatedAt (küçük, tek doküman kalır)
+/users/{uid}/snaps/{snapId}       → SnapSolution (imageUrl yine strip'lenir)
+/users/{uid}/mistakes/{mistakeId} → MistakeQuestionItem
+/users/{uid}/mockExams/{examId}   → MockExamRecord
+/users/{uid}/flashcards/{cardId}  → Flashcard
+```
+
+`firestore.rules` zaten `match /users/{userId}/{subcollection=**}` ile izin veriyor —
+kural değişikliği GEREKMEZ. `firebase-blueprint.json` zaten bu şemayı belgeliyor.
+
+### Adımlar
+
+**1. `src/lib/firestoreSync.ts` — yeni delta API'si**
+
+- İçe aktarmalara ekle: `collection, getDocs, writeBatch, deleteDoc, doc` (firebase/firestore).
+- `MAX_DOC_BYTES` / `trimOversizedPayload` artık sadece ana `/users/{uid}` dokümanı için
+  gerekli (profile+studyPlan+subjects). `stripImages` korunur.
+- Yeni fonksiyonlar:
+  - `syncCollectionDelta(uid, collName, upserts: T[], deleteIds: string[])` — `writeBatch`
+    ile `set(doc(db,'users',uid,collName,item.id), stripImagesOne(item), {merge:true})` +
+    silinenler için `batch.delete(...)`. Batch limiti 500 → 450'lik parçalara böl.
+  - `fetchAllCollections(uid): Promise<CloudUserData>` — her alt-koleksiyon için `getDocs`,
+    `snap.docs.map(d => d.data())`. Ana dokümandan profile/studyPlan/subjects okunur.
+- `syncUserDataToFirestore` imzası korunur ama içi ikiye ayrılır: ana-doküman alanları
+  (`profile`, `studyPlan`, `subjects_*`) `setDoc(merge)` ile; koleksiyon alanları
+  (`snaps`/`mistakes`/`mockExams`/`flashcards`) verildiğinde tam liste → delta hesapla:
+  mevcut cloud id'leri `getDocs` ile çek, `upserts = yeni liste`, `deleteIds = cloud − yeni`.
+  (İlk sürüm: basit "tam senkron" — tüm listeyi upsert, listede olmayan cloud dokümanı sil.)
+- `CloudUserData` aynı kalır (tüketiciler değişmez).
+
+**2. `src/lib/firestoreMigration.ts` (yeni) — tek seferlik taşıma**
+
+- `migrateUserToSubcollections(uid): Promise<boolean>` —
+  1. `getDoc(doc(db,'users',uid))` → eski gömülü diziler var mı? (`data.snaps` Array vb.)
+  2. Varsa: her diziyi `syncCollectionDelta(uid, coll, arr, [])` ile alt-koleksiyona yaz.
+  3. Başarılıysa ana dokümandan `updateDoc(ref, { snaps: deleteField(), mistakes: deleteField(), mockExams: deleteField(), flashcards: deleteField() })`.
+  4. `localStorage['snaps_migrated_v2_'+uid] = '1'` işaretle; idempotent olsun.
+- Kısmi başarıda ana dokümanı SİLME (yeniden denenebilir kalsın).
+
+**3. `src/context/AuthContext.tsx`**
+
+- `fetchCloudData` → `fetchAllCollections(uid)` çağırır.
+- Girişte sıra: `onAuthStateChanged` → `migrateUserToSubcollections(uid)` (await) → sonra
+  `fetchCloudData`. Migration bir kez çalışır, sonraki girişlerde erken döner.
+- `syncCurrentDataToCloud` içindeki `pendingPayloadRef` mantığı korunur; alt-koleksiyon
+  yazımı da aynı retry kuyruğuna girer.
+
+**4. `src/App.tsx` — handler'lar**
+
+- Şu an her handler tüm listeyi `syncCurrentDataToCloud({ snaps: updated })` ile geçiyor.
+  İlk sürümde BU KORUNUR (firestoreSync tam-liste→delta çevirir). Performans için 2. turda
+  `handleDeleteMockExam` vb. `{ mockExamsDelete: [id] }` deltası geçebilir — opsiyonel.
+- Bulut-restore effect'i (satır 69-137) değişmez; `cloudData.snaps` yine dolu gelir.
+
+**5. Test (emulator zorunlu)**
+
+- `firebase.json` + emulator config ekle (firestore + auth), `npm run test:rules` scripti.
+- Senaryolar:
+  - Eski tek-doküman kullanıcı → giriş → migration çalışır → alt-koleksiyonlar dolu,
+    ana dokümanda diziler yok. İkinci giriş migration'ı atlar.
+  - 25 fotoğraflı snap → her biri ayrı doküman, hiçbiri 1 MiB'a yaklaşmıyor.
+  - Snap sil → cloud dokümanı da siliniyor. Çok-cihaz: A'da ekle → B'de `getDocs` görüyor.
+  - Kural testi: `users/A/snaps/x` dokümanına B kullanıcısı erişemiyor.
+
+**Kabul kriterleri:** Emulator'da yukarıdaki 4 senaryo yeşil · `npm run lint` + `build` temiz ·
+mevcut kullanıcı verisi kaybolmadan taşınıyor.
 
 ---
 
@@ -139,12 +204,119 @@ bu yüzden gerçek Google girişi lokalde test edilemiyor (beklenen, değişikli
 
 ---
 
-## Faz 3b — Kurum portalını gerçek özelliğe çevir (ERTELENDİ / opsiyonel)
+## Faz 3b — Kurum portalını gerçek özelliğe çevir (PLANLANDI — 2026-08-30, uygulanmadı)
 
-- [ ] Kurum hesapları `/institutions/{id}` + Firebase Auth (email/password veya custom claims)
-- [ ] Öğrenci verisi Firestore'da, kurallar kurum üyeliğine göre
-- [ ] `institutionAuth.ts` istemci-tarafı parola karşılaştırması kaldırılır
-- [ ] Faz 1'de eklenen `/api/institution/*` auth gate'i kurum kullanıcısıyla uçtan uca bağlanır
+**Auth modeli kararı (kullanıcı, 2026-08-30): Google hesabı + üyelik.** Kurum yöneticisi
+mevcut Google girişiyle oturum açar; uid'si bir `/institutions/{id}` dokümanının
+`memberUids` dizisindeyse portala erişir. Ayrı e-posta/şifre sistemi **tamamen kalkar**.
+**Uygulama emulator gerektirir** (Java yok → burada test edilemez; kör yazılmamalı).
+firebase-admin YOK → sunucu Firestore'u kullanıcının ID token'ı + REST ile okur.
+
+### Hedef veri modeli
+
+```
+/institutions/{instId} → {
+  id, ownerUid, memberUids: string[], ownerEmail,
+  config: InstitutionConfig,
+  classGroups: ClassGroup[], students: StudentRecord[], institutionExams: InstitutionExam[],
+  createdAt, updatedAt
+}
+```
+(Öğrenci verisi ilk sürümde gömülü dizi — mevcut tek-doküman deseniyle tutarlı; büyürse
+`/institutions/{id}/students/{sid}` ayrımı ayrı bir işe bırakılır, bkz Faz 2b deseni.)
+
+### `firestore.rules` — YENİ blok (`default deny`'dan ÖNCE)
+
+```
+function instMember(inst) { return isAuthenticated() && request.auth.uid in inst.memberUids; }
+
+match /institutions/{instId} {
+  allow get:    if instMember(resource.data);
+  allow list:   if isAuthenticated();   // array-contains sorgusu; get zaten filtreliyor
+  allow create: if isAuthenticated()
+                && request.resource.data.ownerUid == request.auth.uid
+                && request.auth.uid in request.resource.data.memberUids;
+  allow update: if instMember(resource.data)
+                && request.resource.data.ownerUid == resource.data.ownerUid
+                && request.resource.data.memberUids.hasAny([request.auth.uid]);
+  allow delete: if isAuthenticated() && request.auth.uid == resource.data.ownerUid;
+}
+```
+
+### Adımlar
+
+**1. `src/types.ts`**
+- `InstitutionAccount`: `password` KALDIR; `ownerUid: string`, `memberUids: string[]`,
+  `ownerEmail: string` EKLE; `lastLoginAt` opsiyonel kalır.
+- `InstitutionAuthSession` interface'ini SİL (artık Firebase session'ı kullanılıyor).
+
+**2. `src/lib/institutionStore.ts` (yeni — `institutionAuth.ts`'in yerine)**
+- `fetchMyInstitution(uid): Promise<InstitutionAccount | null>` —
+  `getDocs(query(collection(db,'institutions'), where('memberUids','array-contains',uid), limit(1)))`.
+- `createInstitution(uid, email, form): Promise<InstitutionAccount>` — `addDoc` /
+  `setDoc(doc(collection(db,'institutions')))`, `ownerUid=uid`, `memberUids=[uid]`.
+  Mevcut `registerInstitution`'daki config/initialClass kurma mantığı buraya taşınır.
+- `syncInstitutionToFirestore(instId, partial)` — `setDoc(ref, {...partial, updatedAt}, {merge:true})`.
+- `seedDemoInstitution(uid, email)` — `institutionData.ts` DEFAULT_* ile örnek kurum
+  oluşturur (login ekranındaki "örnek verilerle başla" için).
+- `INITIAL_INSTITUTION_ACCOUNTS` (3 sahte kurum) + `loginInstitution` + `registerInstitution` SİL.
+- `institutionData.ts` DEFAULT_* seed'leri KALIR (yeni kurum + demo için kullanılır).
+
+**3. `src/lib/firebase.ts`** — değişiklik yok (aynı `auth`, `db`).
+
+**4. `src/components/InstitutionLoginView.tsx` (büyük yeniden yazım, ~529 → ~250 satır)**
+- Props: `onLoginSuccess(account)`, `onReturnToStudentMode()` — aynı.
+- 3 durum:
+  - **Google'a girmemiş** → `useAuth().currentUser` yok → "Kurum paneline erişmek için
+    Google ile giriş yapın" + `<GoogleAuthButton/>`.
+  - **Girmiş ama kurumu yok** → "Kurum Oluştur" formu (name/branch/director/phone/logo/renk;
+    ŞİFRE ALANI YOK) + "Örnek verilerle doldur" onay kutusu → `createInstitution` /
+    `seedDemoInstitution` → `onLoginSuccess`.
+  - **Girmiş + kurumu var** → otomatik `onLoginSuccess(account)` (effect içinde).
+- Demo hesap listesi / hızlı-demo-login / parola alanları SİLİNİR.
+- "Demo Modu" amber rozeti + uyarı bandı KALDIRILIR (artık gerçek); README güncellenir.
+
+**5. `src/App.tsx` (~15 çağrı yeri)**
+- `getCurrentInstitutionSession/getInstitutionAccountById/syncInstitutionData/logoutInstitution`
+  importlarını `institutionStore` API'siyle değiştir.
+- Institution state başlangıç değerleri artık senkron localStorage'dan okunamaz →
+  `useState(null)` + yeni `useEffect([currentUser?.uid])`: `fetchMyInstitution(uid)` →
+  bulunca `setCurrentInstitutionAccount / setInstitutionConfig / setClassGroups / setStudents
+  / setInstitutionExams`. Yoksa hepsi boş/default.
+- `handleInstitutionLoginSuccess(account)` — aynı, session yazımı yok.
+- `handleInstitutionLogout` — sadece local state temizler + student moduna döner;
+  **Google oturumunu KAPATMAZ** (`logoutInstitution()` çağrısı silinir).
+- `handleUpdateInstitution*` handler'ları → `syncInstitutionToFirestore(instId, {...})`.
+- `storage.saveInstitutionConfig/...` yerel yazımları KALIR (offline fallback) ama
+  authoritative kaynak Firestore olur.
+
+**6. `server.ts` — `/api/institution/*` üyelik kontrolü**
+- `requireAuth` middleware'i zaten var (Faz 1, satır 342). Yeni `requireInstitutionMember`:
+  - Body'de `institutionId` bekle (client tüm `/api/institution/*` çağrılarına ekleyecek:
+    `analyze-class`, `generate-whatsapp-report`, `parse-optical-form`).
+  - `GET https://firestore.googleapis.com/v1/projects/{projectId}/databases/{dbId}/documents/institutions/{institutionId}`
+    başlık: `Authorization: Bearer <req.idToken>` (requireAuth bunu `req` üstüne koymalı — şu an
+    sadece verify ediyor, token string'ini de sakla).
+  - Firestore kurallar gereği üye değilse 403 döner → biz `403 INSTITUTION_FORBIDDEN`.
+  - Doküman yoksa `404`. Ağ hatası → `502`.
+- `src/lib/apiClient.ts` — institution çağrıları için `institutionId`'yi otomatik body'e
+  ekleyen ince sarmalayıcı veya çağrı yerlerinde elle ekleme (3 yer: InstitutionPortal
+  analyze/whatsapp, optical form).
+
+**7. Test (emulator zorunlu: firestore + auth emulator)**
+- `firebase.json` emulator config + `@firebase/rules-unit-testing` ile:
+  - A kullanıcısı kurum oluşturur → `ownerUid=A`, `memberUids=[A]`. B okuyamaz (get denied).
+  - B'yi `memberUids`'e ekle → B okur/yazar. B `ownerUid`'i değiştiremez (update denied).
+  - A olmayan biri `ownerUid=A` ile create edemez.
+- Sunucu: sahte JWK ile imzalı token + emulator Firestore → üye 200, üye-değil 403.
+- `npm run lint` + `build` temiz · InstitutionPortal render (mevcut demo veriyle elle).
+
+**Kabul kriterleri:** İstemci-tarafı parola karşılaştırması kalmadı · kurum verisi
+Firestore'da, kurallar üyelikle koruyor · `/api/institution/*` üye olmayan Google
+kullanıcısına 403 · emulator kural testleri yeşil · README "demo" notu güncellendi.
+
+**Riski:** Gerçek Google popup + gerçek proje Firestore'u + sunucu REST üçlüsü ancak
+staging'de uçtan uca doğrulanabilir; emulator ilk 2 katmanı kapsar.
 
 ---
 
@@ -354,3 +526,16 @@ handler'lar temizlendi, davranış aynı.
 2. Faz 3 (ürün kararı gerektirir — paralel düşünülebilir)
 3. Faz 4 → 5 → 6
 4. Faz 7 (teknik borç, aceleye gerek yok)
+5. Faz 8 → 8b (mekanik temizlik) ✅
+6. Faz 2b, 3b — **emulator gerektirir** (Java kurulu bir ortam). Yukarıda tam spec var;
+   `firebase emulators:start` (firestore+auth) ile uygulanmalı, kör yazılmamalı.
+
+## Durum özeti (2026-08-30)
+
+| Faz | Durum | Commit |
+|-----|-------|--------|
+| 0–7 | ✅ | `faa78ea`…`3b5fd93` |
+| 8 — ölü import temizliği | ✅ | `7a533f5` |
+| 8b — ölü local + `noUnusedLocals` | ✅ | `ed9c1c4` |
+| 2b — alt-koleksiyon migrasyonu | 📋 spec hazır, emulator bekliyor | — |
+| 3b — kurum portalı gerçek auth (Google+üyelik) | 📋 spec hazır, emulator bekliyor | — |
