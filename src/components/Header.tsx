@@ -30,6 +30,7 @@ import { UserProfile, InstitutionConfig, MainTabCategory, InstitutionAccount } f
 import { EXAM_METADATA } from '../data/curriculumData';
 import { ambientManager } from '../lib/soundEffects';
 import { haptics } from '../lib/haptics';
+import { handleTablistKeys } from '../lib/useTablistKeys';
 
 interface HeaderProps {
   profile: UserProfile;
@@ -435,7 +436,13 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* 2. PRIMARY CATEGORIES BAR (Desktop & Tablet) */}
-        <div className="hidden md:grid grid-cols-3 gap-1 sm:gap-1.5 pt-1.5 pb-2 border-t border-border w-full">
+        <div
+          role="tablist"
+          aria-label="Ana bölümler"
+          aria-orientation="horizontal"
+          onKeyDown={(e) => handleTablistKeys(e, (el) => el.click())}
+          className="hidden md:grid grid-cols-3 gap-1 sm:gap-1.5 pt-1.5 pb-2 border-t border-border w-full"
+        >
           {CATEGORY_DEFINITIONS.filter((c) => c.id !== 'INSTITUTION').map((cat) => {
             const Icon = cat.icon;
             const isSelected = activeCategory === cat.id;
@@ -453,7 +460,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={cat.id}
                 id={`primary-category-${cat.id}`}
-                aria-current={isSelected ? 'page' : undefined}
+                role="tab"
+                aria-selected={isSelected}
+                aria-controls="app-subtabs"
+                tabIndex={isSelected ? 0 : -1}
                 onClick={() => {
                   onSelectCategory(cat.id);
                   if (Array.isArray(cat?.subTabs) && cat.subTabs.length > 0) {
@@ -474,7 +484,12 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* 2b. MOBILE HORIZONTAL CATEGORY SCROLLER (< 768px) */}
-        <div className="md:hidden flex items-center gap-1 py-1.5 overflow-x-auto no-scrollbar border-t border-border w-full">
+        <div
+          role="tablist"
+          aria-label="Ana bölümler"
+          onKeyDown={(e) => handleTablistKeys(e, (el) => el.click())}
+          className="md:hidden flex items-center gap-1 py-1.5 overflow-x-auto no-scrollbar border-t border-border w-full"
+        >
           {CATEGORY_DEFINITIONS.filter((c) => c.id !== 'INSTITUTION').map((cat) => {
             const Icon = cat.icon;
             const isSelected = activeCategory === cat.id;
@@ -482,7 +497,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={cat.id}
                 id={`mobile-category-${cat.id}`}
-                aria-current={isSelected ? 'page' : undefined}
+                role="tab"
+                aria-selected={isSelected}
+                aria-controls="app-subtabs"
+                tabIndex={isSelected ? 0 : -1}
                 onClick={() => {
                   onSelectCategory(cat.id);
                   if (Array.isArray(cat?.subTabs) && cat.subTabs.length > 0) {
@@ -503,7 +521,13 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* 3. SECONDARY SUB-TABS (All Screen Sizes with Smooth Horizontal Scroll) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 py-2 overflow-x-auto no-scrollbar border-t border-border/60 w-full touch-pan-x">
+        <div
+          id="app-subtabs"
+          role="tablist"
+          aria-label={`${currentCategoryDef?.name || 'Bölüm'} alt sekmeleri`}
+          onKeyDown={(e) => handleTablistKeys(e, (el) => el.click())}
+          className="flex items-center gap-1 sm:gap-1.5 py-2 overflow-x-auto no-scrollbar border-t border-border/60 w-full touch-pan-x"
+        >
           {(currentCategoryDef?.subTabs || []).map((sub) => {
             const SubIcon = sub.icon;
             const isSubActive = activeTab === sub.id;
@@ -511,7 +535,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={sub.id}
                 id={`sub-tab-${sub.id}`}
-                aria-current={isSubActive ? 'page' : undefined}
+                role="tab"
+                aria-selected={isSubActive}
+                aria-controls="main-panel"
+                tabIndex={isSubActive ? 0 : -1}
                 onClick={() => onSelectTab(sub.id)}
                 className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap flex items-center gap-1.5 sm:gap-2 transition-colors cursor-pointer shrink-0 ${
                   isSubActive

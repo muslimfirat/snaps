@@ -443,7 +443,13 @@ export default function App() {
       />
 
       {/* Main App Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 md:pb-8 overflow-x-hidden">
+      <main
+        id="main-panel"
+        role="tabpanel"
+        tabIndex={0}
+        aria-labelledby={`sub-tab-${activeTab}`}
+        className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 md:pb-8 overflow-x-hidden focus:outline-none"
+      >
        <Suspense fallback={<div className="space-y-4"><Skeleton className="h-40 w-full" /><Skeleton className="h-64 w-full" /></div>}>
 
         {/* Category 1: Overview & Planning Views */}

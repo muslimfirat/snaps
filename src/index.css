@@ -43,6 +43,12 @@
   --text-2xs: 0.6875rem;  /* 11px — ikincil etiket / meta */
   --text-2xs--line-height: 1rem;
 
+  /* Gölge ölçeği (Faz 10.6) — 3 seviye. Gece'de ince (kenarlık işi yapar),
+     Gündüz'de yumuşak gri. Renkli gölgeler (shadow-indigo-...) --shadow-2'ye iner. */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-2: 0 4px 14px rgba(0, 0, 0, 0.34);
+  --shadow-3: 0 14px 36px rgba(0, 0, 0, 0.46);
+
   /* Ders etiketleri (desatüre; tint + metin, asla tam dolgu) */
   --color-subj-turkce:      #2fa98c;
   --color-subj-matematik:   #4f8fd6;
@@ -81,6 +87,9 @@
   --color-warning-fg:    #7d550f;
   --color-danger:        #d4454d;
   --color-danger-fg:     #a83239;
+  --shadow-1: 0 1px 2px rgba(16, 20, 30, 0.06), 0 1px 1px rgba(16, 20, 30, 0.04);
+  --shadow-2: 0 4px 14px rgba(16, 20, 30, 0.08), 0 2px 6px rgba(16, 20, 30, 0.05);
+  --shadow-3: 0 16px 40px rgba(16, 20, 30, 0.14), 0 6px 14px rgba(16, 20, 30, 0.08);
   color-scheme: light;
 }
 
@@ -217,6 +226,24 @@ html, body {
 }
 .border-slate-700, .border-slate-600 {
   border-color: var(--color-border-strong) !important;
+}
+
+/* Gölge ölçeği (Faz 10.6): 6 basamak + ~10 renkli ton → 3 seviye. */
+/* Renkli gölgeler (shadow-indigo-600/30 vb.) — çıngıraklı; nötr tona iner.
+   Boyut sınıfı da varsa aşağıdaki kurallar onu belirler. */
+[class*="shadow-indigo-"], [class*="shadow-violet-"], [class*="shadow-purple-"],
+[class*="shadow-emerald-"], [class*="shadow-rose-"], [class*="shadow-amber-"],
+[class*="shadow-green-"], [class*="shadow-sky-"], [class*="shadow-black"] {
+  box-shadow: var(--shadow-2) !important;
+}
+.shadow-sm, .shadow {
+  box-shadow: var(--shadow-1) !important;
+}
+.shadow-md, .shadow-lg {
+  box-shadow: var(--shadow-2) !important;
+}
+.shadow-xl, .shadow-2xl {
+  box-shadow: var(--shadow-3) !important;
 }
 
 /* Metin — kırık beyaz + tutarlı hiyerarşi (saf beyaz halation yapıyor).

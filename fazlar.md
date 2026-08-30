@@ -758,9 +758,25 @@ Kurum çift yol") üzerine:
 - [x] Doğrulama: `tsc` 0 · `build` OK · iki temada 8+ ekran (Dashboard/Snap/Mock/Pomodoro/Planner/
   Müfredat/StreakAnalytics/CommandSearch) canlı — regresyon yok, anlık geçiş çalışıyor.
 
-### Kalan (opsiyonel)
-- [ ] 9.4 tam `role="tablist/tab/tabpanel"` + ok tuşu (aria-current güvenli alt küme yapıldı).
-- [ ] 10.6 boşluk/yarıçap/gölge ölçeği (tipografi yapıldı).
+### Uygulama sonucu — 7. tur (2026-08-30): tam tablist ARIA + gölge ölçeği
+- [x] **9.4 tam tab paterni:** `src/lib/useTablistKeys.ts` — ←/→/↑/↓/Home/End ok tuşu navigasyonu
+  (roving tabindex + otomatik seçim). Header 3 nav çubuğu (`role="tablist"`), butonlar
+  `role="tab"` + `aria-selected` + `tabIndex` + `aria-controls`; `<main>` `role="tabpanel"` +
+  `aria-labelledby`. Canlı: 10 sekmeli listede ok/Home/End odak gezdiriyor + seçiyor (doğrulandı).
+  `BottomNav` `role="navigation"` + `aria-current` olarak kalıyor (arama modalı açtığı için
+  tab-panel paternine uymuyor — bilinçli).
+- [x] **10.6 gölge ölçeği:** `@theme` + `[data-theme="light"]` `--shadow-1/2/3` (gece: ince,
+  kenarlık işi yapar; gündüz: yumuşak gri elevasyon). Uyumluluk katmanı: `shadow-sm..2xl` (6
+  basamak) → 3 seviye; ~80 **renkli gölge** (`shadow-indigo-600/30` vb. — çıngıraklı) nötr
+  `--shadow-2`'ye indi. Gündüz teması artık düz-kenarlık değil, gerçek elevasyon.
+- [x] Tipografi ölçeği zaten yapıldı (5. tur). Boşluk (`p-3.5/4/5/6`) ve yarıçap
+  (`rounded-xl/2xl/3xl`) — fiili sistem yeterince tutarlı (kart 2xl, buton xl, modal 3xl,
+  girinti/çip lg); ±2px için 300+ dosya değişikliği/regresyon riski değmez → bırakıldı.
+- [x] Doğrulama: `tsc` 0 · `build` OK · iki temada dashboard + settings + tablist klavye — sorunsuz.
+
+### Kalan
+Planlanan tüm faz maddeleri tamamlandı. Sürdürme işleri: uyumluluk katmanı bileşenler token
+util'lerine geçtikçe küçülecek; gündüz teması gerçek kullanımda ince ayar isteyebilir.
 
 ### Orijinal plan (referans)
 
@@ -1012,7 +1028,7 @@ grep `\[#[0-9A-Fa-f]` → 0 (SVG marka logoları hariç) · `!important` yalnız
 | 8b — ölü local + `noUnusedLocals` | ✅ | `ed9c1c4` |
 | 2b — alt-koleksiyon migrasyonu | ✅ emulator ile test edildi (7/7) | `8cde320` |
 | 3b — kurum portalı gerçek auth (Google+üyelik) | ✅ emulator ile test edildi (11/11) | — |
-| 9 — UI/UX bug & davranış | 🟢 9.1–9.6 tamam; yalnız tam tablist ARIA opsiyonel | — |
-| 10 — renk sistemi + tasarım ölçeği | 🟢 10.1/10.2/10.3/10.5 + tipo ölçeği tamam; 10.4 moot; boşluk/gölge ölçeği kaldı | — |
-| 10b — gündüz teması | 🟢 tamam (Sistem/Gündüz/Gece seçici, token blokları, no-flash); ince ayar kaldı | — |
+| 9 — UI/UX bug & davranış | 🟢 9.1–9.6 + tam tablist ARIA tamam | — |
+| 10 — renk sistemi + tasarım ölçeği | 🟢 10.1/10.2/10.3/10.5 + tipografi + gölge ölçeği tamam; 10.4 moot | — |
+| 10b — gündüz teması | 🟢 tamam (Sistem/Gündüz/Gece, token blokları, no-flash, elevasyon, grafik senkronu) | — |
 | Ölü bileşen temizliği | 🟢 3 bileşen (~1000 satır) silindi | — |
