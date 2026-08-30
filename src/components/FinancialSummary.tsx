@@ -1,47 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Users, 
-  Calendar, 
-  Award, 
-  ShieldCheck, 
-  Sparkles, 
-  FileText, 
-  Printer, 
-  ChevronRight, 
-  ArrowUpRight, 
-  PieChart as PieChartIcon, 
-  BarChart3, 
-  CheckCircle2, 
-  Percent, 
-  Wallet,
-  Building2,
-  HelpCircle,
-  Clock,
-  ArrowRight,
-  Receipt
-} from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  CartesianGrid, 
-  Legend, 
-  LineChart, 
-  Line, 
-  Area, 
-  AreaChart 
-} from 'recharts';
+import { DollarSign, TrendingUp, Calendar, Award, ShieldCheck, Sparkles, Printer, Receipt } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Area, AreaChart } from 'recharts';
 import { InstitutionConfig, StudentRecord } from '../types';
-import { 
-  ANNUAL_ENTERPRISE_INSTITUTION_PLAN, 
-  INDIVIDUAL_STUDENT_PRICING, 
-  INSTITUTION_TIERED_PLANS 
-} from '../data/institutionData';
+import { ANNUAL_ENTERPRISE_INSTITUTION_PLAN, INDIVIDUAL_STUDENT_PRICING } from '../data/institutionData';
 import { haptics } from '../lib/haptics';
 
 interface FinancialSummaryProps {

@@ -1,20 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Camera, 
-  Bot, 
-  Calendar, 
-  Zap, 
-  Flame, 
-  Target, 
-  Clock, 
-  Sparkles,
-  ArrowRight,
-  BookOpen,
-  Trophy,
-  CheckCircle2,
-  HelpCircle,
-  FileText
-} from 'lucide-react';
+import { Camera, Flame, Clock, Sparkles, ArrowRight, BookOpen, HelpCircle, FileText } from 'lucide-react';
 import { 
   UserProfile, 
   MockExamRecord, 

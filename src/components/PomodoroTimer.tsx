@@ -1,21 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Volume2, 
-  VolumeX, 
-  Flame, 
-  CheckCircle2, 
-  Zap, 
-  Target, 
-  Award,
-  Sparkles,
-  BookOpen,
-  Lightbulb,
-  Bell,
-  BellRing
-} from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, CheckCircle2, Zap, Target, BookOpen, Lightbulb, BellRing } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { UserProfile } from '../types';
 import { playCompletionBell, ambientManager } from '../lib/soundEffects';

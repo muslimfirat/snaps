@@ -1,17 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Flame, 
-  Zap, 
-  Trophy, 
-  Sparkles, 
-  Calendar, 
-  CheckCircle2, 
-  Award, 
-  X, 
-  ChevronRight, 
-  ShieldCheck,
-  BarChart3
-} from 'lucide-react';
+import { Flame, Trophy, Sparkles, Calendar, X, ChevronRight, ShieldCheck, BarChart3 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { haptics } from '../lib/haptics';
 

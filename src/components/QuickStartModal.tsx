@@ -1,18 +1,5 @@
 import React from 'react';
-import { 
-  X, 
-  Sparkles, 
-  Camera, 
-  Bot, 
-  Calendar, 
-  Trophy, 
-  CheckCircle2, 
-  ArrowRight,
-  HelpCircle,
-  Flame,
-  Layers,
-  GraduationCap
-} from 'lucide-react';
+import { X, Sparkles, Camera, Bot, Trophy, ArrowRight, Flame } from 'lucide-react';
 import { MainTabCategory } from '../types';
 
 interface QuickStartModalProps {

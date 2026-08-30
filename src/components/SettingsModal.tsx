@@ -1,22 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Save, 
-  User, 
-  Target, 
-  Calendar, 
-  Award, 
-  Smartphone, 
-  Check, 
-  Zap, 
-  ShieldCheck, 
-  Lightbulb, 
-  Cloud,
-  X,
-  BookOpen,
-  CheckCircle2,
-  Sparkles
-} from 'lucide-react';
+import { Settings, Save, Target, Smartphone, Check, Zap, ShieldCheck, Lightbulb, Cloud, X, CheckCircle2 } from 'lucide-react';
 import { UserProfile, ExamCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { isHapticsSupported, getHapticsEnabled, setHapticsEnabled, triggerHaptic, haptics } from '../lib/haptics';

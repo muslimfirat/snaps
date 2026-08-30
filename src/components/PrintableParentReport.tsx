@@ -1,20 +1,6 @@
 import React from 'react';
-import { 
-  CheckCircle2, 
-  BookOpen, 
-  Award, 
-  Clock, 
-  TrendingUp, 
-  TrendingDown, 
-  Minus,
-  Calendar, 
-  Phone, 
-  AlertTriangle,
-  FileCheck,
-  Target,
-  GraduationCap
-} from 'lucide-react';
-import { InstitutionConfig, StudentRecord, ClassGroup, ExamCategory } from '../types';
+import { CheckCircle2, BookOpen, Calendar, Target } from 'lucide-react';
+import { InstitutionConfig, StudentRecord, ClassGroup } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 
 export interface PrintableReportProps {

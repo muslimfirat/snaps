@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Zap, CheckCircle2, Plus, Sparkles, BookOpen } from 'lucide-react';
+import { Target, Zap, CheckCircle2, Plus, Sparkles } from 'lucide-react';
 import { THEME } from '../theme';
 import { haptics } from '../lib/haptics';
 

@@ -1,24 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Search, 
-  Camera, 
-  Bot, 
-  Calendar, 
-  BarChart3, 
-  BookOpen, 
-  Zap, 
-  Bookmark, 
-  Sparkles, 
-  Target, 
-  Clock, 
-  Share2, 
-  Building2, 
-  ArrowRight,
-  Command,
-  X,
-  Flame,
-  Lightbulb
-} from 'lucide-react';
+import { Search, Camera, Bot, Calendar, BarChart3, BookOpen, Zap, Bookmark, Sparkles, Target, Clock, Share2, Building2, ArrowRight, X, Flame, Lightbulb } from 'lucide-react';
 import { MainTabCategory } from '../types';
 
 export interface CommandItem {

@@ -295,6 +295,37 @@ kalktı), davranış birebir aynı. ✅ Analitik grafiği artık yalnız gerçek
 
 ---
 
+## Faz 8 — Kullanılmayan import temizliği (Faz 7'den ertelendi)  ✅ TAMAM (2026-08-30)
+
+Amaç: `tsc --noUnusedLocals` ile ortaya çıkan mekanik ölü kodu temizlemek.
+
+- [x] TypeScript compiler API ile codemod (`_codemod.mjs`, geçici) — `noUnusedLocals` +
+  `noUnusedParameters` açıkken çıkan **TS6133** tanılarından yalnızca **import bildirimi
+  içindekiler** hedeflendi. Non-import (local/parametre) atlandı
+- [x] **178 kullanılmayan import** 32 dosyadan kaldırıldı (çoğu `lucide-react` ikonu; ayrıca
+  `recharts`, `firebase/auth` (`onAuthStateChanged`), `storage` (`saveDailyStudyLogs`),
+  `institutionData`, `react` (`useCallback`) vb.). Çok satırlı import blokları tek satıra indirildi
+- [x] Davranış değişikliği yok — yalnız kullanılmayan bağlamalar silindi. `tsconfig` dokunulmadı
+  (`noUnusedLocals` kalıcı açılmadı; 44 non-import kullanılmayan local/param duruyor → Faz 8b)
+
+**Doğrulama:**
+| Kontrol | Sonuç |
+|---------|-------|
+| `npm run lint` (strict) | ✅ 0 hata |
+| `npm run build` | ✅ başarılı, 2326 modül, chunk bölme korundu |
+| dev `/api/health`, SPA `/`, `/api/snap/solve` | ✅ 200 |
+| dev `/api/institution/analyze-class` (token'sız) | ✅ 401 |
+
+**Kabul kriterleri:** ✅ `git diff` −556/+40 satır, yalnız import satırları. Lint + build temiz, uçlar aynı.
+
+### Faz 8b — Kullanılmayan local/parametre (bir kısmı gerçek bug adayı)
+44 non-import TS6133 kaldı. Kör silme yerine tek tek bakılmalı — bazıları eksik bağlanmış
+özellik işareti: `App.tsx` `handleDeleteSnap` (silme handler'ı hiç bağlanmamış),
+`VoiceAICoach` `prompt` (kurulan prompt hiç gönderilmiyor), `SettingsModal` `handleTestInsight`,
+`AchievementBadges` `selectedBadge` state, `InstitutionPortal` kullanılmayan prop/state'ler.
+
+---
+
 ## Öneri sıralama
 
 1. Faz 0 → 1 → 2 (production'da gerçek kırılma/maliyet)

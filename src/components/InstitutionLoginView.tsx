@@ -1,25 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Building2, 
-  Lock, 
-  Mail, 
-  KeyRound, 
-  Eye, 
-  EyeOff, 
-  ShieldCheck, 
-  ArrowLeft, 
-  Sparkles, 
-  CheckCircle2, 
-  AlertCircle, 
-  UserPlus, 
-  LogIn, 
-  Phone, 
-  User, 
-  Palette,
-  ChevronRight,
-  GraduationCap,
-  AlertTriangle
-} from 'lucide-react';
+import { Building2, Lock, Mail, KeyRound, Eye, EyeOff, ShieldCheck, ArrowLeft, Sparkles, CheckCircle2, AlertCircle, UserPlus, LogIn, Phone, User, ChevronRight, AlertTriangle } from 'lucide-react';
 import { InstitutionAccount } from '../types';
 import { 
   getInstitutionAccounts, 

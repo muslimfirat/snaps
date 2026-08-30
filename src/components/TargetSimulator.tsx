@@ -1,21 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Compass, 
-  Target, 
-  Sparkles, 
-  TrendingUp, 
-  Award, 
-  CheckCircle2, 
-  AlertTriangle, 
-  ArrowRight, 
-  Zap, 
-  Building2, 
-  GraduationCap,
-  Scale,
-  RefreshCw,
-  PlusCircle,
-  HelpCircle
-} from 'lucide-react';
+import { Compass, Sparkles, ArrowRight, Zap, GraduationCap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { UserProfile, TargetPreset, TargetSimulationResult, MockExamRecord } from '../types';
 import { TARGET_PRESETS } from '../data/curriculumData';

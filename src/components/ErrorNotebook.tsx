@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Bookmark, 
-  CheckCircle2, 
-  RotateCcw, 
-  Trash2, 
-  Sparkles, 
-  FileText, 
-  Brain, 
-  AlertTriangle,
-  Search,
-  Filter
-} from 'lucide-react';
+import { Bookmark, CheckCircle2, Trash2, Sparkles, Search } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { SnapSolution } from '../types';
 

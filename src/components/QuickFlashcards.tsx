@@ -1,24 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Sparkles, 
-  RotateCw, 
-  CheckCircle2, 
-  Layers, 
-  Plus, 
-  Zap, 
-  ChevronLeft, 
-  ChevronRight,
-  BookOpen,
-  Volume2,
-  VolumeX,
-  Shuffle,
-  Search,
-  Check,
-  Trash2,
-  HelpCircle,
-  Award,
-  RefreshCw
-} from 'lucide-react';
+import { Sparkles, RotateCw, CheckCircle2, Layers, Plus, ChevronLeft, ChevronRight, BookOpen, Volume2, VolumeX, Shuffle, Search, Trash2, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Flashcard, UserProfile } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';

@@ -1,38 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  HeartHandshake, 
-  Download, 
-  Printer, 
-  MessageCircle, 
-  Send, 
-  Sparkles, 
-  TrendingUp, 
-  CheckCircle2, 
-  AlertCircle, 
-  Calendar, 
-  Search, 
-  Filter, 
-  Eye, 
-  Share2, 
-  Clock, 
-  Check, 
-  ChevronRight, 
-  SlidersHorizontal, 
-  Layers, 
-  Award, 
-  BookOpen, 
-  Users, 
-  FileText,
-  FileCheck,
-  Smartphone,
-  Info,
-  RefreshCw,
-  X,
-  Copy,
-  Sliders,
-  ChevronDown
-} from 'lucide-react';
-import { InstitutionConfig, ClassGroup, StudentRecord, ExamCategory } from '../types';
+import { HeartHandshake, Printer, MessageCircle, Send, Sparkles, CheckCircle2, AlertCircle, Calendar, Search, Eye, Clock, Check, Users, FileText, FileCheck, Copy } from 'lucide-react';
+import { InstitutionConfig, ClassGroup, StudentRecord } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { haptics } from '../lib/haptics';
 import { PrintableParentReport } from './PrintableParentReport';

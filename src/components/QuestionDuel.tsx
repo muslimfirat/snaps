@@ -1,21 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Swords, 
-  Trophy, 
-  Sparkles, 
-  Flame, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  Award, 
-  Zap, 
-  Users, 
-  Play, 
-  RotateCcw,
-  Crown,
-  Shield,
-  Medal
-} from 'lucide-react';
+import { Swords, Trophy, Flame, Play, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { UserProfile, DuelQuestion, LeaderboardUser } from '../types';
 import { haptics } from '../lib/haptics';

@@ -1,26 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Plus, 
-  Award, 
-  CheckCircle2, 
-  AlertCircle, 
-  Calendar, 
-  Trash2, 
-  ArrowUpRight,
-  Calculator,
-  ChevronDown,
-  Sparkles,
-  ArrowRight,
-  Zap,
-  Target,
-  Brain,
-  Clock,
-  BookOpen,
-  ListTodo
-} from 'lucide-react';
-import { MockExamRecord, UserProfile, ExamCategory, MockExamAnalysisReport, WeeklyStudyPlan } from '../types';
+import { BarChart3, TrendingUp, Plus, CheckCircle2, AlertCircle, Calendar, Trash2, Calculator, Sparkles, ArrowRight, Zap, Target, Brain, Clock } from 'lucide-react';
+import { MockExamRecord, UserProfile, MockExamAnalysisReport, WeeklyStudyPlan } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { EmptyState } from './ui/EmptyState';
 import { Skeleton } from './ui/Skeleton';

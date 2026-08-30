@@ -1,19 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Mic, 
-  Volume2, 
-  VolumeX, 
-  Sparkles, 
-  Play, 
-  Square, 
-  Flame, 
-  HeartHandshake, 
-  CheckCircle2, 
-  Clock, 
-  Zap,
-  Award,
-  Bot
-} from 'lucide-react';
+import { Mic, Volume2, Sparkles, Play, Square, Flame, HeartHandshake, Zap, Bot } from 'lucide-react';
 import { ExamCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 

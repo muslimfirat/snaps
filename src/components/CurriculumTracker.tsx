@@ -1,22 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  BookOpen, 
-  CheckCircle2, 
-  Sparkles, 
-  Brain, 
-  HelpCircle, 
-  ChevronDown, 
-  ChevronRight, 
-  Layers, 
-  Check, 
-  Flame,
-  Award,
-  Zap,
-  X,
-  BookmarkPlus
-} from 'lucide-react';
+import { BookOpen, Sparkles, Check, Zap, BookmarkPlus } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Subject, SubjectTopic, UserProfile, Flashcard, MainTabCategory } from '../types';
+import { Subject, UserProfile, Flashcard, MainTabCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { haptics } from '../lib/haptics';
 import { apiFetch } from '../lib/apiClient';

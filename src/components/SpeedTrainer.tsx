@@ -1,20 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Gauge, 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Sparkles, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  BookOpen, 
-  Brain, 
-  Zap, 
-  Award,
-  ChevronRight,
-  TrendingUp
-} from 'lucide-react';
+import { Gauge, Play, RotateCcw, Sparkles, CheckCircle2, Clock, Brain } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { UserProfile, SpeedTrainingSession } from '../types';
 import { haptics } from '../lib/haptics';

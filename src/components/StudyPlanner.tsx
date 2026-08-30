@@ -1,21 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Calendar, 
-  Sparkles, 
-  CheckCircle2, 
-  Clock, 
-  Target, 
-  BookOpen, 
-  Zap, 
-  Plus, 
-  Flame,
-  Award,
-  ChevronRight,
-  ListTodo,
-  Printer,
-  Brain,
-  ArrowRight
-} from 'lucide-react';
+import { Calendar, Sparkles, CheckCircle2, Clock, Zap, Plus, ListTodo, Printer, Brain } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { WeeklyStudyPlan, UserProfile, StudyPlanBlock, MockExamRecord } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';

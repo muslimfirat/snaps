@@ -1,29 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  Lightbulb, 
-  Sparkles, 
-  X, 
-  ChevronRight, 
-  Copy, 
-  Check, 
-  ThumbsUp, 
-  Clock, 
-  Volume2, 
-  VolumeX, 
-  Flame, 
-  Brain, 
-  Target, 
-  Eye, 
-  FileText, 
-  TrendingUp, 
-  Zap, 
-  RotateCcw, 
-  Award, 
-  AlertCircle,
-  HelpCircle,
-  Minimize2,
-  Maximize2
-} from 'lucide-react';
+import { Lightbulb, Sparkles, X, ChevronRight, Copy, Check, ThumbsUp, Clock, Brain, Target, Eye, FileText, TrendingUp, Zap, RotateCcw, Award, AlertCircle, Minimize2, Maximize2 } from 'lucide-react';
 import { STUDY_INSIGHTS, StudyInsight } from '../data/studyInsightsData';
 import { haptics } from '../lib/haptics';
 

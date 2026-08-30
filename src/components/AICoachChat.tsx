@@ -1,20 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Send, 
-  Sparkles, 
-  Bot, 
-  User, 
-  Volume2, 
-  VolumeX, 
-  RefreshCw, 
-  Compass, 
-  Flame, 
-  Target, 
-  Zap,
-  Clock,
-  CheckCircle2,
-  Trash2
-} from 'lucide-react';
+import { Send, Sparkles, Bot, User, Volume2, Clock, Trash2 } from 'lucide-react';
 import { ChatMessage, UserProfile } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { apiFetch } from '../lib/apiClient';

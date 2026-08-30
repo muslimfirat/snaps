@@ -1,40 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Building2, 
-  Users, 
-  BarChart3, 
-  Sparkles, 
-  Plus, 
-  Settings, 
-  Search, 
-  Printer, 
-  CheckCircle2, 
-  AlertTriangle, 
-  TrendingUp, 
-  FileText, 
-  Layers, 
-  BookOpen, 
-  Award, 
-  Phone, 
-  Megaphone,
-  UserCheck,
-  ChevronRight,
-  MessageSquare,
-  Edit3,
-  Trash2,
-  Check,
-  Share2,
-  Camera,
-  Calendar,
-  Clock,
-  Send,
-  Upload,
-  X,
-  CreditCard,
-  DollarSign,
-  Receipt,
-  HeartHandshake
-} from 'lucide-react';
+import { Building2, Users, BarChart3, Sparkles, Plus, Settings, Search, Printer, CheckCircle2, AlertTriangle, TrendingUp, FileText, Layers, BookOpen, Phone, Megaphone, UserCheck, MessageSquare, Trash2, Share2, Camera, Calendar, Send, Upload, X, CreditCard, DollarSign, Receipt, HeartHandshake } from 'lucide-react';
 import { haptics } from '../lib/haptics';
 import { apiFetch } from '../lib/apiClient';
 import { 

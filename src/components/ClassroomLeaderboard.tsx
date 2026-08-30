@@ -1,11 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Trophy, 
-  TrendingUp, 
-  ChevronRight, 
-  Sparkles, 
-  GraduationCap
-} from 'lucide-react';
+import { ChevronRight, Sparkles, GraduationCap } from 'lucide-react';
 import { 
   UserProfile, 
   ClassGroup, 

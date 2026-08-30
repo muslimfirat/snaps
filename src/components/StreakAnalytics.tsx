@@ -10,26 +10,9 @@ import {
   CartesianGrid,
   ReferenceLine,
 } from 'recharts';
-import {
-  Flame,
-  Zap,
-  Trophy,
-  TrendingUp,
-  Calendar,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Target,
-  Sparkles,
-  ChevronRight,
-  BarChart3,
-  Award,
-  ArrowUpRight,
-  ShieldAlert,
-  FlameKindling,
-} from 'lucide-react';
+import { Flame, Zap, Trophy, TrendingUp, Calendar, Clock, Target, Sparkles, BarChart3, ArrowUpRight } from 'lucide-react';
 import { UserProfile, DailyStudyLog, MainTabCategory } from '../types';
-import { loadWeeklyStudyLogs, saveDailyStudyLogs } from '../lib/storage';
+import { loadWeeklyStudyLogs } from '../lib/storage';
 import { THEME } from '../theme';
 import { haptics } from '../lib/haptics';
 

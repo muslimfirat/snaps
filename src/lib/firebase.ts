@@ -1,12 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut as fbSignOut, 
-  onAuthStateChanged,
-  User as FirebaseUser
-} from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut, User as FirebaseUser } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import firebaseConfigData from '../../firebase-applet-config.json';
 

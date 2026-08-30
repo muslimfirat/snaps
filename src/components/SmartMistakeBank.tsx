@@ -1,24 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  BookOpen, 
-  Sparkles, 
-  CheckCircle2, 
-  AlertCircle, 
-  Repeat, 
-  Layers, 
-  Plus, 
-  Search, 
-  Filter, 
-  Trash2, 
-  ArrowRight, 
-  HelpCircle, 
-  Lightbulb, 
-  Brain,
-  Calendar,
-  Clock,
-  Check,
-  RotateCcw
-} from 'lucide-react';
+import { BookOpen, Sparkles, CheckCircle2, AlertCircle, Repeat, Plus, Search, Trash2, HelpCircle, Lightbulb, Brain, Clock, Check, RotateCcw } from 'lucide-react';
 import { MistakeQuestionItem, LeitnerStage, TwinQuestion, UserProfile } from '../types';
 import { EmptyState } from './ui/EmptyState';
 import { Skeleton } from './ui/Skeleton';

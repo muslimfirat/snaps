@@ -1,26 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  Building2, 
-  Check, 
-  Sparkles, 
-  ShieldCheck, 
-  Zap, 
-  Download, 
-  Printer, 
-  MessageCircle, 
-  HelpCircle, 
-  Users, 
-  TrendingUp, 
-  Award, 
-  Calendar, 
-  ChevronRight, 
-  Calculator, 
-  FileText,
-  Info,
-  CheckCircle2,
-  X
-} from 'lucide-react';
-import { InstitutionConfig, InstitutionPlanItem, StudentRecord } from '../types';
+import { Building2, Check, Sparkles, ShieldCheck, Zap, Download, Printer, MessageCircle, TrendingUp, Calculator, FileText, CheckCircle2, X } from 'lucide-react';
+import { InstitutionConfig } from '../types';
 import { 
   INSTITUTION_TIERED_PLANS, 
   ANNUAL_ENTERPRISE_INSTITUTION_PLAN, 

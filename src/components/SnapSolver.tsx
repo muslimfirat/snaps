@@ -1,24 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { 
-  Camera, 
-  Upload, 
-  Sparkles, 
-  BookOpen, 
-  HelpCircle, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Bookmark, 
-  RotateCcw, 
-  Send, 
-  Zap, 
-  Copy, 
-  Check, 
-  FileText,
-  Search,
-  ExternalLink,
-  Brain
-} from 'lucide-react';
+import { Camera, Upload, Sparkles, CheckCircle, XCircle, AlertTriangle, Bookmark, RotateCcw, Zap, Copy, Check, FileText, ExternalLink, Brain } from 'lucide-react';
 import { SnapSolution, UserProfile } from '../types';
 import { SAMPLE_QUESTIONS_FOR_SNAP } from '../data/curriculumData';
 import { EmptyState } from './ui/EmptyState';

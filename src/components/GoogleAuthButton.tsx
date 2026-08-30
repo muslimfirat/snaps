@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Cloud, Check, LogOut, Loader2, Sparkles, ShieldCheck, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Check, LogOut, Loader2, ShieldCheck, AlertTriangle, RefreshCw } from 'lucide-react';
 import { haptics } from '../lib/haptics';
 
 interface GoogleAuthButtonProps {

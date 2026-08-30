@@ -33,22 +33,7 @@ import {
 import { storage } from './lib/storage';
 import { initGlobalHaptics, haptics } from './lib/haptics';
 import { useAuth } from './context/AuthContext';
-import { 
-  UserProfile, 
-  ExamCategory, 
-  SnapSolution, 
-  MockExamRecord, 
-  WeeklyStudyPlan, 
-  Subject, 
-  Flashcard,
-  InstitutionConfig,
-  ClassGroup,
-  StudentRecord,
-  InstitutionExam,
-  MistakeQuestionItem,
-  MainTabCategory,
-  InstitutionAccount
-} from './types';
+import { UserProfile, SnapSolution, MockExamRecord, WeeklyStudyPlan, Subject, Flashcard, InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, MistakeQuestionItem, MainTabCategory, InstitutionAccount } from './types';
 import { EXAM_METADATA } from './data/curriculumData';
 
 const getCategoryForTab = (tab: string): MainTabCategory => {
