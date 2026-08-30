@@ -3,14 +3,18 @@
 Türkiye'deki KPSS ve YKS adayları için yapay zeka destekli sınav koçluğu uygulaması:
 fotoğrafla soru çözümü (Snap), sesli/yazılı koç, akıllı hata bankası (Leitner),
 haftalık çalışma planı, deneme analizi, hedef simülatörü, soru düellosu, hız
-antrenörü ve bir dershane yönetim paneli önizlemesi.
+antrenörü, başarı rozetleri ve bir dershane yönetim paneli önizlemesi.
+
+İlk açılışta kısa bir kurulum akışı (hedef sınav, sınav tarihi, günlük hedefler)
+çıkar; kişisel ilerleme (seri, çözülen soru, deneme geçmişi) sıfırdan başlar.
 
 ## Teknoloji
 
-- **Frontend:** React 19 + Vite 6 + Tailwind 4
+- **Frontend:** React 19 + Vite 6 + Tailwind 4 (`@theme` token'ları)
 - **Backend:** Express (`server.ts`), tsx ile çalışır
 - **AI:** Google Gemini (`@google/genai`) — sunucu tarafında
 - **Bulut:** Firebase Auth (Google ile giriş) + Firestore (kullanıcı verisi senkronu)
+- **Grafik:** Recharts · **Animasyon:** CSS + canvas-confetti
 
 ## Çalıştırma
 
@@ -31,6 +35,28 @@ npm start        # dist/server.mjs (production)
 
 `.env.example` dosyasını `.env` olarak kopyalayın. `GEMINI_API_KEY` ayarlanmazsa
 tüm AI özellikleri hazır (curated) yedek içerik döndürür — uygulama yine çalışır.
+
+## Tasarım sistemi & tema
+
+- **Tek renk kaynağı:** tüm renkler `src/index.css` içindeki `@theme` bloğunda
+  ("Odak" paleti — öğrenci psikolojisine ve uzun çalışma seanslarında göz
+  yorgunluğunu azaltmaya göre ayarlı: kırık beyaz metin, ılık nötr zeminler,
+  tek indigo marka tonu, ölçülü semantik renkler). `src/theme.ts` yalnızca
+  JS'te hex gereken yerler (grafik/SVG) için bu değerleri yansıtır.
+- **Gündüz / Gece / Sistem teması:** Ayarlar → Görünüm'den seçilir
+  (`src/lib/themeMode.ts`, `<html data-theme>` + boyama-öncesi init, yanıp sönme
+  yok). Varsayılan: Gece.
+- Mevcut `slate-*` / aksan yardımcı sınıflarını token'lara bağlayan bir
+  uyumluluk katmanı var (`index.css`); bileşenler token util'lerine geçtikçe
+  küçülüyor.
+
+## Performans & erişilebilirlik
+
+- Rota düzeyi görünümler `React.lazy` + `<Suspense>` ile tembel yüklenir; ilk
+  boyama yalnızca Dashboard + kabuk. Recharts ve kurum portalı ayrı chunk'ta.
+- Modallar: `role="dialog"` + `aria-modal`, `<body>` scroll kilidi, focus-trap
+  ve odak iadesi (`src/lib/useModalA11y.ts`). Sekme/nav butonlarında
+  `aria-current`, `prefers-reduced-motion` desteği.
 
 ## API erişim politikası
 
@@ -54,6 +80,7 @@ Kurum ("dershane") portalı Firebase Auth ile korunur:
   Firestore REST üzerinden doğrular (`firebase-admin` yok).
 - İlk girişte kurum bulunmazsa yönetici yeni kurum oluşturur (isteğe bağlı olarak
   kurgusal örnek verilerle). Örnek veriler `src/data/institutionData.ts`.
+- Portala erişim üst menüdeki hamburger → "Dershane Portalı"ndan sağlanır.
 
 Kurallar + üyelik testleri: `npm run test:rules` (emulator, `test/firestore.test.mjs`).
 
@@ -63,6 +90,8 @@ Kurallar + üyelik testleri: `npm run test:rules` (emulator, `test/firestore.tes
   `/users/{uid}` ana dokümanı + alt-koleksiyonlarda tutulur. Ayrıntı: `fazlar.md`.
 - Gerçek Google popup + isimli Firestore veritabanı ile uçtan uca doğrulama ancak
   staging'de yapılabilir; emulator kural + mantık katmanını kapsar.
+- Gündüz teması ince ayar aşamasında: birkaç bileşende koyu-zemin "seçili" kalıbı
+  ve grafik renkleri tema değişiminde sayfa yenilemesi isteyebilir.
 
 ## Yol haritası
 
