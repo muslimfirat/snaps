@@ -1,4 +1,5 @@
 {
+  "_note": "TARGET schema (per-user subcollections). The current implementation in src/lib/firestoreSync.ts uses a single /users/{uid} document with embedded arrays; the subcollection migration is tracked as 'Faz 2b' in fazlar.md. firestore.rules already permits this subcollection layout.",
   "entities": {
     "User": {
       "title": "User",

@@ -118,6 +118,85 @@ async function callGeminiApi<T>(fn: (modelName: string) => Promise<T>, timeoutMs
   throw lastError;
 }
 
+// --- Shared Gemini endpoint helpers -----------------------------------------
+// Every AI endpoint follows the same shape: no API key → curated fallback;
+// otherwise call Gemini (with model fallback), parse, validate, and fall back
+// on any error. These two helpers collapse that boilerplate into one place.
+
+interface GeminiJsonParams {
+  res: express.Response;
+  label: string;                          // used in the warning log line
+  contents: any;                          // string | Content | Content[]
+  schema: any;                            // responseSchema (Type.OBJECT ...)
+  fallback: () => any;                    // curated response on error / invalid output
+  noKeyFallback?: () => any;              // curated response when GEMINI_API_KEY is absent (defaults to fallback)
+  config?: Record<string, any>;           // extra generateContent config (temperature, systemInstruction)
+  validate?: (parsed: any) => boolean;    // treat as failure (→ fallback) when false
+  shape?: (parsed: any) => any;           // map raw parsed JSON to the response body
+}
+
+/**
+ * Runs a JSON-mode Gemini request and always answers the caller: the parsed
+ * model output when it is usable, otherwise the curated `fallback()`.
+ */
+async function handleGeminiJson(params: GeminiJsonParams): Promise<void> {
+  const { res, label, contents, schema, fallback, noKeyFallback, config = {}, validate, shape } = params;
+  try {
+    const ai = getGeminiClient();
+    if (!process.env.GEMINI_API_KEY) {
+      res.json((noKeyFallback || fallback)());
+      return;
+    }
+    const response = await callGeminiApi((model) =>
+      ai.models.generateContent({
+        model,
+        contents,
+        config: { ...config, responseMimeType: 'application/json', responseSchema: schema },
+      })
+    );
+    const parsed = JSON.parse(response.text || '{}');
+    if (!validate || validate(parsed)) {
+      res.json(shape ? shape(parsed) : parsed);
+      return;
+    }
+    console.warn(`${label} fallback triggered: model response failed validation`);
+    res.json(fallback());
+  } catch (err: any) {
+    console.warn(`${label} fallback triggered:`, err?.message || err);
+    res.json(fallback());
+  }
+}
+
+/**
+ * Same contract as {@link handleGeminiJson} for plain-text (non-JSON) endpoints.
+ * `shape` turns the model text into the response body; `fallback` is the curated body.
+ */
+async function handleGeminiText(params: {
+  res: express.Response;
+  label: string;
+  contents: any;
+  fallback: () => any;
+  noKeyFallback?: () => any;
+  config?: Record<string, any>;
+  shape: (text: string) => any;
+}): Promise<void> {
+  const { res, label, contents, fallback, noKeyFallback, config = {}, shape } = params;
+  try {
+    const ai = getGeminiClient();
+    if (!process.env.GEMINI_API_KEY) {
+      res.json((noKeyFallback || fallback)());
+      return;
+    }
+    const response = await callGeminiApi((model) =>
+      ai.models.generateContent({ model, contents, config })
+    );
+    res.json(shape(response.text || ''));
+  } catch (err: any) {
+    console.warn(`${label} fallback triggered:`, err?.message || err);
+    res.json(fallback());
+  }
+}
+
 // Resilient Dynamic Study Plan Generator Fallback
 function generateDynamicStudyPlan(
   examType?: string,
@@ -225,7 +304,8 @@ function generateDynamicStudyPlan(
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  // Cloud Run (and most PaaS) injects the port to listen on via $PORT.
+  const PORT = Number(process.env.PORT) || 3000;
 
   // Cloud Run / proxy: needed for correct client IP in rate limiting.
   app.set('trust proxy', 1);
@@ -265,17 +345,9 @@ async function startServer() {
   // 1. AI Coach Chat endpoint
   app.post('/api/coach/chat', async (req, res) => {
     const { messages, examType, userContext } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          reply: `Harika bir hedef! ${examType || 'Sınav'} sürecinde disiplin ve doğru strateji her şeydir. Sana tavsiyem: Günlük soru hedefini netleştir, yapamadığın soruları "Hata Defteri"ne ekle ve haftada en az 1 genel deneme çözerek eksik analizini yap!`,
-        });
-      }
+    const systemInstruction = `Sen "Snaps Sınav Koçu"sun. Türkiye'deki KPSS (Lisans, Önlisans, Ortaöğretim, Eğitim Bilimleri, ÖABT) ve YKS (TYT, AYT Sayısal, Eşit Ağırlık, Sözel, Dil) sınavlarına hazırlanan öğrencilere profesyonel, motive edici, pedagojik, samimi ve net odaklı rehberlik eden kıdemli bir YKS & KPSS uzman eğitim koçusun.
 
-      const systemInstruction = `Sen "Snaps Sınav Koçu"sun. Türkiye'deki KPSS (Lisans, Önlisans, Ortaöğretim, Eğitim Bilimleri, ÖABT) ve YKS (TYT, AYT Sayısal, Eşit Ağırlık, Sözel, Dil) sınavlarına hazırlanan öğrencilere profesyonel, motive edici, pedagojik, samimi ve net odaklı rehberlik eden kıdemli bir YKS & KPSS uzman eğitim koçusun.
-      
 Kullanıcı Hedefi/Bağlamı:
 - Sınav Türü: ${examType || 'KPSS & YKS'}
 - Kullanıcı Bilgisi: ${JSON.stringify(userContext || {})}
@@ -286,79 +358,50 @@ Koçluk İlkelerin:
 3. Gereksiz uzun laf kalabalığı yapma; madde imleri, pratik adımlar ve cesaretlendirici bir dil kullan.
 4. Soru analizlerinde ve ders çalışma stratejilerinde net tavsiyeler ver.`;
 
-      const formattedContents = (messages || []).map((m: { role: string; content: string }) => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      }));
+    const formattedContents = (messages || []).map((m: { role: string; content: string }) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
 
-      if (formattedContents.length === 0) {
-        formattedContents.push({
-          role: 'user',
-          parts: [{ text: 'Merhaba koçum! Bana sınav sürecinde nasıl rehberlik edeceksin?' }],
-        });
-      }
-
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: formattedContents,
-          config: {
-            systemInstruction,
-            temperature: 0.7,
-          },
-        })
-      );
-
-      res.json({ reply: response.text || 'Tavsiyelerim hazır! Hadi birlikte hedeflerine ulaşalım.' });
-    } catch (err: any) {
-      console.warn('Coach chat fallback triggered:', err?.message || err);
-      res.json({
-        reply: `Sınav sürecinde en önemli kural sürekliliktir! Eksik hissettiğin konuları küçük parçalara bölerek her gün en az 30 dakika odaklanmanı ve haftada 1 genel deneme ile netlerini kontrol etmeni öneririm. Başarı disiplinli tekrarda saklıdır!`,
+    if (formattedContents.length === 0) {
+      formattedContents.push({
+        role: 'user',
+        parts: [{ text: 'Merhaba koçum! Bana sınav sürecinde nasıl rehberlik edeceksin?' }],
       });
     }
+
+    await handleGeminiText({
+      res,
+      label: 'Coach chat',
+      contents: formattedContents,
+      config: { systemInstruction, temperature: 0.7 },
+      shape: (text) => ({ reply: text || 'Tavsiyelerim hazır! Hadi birlikte hedeflerine ulaşalım.' }),
+      noKeyFallback: () => ({
+        reply: `Harika bir hedef! ${examType || 'Sınav'} sürecinde disiplin ve doğru strateji her şeydir. Sana tavsiyem: Günlük soru hedefini netleştir, yapamadığın soruları "Hata Defteri"ne ekle ve haftada en az 1 genel deneme çözerek eksik analizini yap!`,
+      }),
+      fallback: () => ({
+        reply: `Sınav sürecinde en önemli kural sürekliliktir! Eksik hissettiğin konuları küçük parçalara bölerek her gün en az 30 dakika odaklanmanı ve haftada 1 genel deneme ile netlerini kontrol etmeni öneririm. Başarı disiplinli tekrarda saklıdır!`,
+      }),
+    });
   });
 
   // 2. Snap Question Solver & Concept Coach
   app.post('/api/snap/solve', async (req, res) => {
     const { imageBase64, mimeType, questionText, examType, subject } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          subject: subject || 'Matematik',
-          topic: 'Temel Kavramlar & Problem Çözümü',
-          questionSummary: questionText ? questionText.slice(0, 100) : 'Görseldeki KPSS/YKS sorusu',
-          correctOption: 'C',
-          stepByStepSolution: [
-            'Adım 1: Soru kökünü ve verilen parametreleri belirle.',
-            'Adım 2: Formülü uygula ve sadeleştirme yap.',
-            'Adım 3: Sonucu şıklarla karşılaştır: Doğru yanıt C seçeneğidir.',
-          ],
-          keyConcept: 'ÖSYM bu tip sorularda işlem önceliği ve değişken tanımlamaya dikkat eder.',
-          trapExplanation: 'En sık yapılan hata: İşlem önceliğini gözden kaçırarak toplama/çıkarma sırasını karıştırmaktır.',
-          similarPracticeQuestion: {
-            question: 'Benzer Pekiştirme Sorusu: Bir sayının 3 katının 5 eksiği 22 olduğuna göre bu sayı kaçtır?',
-            options: ['A) 7', 'B) 8', 'C) 9', 'D) 10', 'E) 11'],
-            answer: 'C) 9',
-            explanation: '3x - 5 = 22 => 3x = 27 => x = 9.',
-          },
-        });
-      }
+    const parts: any[] = [];
+    if (imageBase64) {
+      // clean base64 data if it contains data:image/... prefix
+      const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
+      parts.push({
+        inlineData: {
+          mimeType: mimeType || 'image/jpeg',
+          data: cleanBase64,
+        },
+      });
+    }
 
-      const parts: any[] = [];
-      if (imageBase64) {
-        // clean base64 data if it contains data:image/... prefix
-        const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
-        parts.push({
-          inlineData: {
-            mimeType: mimeType || 'image/jpeg',
-            data: cleanBase64,
-          },
-        });
-      }
-
-      const prompt = `Lütfen bu KPSS / YKS sorusunu bir uzman öğretmen & soru çözüm koçu gözüyle analiz et ve çöz.
+    const prompt = `Lütfen bu KPSS / YKS sorusunu bir uzman öğretmen & soru çözüm koçu gözüyle analiz et ve çöz.
 Ek Bilgi/Not: ${questionText || 'Soruyu çöz.'}
 Hedef Sınav: ${examType || 'KPSS / YKS'}
 Tahmini Ders: ${subject || 'Belirtilmedi'}
@@ -372,66 +415,73 @@ Lütfen aşağıdaki JSON şemasına tam uyacak şekilde yanıt üret:
 6. Çeldirici tuzağını açıkla (Öğrenciler burada nereye düşer?).
 7. Öğrencinin konuyu pekiştirmesi için benzer 1 adet yeni soru, 5 şıkkı, doğru cevabı ve çözümü ile üret.`;
 
-      parts.push({ text: prompt });
+    parts.push({ text: prompt });
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: [{ parts }],
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                subject: { type: Type.STRING, description: 'Ders adı (Örn: Matematik, Tarih, Türkçe)' },
-                topic: { type: Type.STRING, description: 'Konu adı (Örn: Üslü Sayılar, Kurtuluş Savaşı)' },
-                questionSummary: { type: Type.STRING, description: 'Sorunun kısa özeti' },
-                correctOption: { type: Type.STRING, description: 'Doğru seçenek (A, B, C, D veya E)' },
-                stepByStepSolution: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                  description: 'Çözüm adımları listesi',
-                },
-                keyConcept: { type: Type.STRING, description: 'Püf noktası / formül / hap bilgi' },
-                trapExplanation: { type: Type.STRING, description: 'Çeldirici analizi ve yapılan yaygın hata' },
-                similarPracticeQuestion: {
-                  type: Type.OBJECT,
-                  properties: {
-                    question: { type: Type.STRING, description: 'Benzer pekiştirme sorusu' },
-                    options: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING },
-                      description: 'A, B, C, D, E şıkları',
-                    },
-                    answer: { type: Type.STRING, description: 'Doğru seçenek ve yanıt' },
-                    explanation: { type: Type.STRING, description: 'Çözüm açıklaması' },
-                  },
-                  required: ['question', 'options', 'answer', 'explanation'],
-                },
-              },
-              required: [
-                'subject',
-                'topic',
-                'questionSummary',
-                'correctOption',
-                'stepByStepSolution',
-                'keyConcept',
-                'trapExplanation',
-                'similarPracticeQuestion',
-              ],
-            },
+    await handleGeminiJson({
+      res,
+      label: 'Snap solve',
+      contents: [{ parts }],
+      validate: (p) => p && p.correctOption && p.stepByStepSolution,
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          subject: { type: Type.STRING, description: 'Ders adı (Örn: Matematik, Tarih, Türkçe)' },
+          topic: { type: Type.STRING, description: 'Konu adı (Örn: Üslü Sayılar, Kurtuluş Savaşı)' },
+          questionSummary: { type: Type.STRING, description: 'Sorunun kısa özeti' },
+          correctOption: { type: Type.STRING, description: 'Doğru seçenek (A, B, C, D veya E)' },
+          stepByStepSolution: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Çözüm adımları listesi',
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      if (parsed && parsed.correctOption && parsed.stepByStepSolution) {
-        return res.json(parsed);
-      }
-      throw new Error('Invalid parsed response');
-    } catch (err: any) {
-      console.warn('Snap solve fallback triggered:', err?.message || err);
-      res.json({
+          keyConcept: { type: Type.STRING, description: 'Püf noktası / formül / hap bilgi' },
+          trapExplanation: { type: Type.STRING, description: 'Çeldirici analizi ve yapılan yaygın hata' },
+          similarPracticeQuestion: {
+            type: Type.OBJECT,
+            properties: {
+              question: { type: Type.STRING, description: 'Benzer pekiştirme sorusu' },
+              options: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: 'A, B, C, D, E şıkları',
+              },
+              answer: { type: Type.STRING, description: 'Doğru seçenek ve yanıt' },
+              explanation: { type: Type.STRING, description: 'Çözüm açıklaması' },
+            },
+            required: ['question', 'options', 'answer', 'explanation'],
+          },
+        },
+        required: [
+          'subject',
+          'topic',
+          'questionSummary',
+          'correctOption',
+          'stepByStepSolution',
+          'keyConcept',
+          'trapExplanation',
+          'similarPracticeQuestion',
+        ],
+      },
+      noKeyFallback: () => ({
+        subject: subject || 'Matematik',
+        topic: 'Temel Kavramlar & Problem Çözümü',
+        questionSummary: questionText ? questionText.slice(0, 100) : 'Görseldeki KPSS/YKS sorusu',
+        correctOption: 'C',
+        stepByStepSolution: [
+          'Adım 1: Soru kökünü ve verilen parametreleri belirle.',
+          'Adım 2: Formülü uygula ve sadeleştirme yap.',
+          'Adım 3: Sonucu şıklarla karşılaştır: Doğru yanıt C seçeneğidir.',
+        ],
+        keyConcept: 'ÖSYM bu tip sorularda işlem önceliği ve değişken tanımlamaya dikkat eder.',
+        trapExplanation: 'En sık yapılan hata: İşlem önceliğini gözden kaçırarak toplama/çıkarma sırasını karıştırmaktır.',
+        similarPracticeQuestion: {
+          question: 'Benzer Pekiştirme Sorusu: Bir sayının 3 katının 5 eksiği 22 olduğuna göre bu sayı kaçtır?',
+          options: ['A) 7', 'B) 8', 'C) 9', 'D) 10', 'E) 11'],
+          answer: 'C) 9',
+          explanation: '3x - 5 = 22 => 3x = 27 => x = 9.',
+        },
+      }),
+      fallback: () => ({
         subject: subject || 'Genel Soru Çözümü',
         topic: 'Kavram Analizi & Problem Çözümü',
         questionSummary: questionText ? questionText.slice(0, 100) : 'Görseldeki soru analizi',
@@ -449,23 +499,17 @@ Lütfen aşağıdaki JSON şemasına tam uyacak şekilde yanıt üret:
           answer: 'B) 12',
           explanation: '3k + 4k = 7k = 28 => k = 4. Kızlar = 3k = 12.',
         },
-      });
-    }
+      }),
+    });
   });
 
   // 3. Weekly Study Plan Generator
   app.post('/api/coach/generate-plan', async (req, res) => {
     const { examType, targetScore, dailyHours, weakSubjects, strongSubjects, daysUntilExam, planTitle } = req.body;
-    try {
-      const ai = getGeminiClient();
+    const planFallback = () =>
+      generateDynamicStudyPlan(examType, targetScore, dailyHours, weakSubjects, strongSubjects, daysUntilExam, planTitle);
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json(
-          generateDynamicStudyPlan(examType, targetScore, dailyHours, weakSubjects, strongSubjects, daysUntilExam, planTitle)
-        );
-      }
-
-      const prompt = `Sen uzman bir sınav koçusun. Aşağıdaki öğrenci profiline göre 7 günlük (Pazartesi-Pazar) bilimsel, uygulanabilir, MEB/ÖSYM uyumlu haftalık koçluk çalışma programı hazırla.
+    const prompt = `Sen uzman bir sınav koçusun. Aşağıdaki öğrenci profiline göre 7 günlük (Pazartesi-Pazar) bilimsel, uygulanabilir, MEB/ÖSYM uyumlu haftalık koçluk çalışma programı hazırla.
 
 Öğrenci Bilgileri:
 - Sınav Türü: ${examType || 'YKS TYT-AYT veya KPSS'}
@@ -480,63 +524,47 @@ Lütfen şu şemada JSON döndür:
 - overview (Genel strateji ve koçluk özeti)
 - days: 7 gün (dayName, focus, targetQuestions, blocks: [{ time, subject, task, duration }], coachTip)`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
+    await handleGeminiJson({
+      res,
+      label: 'Plan generator',
+      contents: prompt,
+      validate: (p) => p && p.days && p.days.length > 0,
+      fallback: planFallback,
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          planTitle: { type: Type.STRING },
+          overview: { type: Type.STRING },
+          days: {
+            type: Type.ARRAY,
+            items: {
               type: Type.OBJECT,
               properties: {
-                planTitle: { type: Type.STRING },
-                overview: { type: Type.STRING },
-                days: {
+                dayName: { type: Type.STRING },
+                focus: { type: Type.STRING },
+                targetQuestions: { type: Type.NUMBER },
+                blocks: {
                   type: Type.ARRAY,
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      dayName: { type: Type.STRING },
-                      focus: { type: Type.STRING },
-                      targetQuestions: { type: Type.NUMBER },
-                      blocks: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            time: { type: Type.STRING },
-                            subject: { type: Type.STRING },
-                            task: { type: Type.STRING },
-                            duration: { type: Type.STRING },
-                          },
-                          required: ['time', 'subject', 'task', 'duration'],
-                        },
-                      },
-                      coachTip: { type: Type.STRING },
+                      time: { type: Type.STRING },
+                      subject: { type: Type.STRING },
+                      task: { type: Type.STRING },
+                      duration: { type: Type.STRING },
                     },
-                    required: ['dayName', 'focus', 'targetQuestions', 'blocks', 'coachTip'],
+                    required: ['time', 'subject', 'task', 'duration'],
                   },
                 },
+                coachTip: { type: Type.STRING },
               },
-              required: ['planTitle', 'overview', 'days'],
+              required: ['dayName', 'focus', 'targetQuestions', 'blocks', 'coachTip'],
             },
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      if (parsed && parsed.days && parsed.days.length > 0) {
-        return res.json(parsed);
-      }
-      return res.json(
-        generateDynamicStudyPlan(examType, targetScore, dailyHours, weakSubjects, strongSubjects, daysUntilExam, planTitle)
-      );
-    } catch (err: any) {
-      console.warn('Plan generator warning (using dynamic resilient plan):', err?.message || err);
-      return res.json(
-        generateDynamicStudyPlan(examType, targetScore, dailyHours, weakSubjects, strongSubjects, daysUntilExam, planTitle)
-      );
-    }
+        },
+        required: ['planTitle', 'overview', 'days'],
+      },
+    });
   });
 
   // Helper for generating intelligent fallback mock exam diagnosis
@@ -712,16 +740,8 @@ Lütfen şu şemada JSON döndür:
   // 3.1 AI Mock Exam In-Depth Diagnostic & Deficient Topic Analyzer
   app.post('/api/coach/analyze-mock-exam', async (req, res) => {
     const { examTitle, examType, targetScore, sections, totalNet, estimatedScore, notes } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json(
-          getMockExamFallbackReport(examTitle, examType, targetScore, sections, totalNet, estimatedScore, notes)
-        );
-      }
-
-      const prompt = `Sen Türkiye'nin en iyi KPSS ve YKS Başarı & Sınav Koçusun.
+    const prompt = `Sen Türkiye'nin en iyi KPSS ve YKS Başarı & Sınav Koçusun.
 Aşağıdaki deneme sınavı sonuçlarını çok detaylı incele. Öğrencinin net kayıplarını, boş bıraktığı soruları ve zayıf düştüğü alt konuları tespit et:
 
 Sınav Başlığı: ${examTitle}
@@ -741,91 +761,68 @@ JSON formatında yanıt ver:
 - timeAndStrategyAdvice: Süre yönetimi ve turlama taktiği tavsiyesi.
 - actionPlanSteps: Önümüzdeki 7 gün için atılması gereken 3 somut adım listesi.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
+    await handleGeminiJson({
+      res,
+      label: 'Analyze mock exam',
+      contents: prompt,
+      validate: (p) => p && p.analysisSummary && p.criticalDeficientTopics,
+      fallback: () =>
+        getMockExamFallbackReport(examTitle, examType, targetScore, sections, totalNet, estimatedScore, notes),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          analysisSummary: { type: Type.STRING },
+          scoreAssessment: { type: Type.STRING },
+          weakSections: {
+            type: Type.ARRAY,
+            items: {
               type: Type.OBJECT,
               properties: {
-                analysisSummary: { type: Type.STRING },
-                scoreAssessment: { type: Type.STRING },
-                weakSections: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      sectionName: { type: Type.STRING },
-                      netLoss: { type: Type.STRING },
-                      diagnosis: { type: Type.STRING },
-                      recommendedWeeklyHours: { type: Type.NUMBER },
-                    },
-                    required: ['sectionName', 'netLoss', 'diagnosis', 'recommendedWeeklyHours'],
-                  },
-                },
-                criticalDeficientTopics: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      subject: { type: Type.STRING },
-                      topicName: { type: Type.STRING },
-                      priority: { type: Type.STRING },
-                      reason: { type: Type.STRING },
-                      quickFixTip: { type: Type.STRING },
-                    },
-                    required: ['subject', 'topicName', 'priority', 'reason', 'quickFixTip'],
-                  },
-                },
-                timeAndStrategyAdvice: { type: Type.STRING },
-                actionPlanSteps: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
+                sectionName: { type: Type.STRING },
+                netLoss: { type: Type.STRING },
+                diagnosis: { type: Type.STRING },
+                recommendedWeeklyHours: { type: Type.NUMBER },
               },
-              required: [
-                'analysisSummary',
-                'scoreAssessment',
-                'weakSections',
-                'criticalDeficientTopics',
-                'timeAndStrategyAdvice',
-                'actionPlanSteps',
-              ],
+              required: ['sectionName', 'netLoss', 'diagnosis', 'recommendedWeeklyHours'],
             },
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      if (parsed && parsed.analysisSummary && parsed.criticalDeficientTopics) {
-        return res.json(parsed);
-      }
-      return res.json(
-        getMockExamFallbackReport(examTitle, examType, targetScore, sections, totalNet, estimatedScore, notes)
-      );
-    } catch (err: any) {
-      console.warn('Analyze mock exam Gemini API warning (using resilient fallback report):', err?.message || err);
-      return res.json(
-        getMockExamFallbackReport(examTitle, examType, targetScore, sections, totalNet, estimatedScore, notes)
-      );
-    }
+          criticalDeficientTopics: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                subject: { type: Type.STRING },
+                topicName: { type: Type.STRING },
+                priority: { type: Type.STRING },
+                reason: { type: Type.STRING },
+                quickFixTip: { type: Type.STRING },
+              },
+              required: ['subject', 'topicName', 'priority', 'reason', 'quickFixTip'],
+            },
+          },
+          timeAndStrategyAdvice: { type: Type.STRING },
+          actionPlanSteps: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+        },
+        required: [
+          'analysisSummary',
+          'scoreAssessment',
+          'weakSections',
+          'criticalDeficientTopics',
+          'timeAndStrategyAdvice',
+          'actionPlanSteps',
+        ],
+      },
+    });
   });
 
   // 3.2 Generate Study Plan directly tailored to Mock Exam Deficiencies
   app.post('/api/coach/generate-plan-from-mock', async (req, res) => {
     const { examTitle, examType, targetScore, dailyHours, deficientTopics, weakSections } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json(
-          getPlanFromMockFallback(examTitle, examType, targetScore, dailyHours, deficientTopics, weakSections)
-        );
-      }
-
-      const prompt = `Sen profesyonel bir sınav koçusun.
+    const prompt = `Sen profesyonel bir sınav koçusun.
 Öğrencinin girdiği son "${examTitle}" deneme sınavında tespit edilen eksik konulara göre 7 günlük özel bir Telafi ve Net Kurtarma Çalışma Programı oluştur:
 
 Sınav Türü: ${examType}
@@ -845,64 +842,49 @@ JSON Çıktı Formatı:
   - blocks (time, subject, task, duration, completed: false)
   - coachTip`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
+    await handleGeminiJson({
+      res,
+      label: 'Generate plan from mock',
+      contents: prompt,
+      validate: (p) => p && p.days && p.days.length > 0,
+      fallback: () =>
+        getPlanFromMockFallback(examTitle, examType, targetScore, dailyHours, deficientTopics, weakSections),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          planTitle: { type: Type.STRING },
+          overview: { type: Type.STRING },
+          days: {
+            type: Type.ARRAY,
+            items: {
               type: Type.OBJECT,
               properties: {
-                planTitle: { type: Type.STRING },
-                overview: { type: Type.STRING },
-                days: {
+                dayName: { type: Type.STRING },
+                focus: { type: Type.STRING },
+                targetQuestions: { type: Type.NUMBER },
+                coachTip: { type: Type.STRING },
+                blocks: {
                   type: Type.ARRAY,
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      dayName: { type: Type.STRING },
-                      focus: { type: Type.STRING },
-                      targetQuestions: { type: Type.NUMBER },
-                      coachTip: { type: Type.STRING },
-                      blocks: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            time: { type: Type.STRING },
-                            subject: { type: Type.STRING },
-                            task: { type: Type.STRING },
-                            duration: { type: Type.STRING },
-                            completed: { type: Type.BOOLEAN },
-                          },
-                          required: ['time', 'subject', 'task', 'duration'],
-                        },
-                      },
+                      time: { type: Type.STRING },
+                      subject: { type: Type.STRING },
+                      task: { type: Type.STRING },
+                      duration: { type: Type.STRING },
+                      completed: { type: Type.BOOLEAN },
                     },
-                    required: ['dayName', 'focus', 'targetQuestions', 'coachTip', 'blocks'],
+                    required: ['time', 'subject', 'task', 'duration'],
                   },
                 },
               },
-              required: ['planTitle', 'overview', 'days'],
+              required: ['dayName', 'focus', 'targetQuestions', 'coachTip', 'blocks'],
             },
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      if (parsed && parsed.days && parsed.days.length > 0) {
-        return res.json(parsed);
-      }
-      return res.json(
-        getPlanFromMockFallback(examTitle, examType, targetScore, dailyHours, deficientTopics, weakSections)
-      );
-    } catch (err: any) {
-      console.warn('Generate plan from mock Gemini API warning (using resilient fallback plan):', err?.message || err);
-      return res.json(
-        getPlanFromMockFallback(examTitle, examType, targetScore, dailyHours, deficientTopics, weakSections)
-      );
-    }
+        },
+        required: ['planTitle', 'overview', 'days'],
+      },
+    });
   });
 
 // Curated Turkish Exam Pedagogical Topic Summary & Mnemonic Generator
@@ -1037,126 +1019,73 @@ function getCuratedTopicSummary(subjectName?: string, topicName?: string, examTy
   // 4. Topic Summary & Mnemonic Generator
   app.post('/api/coach/topic-summary', async (req, res) => {
     const { subject, topic, examType } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json(getCuratedTopicSummary(subject, topic, examType));
-      }
-
-      const prompt = `Lütfen ${examType || 'KPSS / YKS'} sınavı için ${subject} dersinin "${topic}" konusuna özel ultra-yüksek verimli bir hap bilgi özeti hazırla.
+    const prompt = `Lütfen ${examType || 'KPSS / YKS'} sınavı için ${subject} dersinin "${topic}" konusuna özel ultra-yüksek verimli bir hap bilgi özeti hazırla.
 İçerik şunları içermelidir:
 1. quickSummary: 2-3 cümlelik kilit sınav özeti.
 2. keyFormulasAndRules: 3-5 adet en çok çıkan formül, kural veya bilgi maddesi.
 3. mnemonicCode: Akılda tutmayı kolaylaştıran şifreleme/kodlama/kod adı tekniği.
 4. frequentQuestionTypes: ÖSYM'nin bu konudan en çok sorduğu soru tipi ve püf noktası.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                subject: { type: Type.STRING },
-                topic: { type: Type.STRING },
-                quickSummary: { type: Type.STRING },
-                keyFormulasAndRules: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
-                mnemonicCode: { type: Type.STRING },
-                frequentQuestionTypes: { type: Type.STRING },
-              },
-              required: ['subject', 'topic', 'quickSummary', 'keyFormulasAndRules', 'mnemonicCode', 'frequentQuestionTypes'],
-            },
-          },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      res.json({
+    await handleGeminiJson({
+      res,
+      label: 'Topic summary',
+      contents: prompt,
+      fallback: () => getCuratedTopicSummary(subject, topic, examType),
+      shape: (parsed) => ({
         subject: parsed.subject || subject,
         topic: parsed.topic || topic,
         quickSummary: parsed.quickSummary,
         keyFormulasAndRules: Array.isArray(parsed.keyFormulasAndRules) ? parsed.keyFormulasAndRules : [],
         mnemonicCode: parsed.mnemonicCode,
         frequentQuestionTypes: parsed.frequentQuestionTypes,
-      });
-    } catch (err: any) {
-      console.warn('Topic summary fallback triggered:', err?.message || err);
-      res.json(getCuratedTopicSummary(subject, topic, examType));
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          subject: { type: Type.STRING },
+          topic: { type: Type.STRING },
+          quickSummary: { type: Type.STRING },
+          keyFormulasAndRules: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+          mnemonicCode: { type: Type.STRING },
+          frequentQuestionTypes: { type: Type.STRING },
+        },
+        required: ['subject', 'topic', 'quickSummary', 'keyFormulasAndRules', 'mnemonicCode', 'frequentQuestionTypes'],
+      },
+    });
   });
 
   // 5. Practice Quiz Generator
   app.post('/api/coach/quiz', async (req, res) => {
     const { subject, topic, examType, count = 3 } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          questions: [
-            {
-              id: 1,
-              question: `${subject || 'Ders'} - ${topic || 'Konu'}: Aşağıdakilerden hangisi bu konunun en temel ilkesidir?`,
-              options: [
-                'A) Temel kural ve formülün doğru uygulanması',
-                'B) Zaman sınırlaması olmadan çözülmesi',
-                'C) Yalnızca ezber yöntemiyle çalışılması',
-                'D) Çeldiricileri dikkate almadan işaretlenmesi',
-                'E) Rastgele seçenek tahmini yapılması',
-              ],
-              correctAnswer: 'A',
-              explanation: 'Doğru cevap A seçeneğidir. ÖSYM mantığına göre temel kavram ve kuralları doğru analiz etmek soruyu en hızlı şekilde çözdürür.',
-            },
-          ],
-        });
-      }
+    const prompt = `${examType || 'KPSS/YKS'} sınav formatına tam uygun, ${subject} dersi "${topic}" konusuyla ilgili ${count} adet çoktan seçmeli (A, B, C, D, E şıklı) kaliteli, yeni nesil/ÖSYM tipi soru hazırla. Her sorunun doğru cevabını ve detaylı açıklamasını ekle.`;
 
-      const prompt = `${examType || 'KPSS/YKS'} sınav formatına tam uygun, ${subject} dersi "${topic}" konusuyla ilgili ${count} adet çoktan seçmeli (A, B, C, D, E şıklı) kaliteli, yeni nesil/ÖSYM tipi soru hazırla. Her sorunun doğru cevabını ve detaylı açıklamasını ekle.`;
-
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                questions: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.NUMBER },
-                      question: { type: Type.STRING },
-                      options: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                      },
-                      correctAnswer: { type: Type.STRING, description: 'Sadece harf: A, B, C, D veya E' },
-                      explanation: { type: Type.STRING },
-                    },
-                    required: ['id', 'question', 'options', 'correctAnswer', 'explanation'],
-                  },
-                },
-              },
-              required: ['questions'],
-            },
+    await handleGeminiJson({
+      res,
+      label: 'Quiz generator',
+      contents: prompt,
+      noKeyFallback: () => ({
+        questions: [
+          {
+            id: 1,
+            question: `${subject || 'Ders'} - ${topic || 'Konu'}: Aşağıdakilerden hangisi bu konunun en temel ilkesidir?`,
+            options: [
+              'A) Temel kural ve formülün doğru uygulanması',
+              'B) Zaman sınırlaması olmadan çözülmesi',
+              'C) Yalnızca ezber yöntemiyle çalışılması',
+              'D) Çeldiricileri dikkate almadan işaretlenmesi',
+              'E) Rastgele seçenek tahmini yapılması',
+            ],
+            correctAnswer: 'A',
+            explanation: 'Doğru cevap A seçeneğidir. ÖSYM mantığına göre temel kavram ve kuralları doğru analiz etmek soruyu en hızlı şekilde çözdürür.',
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      res.json(parsed);
-    } catch (err: any) {
-      console.warn('Quiz generator fallback triggered:', err?.message || err);
-      res.json({
+        ],
+      }),
+      fallback: () => ({
         questions: [
           {
             id: 1,
@@ -1185,54 +1114,38 @@ function getCuratedTopicSummary(subjectName?: string, topicName?: string, examTy
             explanation: 'Doğru cevap B seçeneğidir. Turlama tekniği zaman yönetiminde en yüksek net artışı sağlayan metottur.',
           },
         ],
-      });
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          questions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.NUMBER },
+                question: { type: Type.STRING },
+                options: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+                correctAnswer: { type: Type.STRING, description: 'Sadece harf: A, B, C, D veya E' },
+                explanation: { type: Type.STRING },
+              },
+              required: ['id', 'question', 'options', 'correctAnswer', 'explanation'],
+            },
+          },
+        },
+        required: ['questions'],
+      },
+    });
   });
 
   // 6. Institutional / Dershane Sınıf & Deneme Yapay Zeka Analiz Raporu
   app.post('/api/institution/analyze-class', async (req, res) => {
     const { institutionName, className, examTitle, classAverageNet, sectionData, studentsData } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          overview: `${institutionName || 'Kurumumuz'} ${className || 'Sınıfı'} için yapılan ${examTitle || 'Deneme Sınavı'} analizinde sınıf ortalaması ${classAverageNet || '82.5'} net olarak ölçülmüştür.`,
-          strengths: [
-            'Türkçe paragraf ve anlama sorularında başarı oranı %78 ile hedeflenen seviyededir.',
-            'Temel matematik işlem basamakları ve geometri analitiğinde istikrarlı netler görülmektedir.',
-          ],
-          topDeficientTopics: [
-            {
-              subject: 'Matematik',
-              topic: 'Yeni Nesil Grafik & Tablo Yorumlama Problemleri',
-              failRate: 58,
-              recommendedAction: 'Zümre öğretmenleri tarafından 2 ders saati hız ve eleme teknikleri özel etüdü yapılmalıdır.',
-            },
-            {
-              subject: 'Tarih',
-              topic: 'Osmanlı Kültür & Medeniyet Teşkilat Yapısı',
-              failRate: 52,
-              recommendedAction: 'Kavram haritası ve karşılaştırmalı hafıza şifreleme föyü dağıtılmalıdır.',
-            },
-            {
-              subject: 'Coğrafya / Fen',
-              topic: 'Harita Okuryazarlığı ve İklim Tipleri',
-              failRate: 46,
-              recommendedAction: 'Dilsiz harita doldurma çalışması zorunlu ödev olarak tanımlanmalıdır.',
-            },
-          ],
-          highPerformers: ['Ahmet Kaya (98.5 Net)', 'Zeynep Yıldız (94.0 Net)'],
-          needsAttentionStudents: ['Murat Demir (Ödev eksiği %35, 62 Net)', 'Elif Aksoy (Süre yetiştirememe)'],
-          institutionalActionPlan: [
-            '1. Hafta: Belirlenen 3 kritik eksik konu için sınıfa özel telafi etütleri planlanacak.',
-            '2. Hafta: Bireysel olarak 70 netin altında kalan öğrencilere mentörlük görüşmesi yapılacak.',
-            '3. Hafta: Sadece zayıf konuları tarayan 50 soruluk kurum içi mini tarama testi uygulanacak.',
-          ],
-        });
-      }
-
-      const prompt = `Sen Türkiye'nin en deneyimli KPSS & YKS Dershane / Akademi Rehberlik & Ölçme Değerlendirme Uzmanısın.
+    const prompt = `Sen Türkiye'nin en deneyimli KPSS & YKS Dershane / Akademi Rehberlik & Ölçme Değerlendirme Uzmanısın.
 Aşağıdaki kurum ve sınıf deneme sınavı verilerini analiz et ve rehberlik servisi / dershane yöneticisi / branş öğretmenleri için kurumsal teşhis ve eylem raporu üret.
 
 Kurum: ${institutionName}
@@ -1250,64 +1163,45 @@ Beklenen Çıktı Formatı (JSON):
 - needsAttentionStudents: Desteklenmesi ve özel rehberlik yapılması gereken öğrenciler.
 - institutionalActionPlan: Dershanenin önümüzdeki 2 haftada atması gereken 3 somut adım.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                overview: { type: Type.STRING },
-                strengths: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
-                topDeficientTopics: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      subject: { type: Type.STRING },
-                      topic: { type: Type.STRING },
-                      failRate: { type: Type.NUMBER },
-                      recommendedAction: { type: Type.STRING },
-                    },
-                    required: ['subject', 'topic', 'failRate', 'recommendedAction'],
-                  },
-                },
-                highPerformers: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
-                needsAttentionStudents: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
-                institutionalActionPlan: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
-              },
-              required: [
-                'overview',
-                'strengths',
-                'topDeficientTopics',
-                'highPerformers',
-                'needsAttentionStudents',
-                'institutionalActionPlan',
-              ],
-            },
+    await handleGeminiJson({
+      res,
+      label: 'Institution class analyze',
+      contents: prompt,
+      noKeyFallback: () => ({
+        overview: `${institutionName || 'Kurumumuz'} ${className || 'Sınıfı'} için yapılan ${examTitle || 'Deneme Sınavı'} analizinde sınıf ortalaması ${classAverageNet || '82.5'} net olarak ölçülmüştür.`,
+        strengths: [
+          'Türkçe paragraf ve anlama sorularında başarı oranı %78 ile hedeflenen seviyededir.',
+          'Temel matematik işlem basamakları ve geometri analitiğinde istikrarlı netler görülmektedir.',
+        ],
+        topDeficientTopics: [
+          {
+            subject: 'Matematik',
+            topic: 'Yeni Nesil Grafik & Tablo Yorumlama Problemleri',
+            failRate: 58,
+            recommendedAction: 'Zümre öğretmenleri tarafından 2 ders saati hız ve eleme teknikleri özel etüdü yapılmalıdır.',
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      res.json(parsed);
-    } catch (err: any) {
-      console.warn('Institution class analyze fallback triggered:', err?.message || err);
-      res.json({
+          {
+            subject: 'Tarih',
+            topic: 'Osmanlı Kültür & Medeniyet Teşkilat Yapısı',
+            failRate: 52,
+            recommendedAction: 'Kavram haritası ve karşılaştırmalı hafıza şifreleme föyü dağıtılmalıdır.',
+          },
+          {
+            subject: 'Coğrafya / Fen',
+            topic: 'Harita Okuryazarlığı ve İklim Tipleri',
+            failRate: 46,
+            recommendedAction: 'Dilsiz harita doldurma çalışması zorunlu ödev olarak tanımlanmalıdır.',
+          },
+        ],
+        highPerformers: ['Ahmet Kaya (98.5 Net)', 'Zeynep Yıldız (94.0 Net)'],
+        needsAttentionStudents: ['Murat Demir (Ödev eksiği %35, 62 Net)', 'Elif Aksoy (Süre yetiştirememe)'],
+        institutionalActionPlan: [
+          '1. Hafta: Belirlenen 3 kritik eksik konu için sınıfa özel telafi etütleri planlanacak.',
+          '2. Hafta: Bireysel olarak 70 netin altında kalan öğrencilere mentörlük görüşmesi yapılacak.',
+          '3. Hafta: Sadece zayıf konuları tarayan 50 soruluk kurum içi mini tarama testi uygulanacak.',
+        ],
+      }),
+      fallback: () => ({
         overview: `${institutionName || 'Kurumumuz'} ${className || 'Sınıfı'} için yapılan ${examTitle || 'Deneme Sınavı'} analizinde sınıf ortalaması ${classAverageNet || '80.0'} net olarak ölçülmüştür.`,
         strengths: [
           'Türkçe paragraf ve genel okuma anlama sorularında başarı oranı %75 civarındadır.',
@@ -1334,38 +1228,58 @@ Beklenen Çıktı Formatı (JSON):
           '2. Hafta: Birebir rehberlik görüşmeleri tamamlanacak.',
           '3. Hafta: Mini branş taraması yapılacak.',
         ],
-      });
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          overview: { type: Type.STRING },
+          strengths: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+          topDeficientTopics: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                subject: { type: Type.STRING },
+                topic: { type: Type.STRING },
+                failRate: { type: Type.NUMBER },
+                recommendedAction: { type: Type.STRING },
+              },
+              required: ['subject', 'topic', 'failRate', 'recommendedAction'],
+            },
+          },
+          highPerformers: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+          needsAttentionStudents: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+          institutionalActionPlan: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+        },
+        required: [
+          'overview',
+          'strengths',
+          'topDeficientTopics',
+          'highPerformers',
+          'needsAttentionStudents',
+          'institutionalActionPlan',
+        ],
+      },
+    });
   });
 
   // 10. Twin Question Generator (Benzer Soru Üretici)
   app.post('/api/snap/generate-twins', async (req, res) => {
     const { subject, topic, questionContext, examType } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          twins: [
-            {
-              id: 'twin-1',
-              questionText: `${subject || 'Matematik'} - ${topic || 'Temel Kavramlar'}: Benzer soru 1 örneğidir. 2x + 6 = 18 ise x kaçtır?`,
-              options: [
-                { key: 'A', text: '4' },
-                { key: 'B', text: '6' },
-                { key: 'C', text: '8' },
-                { key: 'D', text: '10' },
-                { key: 'E', text: '12' },
-              ],
-              correctAnswer: 'B',
-              hint: 'Denklemde bilinenleri bir tarafa, bilinmeyenleri diğer tarafa toplayın.',
-              solution: '2x + 6 = 18 => 2x = 12 => x = 6. Doğru cevap B seçeneğidir.',
-            },
-          ],
-        });
-      }
-
-      const prompt = `Sen uzman bir ${examType || 'KPSS / YKS'} soru yazarı ve ÖSYM soru uzmanısın.
+    const prompt = `Sen uzman bir ${examType || 'KPSS / YKS'} soru yazarı ve ÖSYM soru uzmanısın.
 Kullanıcının daha önce yanlış yaptığı veya üzerinde çalıştığı soru konusu şudur:
 - Ders: ${subject || 'Genel'}
 - Konu: ${topic || 'Genel'}
@@ -1374,53 +1288,31 @@ Kullanıcının daha önce yanlış yaptığı veya üzerinde çalıştığı so
 GÖREVİN:
 Bu soruyla AYNI MANTIKTA, AYNI PEDAGOJİK KAZANIMDA fakat FARKLI SAYILAR/VERİLER/ÖNCÜLLERLE tam 3 adet özgün, kaliteli ve şıklı (A, B, C, D, E) "İkiz / Benzer Soru" üret. Her sorunun ipucu, doğru cevabı ve detaylı çözümü olsun.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          config: {
-            temperature: 0.6,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                twins: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      questionText: { type: Type.STRING },
-                      options: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            key: { type: Type.STRING },
-                            text: { type: Type.STRING },
-                          },
-                          required: ['key', 'text'],
-                        },
-                      },
-                      correctAnswer: { type: Type.STRING },
-                      hint: { type: Type.STRING },
-                      solution: { type: Type.STRING },
-                    },
-                    required: ['id', 'questionText', 'options', 'correctAnswer', 'hint', 'solution'],
-                  },
-                },
-              },
-              required: ['twins'],
-            },
+    await handleGeminiJson({
+      res,
+      label: 'Generate twins',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { temperature: 0.6 },
+      shape: (p) => ({ twins: Array.isArray(p?.twins) ? p.twins : [] }),
+      noKeyFallback: () => ({
+        twins: [
+          {
+            id: 'twin-1',
+            questionText: `${subject || 'Matematik'} - ${topic || 'Temel Kavramlar'}: Benzer soru 1 örneğidir. 2x + 6 = 18 ise x kaçtır?`,
+            options: [
+              { key: 'A', text: '4' },
+              { key: 'B', text: '6' },
+              { key: 'C', text: '8' },
+              { key: 'D', text: '10' },
+              { key: 'E', text: '12' },
+            ],
+            correctAnswer: 'B',
+            hint: 'Denklemde bilinenleri bir tarafa, bilinmeyenleri diğer tarafa toplayın.',
+            solution: '2x + 6 = 18 => 2x = 12 => x = 6. Doğru cevap B seçeneğidir.',
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{"twins":[]}');
-      res.json(parsed);
-    } catch (err: any) {
-      console.warn('Generate twins fallback triggered:', err?.message || err);
-      res.json({
+        ],
+      }),
+      fallback: () => ({
         twins: [
           {
             id: 'twin-fallback-1',
@@ -1437,146 +1329,123 @@ Bu soruyla AYNI MANTIKTA, AYNI PEDAGOJİK KAZANIMDA fakat FARKLI SAYILAR/VERİLE
             solution: '3x - 6 = 15 => 3x = 21 => x = 7. Doğru seçenek C şıkkıdır.',
           },
         ],
-      });
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          twins: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                questionText: { type: Type.STRING },
+                options: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      key: { type: Type.STRING },
+                      text: { type: Type.STRING },
+                    },
+                    required: ['key', 'text'],
+                  },
+                },
+                correctAnswer: { type: Type.STRING },
+                hint: { type: Type.STRING },
+                solution: { type: Type.STRING },
+              },
+              required: ['id', 'questionText', 'options', 'correctAnswer', 'hint', 'solution'],
+            },
+          },
+        },
+        required: ['twins'],
+      },
+    });
   });
 
   // 11. Target Simulator AI Evaluation
   app.post('/api/target-simulator/analyze', async (req, res) => {
     const { target, currentNets, examType } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          matchPercentage: 78,
-          scoreDifference: -12,
-          aiAdvice: 'Hedefine ulaşmak için özellikle Matematik ve Alan derslerindeki eksik netleri tamamlamalısın. Düzenli branş denemeleri ile 4-6 hafta içinde hedeflenen banda yaklaşabilirsin.',
-          criticalFocusAreas: ['Matematik Netleri (+6)', 'Hata Defteri Tekrarları', 'Zaman Yönetimi'],
-        });
-      }
-
-      const prompt = `Sen kıdemli bir ${examType || 'YKS/KPSS'} Tercih ve Koçluk Uzmanısın.
+    const prompt = `Sen kıdemli bir ${examType || 'YKS/KPSS'} Tercih ve Koçluk Uzmanısın.
 Öğrencinin Hedefi: ${JSON.stringify(target || {})}
 Öğrencinin Mevcut Ortalama Netleri: ${JSON.stringify(currentNets || {})}
 
 Öğrencinin bu hedefe ulaşma olasılığını (matchPercentage: 0-100), eksik kaldığı netlerin yarattığı puan farkını, kritik odaklanması gereken 3 ders/alanı ve samimi, taktiksel koçluk tavsiyesini çıkar.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          config: {
-            temperature: 0.4,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                matchPercentage: { type: Type.NUMBER },
-                scoreDifference: { type: Type.NUMBER },
-                aiAdvice: { type: Type.STRING },
-                criticalFocusAreas: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                },
-              },
-              required: ['matchPercentage', 'scoreDifference', 'aiAdvice', 'criticalFocusAreas'],
-            },
-          },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      res.json(parsed);
-    } catch (err: any) {
-      console.warn('Target simulator fallback triggered:', err?.message || err);
-      res.json({
+    await handleGeminiJson({
+      res,
+      label: 'Target simulator',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { temperature: 0.4 },
+      noKeyFallback: () => ({
+        matchPercentage: 78,
+        scoreDifference: -12,
+        aiAdvice: 'Hedefine ulaşmak için özellikle Matematik ve Alan derslerindeki eksik netleri tamamlamalısın. Düzenli branş denemeleri ile 4-6 hafta içinde hedeflenen banda yaklaşabilirsin.',
+        criticalFocusAreas: ['Matematik Netleri (+6)', 'Hata Defteri Tekrarları', 'Zaman Yönetimi'],
+      }),
+      fallback: () => ({
         matchPercentage: 82,
         scoreDifference: -8,
         aiAdvice: 'Hedeflenen bölüme/kadroya ulaşmak için net artış potansiyeli yüksektir. Zayıf kalan 2 derse haftalık 3 saat ek soru çözümüyle 3-4 haftada hedef puana ulaşılabilir.',
         criticalFocusAreas: ['Temel Branş Netleri', 'Deneme Çözüm Rutini', 'Hata Defteri Tekrarı'],
-      });
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          matchPercentage: { type: Type.NUMBER },
+          scoreDifference: { type: Type.NUMBER },
+          aiAdvice: { type: Type.STRING },
+          criticalFocusAreas: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+        },
+        required: ['matchPercentage', 'scoreDifference', 'aiAdvice', 'criticalFocusAreas'],
+      },
+    });
   });
 
   // 12. Question Duel Questions Generator
   app.post('/api/duel/generate-questions', async (req, res) => {
     const { category, examType, difficulty } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          questions: [
-            {
-              id: 'duel-q1',
-              category: category || 'Tarih',
-              question: 'Kurtuluş Savaşı döneminde Batı Cephesi Komutanlığı görevini yürüten komutan kimdir?',
-              options: ['İsmet İnönü', 'Kazım Karabekir', 'Fevzi Çakmak', 'Refet Bele', 'Ali Fuat Cebesoy'],
-              correctIndex: 0,
-              explanation: 'Batı Cephesi komutanı İsmet İnönü’dür.',
-              timeLimitSeconds: 20,
-            },
-            {
-              id: 'duel-q2',
-              category: category || 'Coğrafya',
-              question: 'Türkiye’de en çok yağış alan bölge hangisidir?',
-              options: ['Karadeniz Bölgesi', 'Akdeniz Bölgesi', 'Ege Bölgesi', 'Marmara Bölgesi', 'İç Anadolu Bölgesi'],
-              correctIndex: 0,
-              explanation: 'Doğu Karadeniz ve Rize çevresi yıllık 2400 mm ile en yüksek yağışı alır.',
-              timeLimitSeconds: 20,
-            },
-          ],
-        });
-      }
-
-      const prompt = `Sen ${examType || 'KPSS / YKS'} canlı bilgi yarışması / düello soru hazırlayıcısısın.
+    const prompt = `Sen ${examType || 'KPSS / YKS'} canlı bilgi yarışması / düello soru hazırlayıcısısın.
 Seçilen Alan: ${category || 'Genel Kültür'}
 Zorluk: ${difficulty || 'Orta'}
 
 Tam 8 adet hızlı, düşündürücü, çoktan seçmeli (5 şıklı) yarışma sorusu üret. Her soruda options array'i, doğru cevabın index'i (0, 1, 2, 3, 4), kısa bir açıklama ve 20 saniye süre limiti olsun.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          config: {
-            temperature: 0.7,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                questions: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      category: { type: Type.STRING },
-                      question: { type: Type.STRING },
-                      options: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                      },
-                      correctIndex: { type: Type.INTEGER },
-                      explanation: { type: Type.STRING },
-                      timeLimitSeconds: { type: Type.INTEGER },
-                    },
-                    required: ['id', 'category', 'question', 'options', 'correctIndex', 'explanation', 'timeLimitSeconds'],
-                  },
-                },
-              },
-              required: ['questions'],
-            },
+    await handleGeminiJson({
+      res,
+      label: 'Duel questions',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { temperature: 0.7 },
+      shape: (p) => ({ questions: Array.isArray(p?.questions) ? p.questions : [] }),
+      noKeyFallback: () => ({
+        questions: [
+          {
+            id: 'duel-q1',
+            category: category || 'Tarih',
+            question: 'Kurtuluş Savaşı döneminde Batı Cephesi Komutanlığı görevini yürüten komutan kimdir?',
+            options: ['İsmet İnönü', 'Kazım Karabekir', 'Fevzi Çakmak', 'Refet Bele', 'Ali Fuat Cebesoy'],
+            correctIndex: 0,
+            explanation: 'Batı Cephesi komutanı İsmet İnönü’dür.',
+            timeLimitSeconds: 20,
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{"questions":[]}');
-      res.json(parsed);
-    } catch (err: any) {
-      console.warn('Duel questions fallback triggered:', err?.message || err);
-      res.json({
+          {
+            id: 'duel-q2',
+            category: category || 'Coğrafya',
+            question: 'Türkiye’de en çok yağış alan bölge hangisidir?',
+            options: ['Karadeniz Bölgesi', 'Akdeniz Bölgesi', 'Ege Bölgesi', 'Marmara Bölgesi', 'İç Anadolu Bölgesi'],
+            correctIndex: 0,
+            explanation: 'Doğu Karadeniz ve Rize çevresi yıllık 2400 mm ile en yüksek yağışı alır.',
+            timeLimitSeconds: 20,
+          },
+        ],
+      }),
+      fallback: () => ({
         questions: [
           {
             id: 'duel-q1',
@@ -1606,40 +1475,40 @@ Tam 8 adet hızlı, düşündürücü, çoktan seçmeli (5 şıklı) yarışma s
             timeLimitSeconds: 20,
           },
         ],
-      });
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          questions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                category: { type: Type.STRING },
+                question: { type: Type.STRING },
+                options: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+                correctIndex: { type: Type.INTEGER },
+                explanation: { type: Type.STRING },
+                timeLimitSeconds: { type: Type.INTEGER },
+              },
+              required: ['id', 'category', 'question', 'options', 'correctIndex', 'explanation', 'timeLimitSeconds'],
+            },
+          },
+        },
+        required: ['questions'],
+      },
+    });
   });
 
   // 13. Speed Trainer Passage & Questions Generator
   app.post('/api/speed-trainer/generate-passage', async (req, res) => {
     const { type, topic, examType } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.json({
-          title: 'Zaman Yönetimi ve Bilişsel Esneklik',
-          passage: 'Öğrenme sürecinde beynimiz iki temel mod arasında geçiş yapar: odaklanmış mod ve dağınık mod. Odaklanmış modda doğrudan problemin çözümüne kilitleniriz; dağınık modda ise beynimiz arka planda kavramlar arasında geniş bağlantılar kurar. Zorlu bir problemle karşılaşıldığında belirli bir süre yoğun odaklanmanın ardından kısa bir mola vermek, zihnin dağınık moda geçerek beklenmedik yaratıcı çözümler üretmesini sağlar.',
-          wordCount: 72,
-          idealWpmTarget: 220,
-          comprehensionQuestions: [
-            {
-              id: 'cq-1',
-              question: 'Metne göre dağınık modun temel işlevi nedir?',
-              options: [
-                'Doğrudan tek bir hesaba odaklanmak',
-                'Kavramlar arasında geniş bağlantılar kurmak',
-                'Ezber yapmayı hızlandırmak',
-                'Yalnızca uyku anında çalışmak',
-              ],
-              correctIndex: 1,
-              explanation: 'Metinde dağınık modun kavramlar arasında geniş bağlantılar kurduğu açıkça belirtilmiştir.',
-            },
-          ],
-        });
-      }
-
-      const prompt = `Sen ${examType || 'YKS / KPSS'} Hızlı Okuma & Anlama / Problem Çözme Antrenörüsün.
+    const prompt = `Sen ${examType || 'YKS / KPSS'} Hızlı Okuma & Anlama / Problem Çözme Antrenörüsün.
 İstenen Antrenman Türü: ${type === 'MATH_PROBLEM' ? 'Matematik Yeni Nesil Mantık Problemi' : 'Türkçe Paragraf Hızlı Okuma ve Anlama'}
 Konu: ${topic || 'Genel Kültür / Bilim / Edebiyat'}
 
@@ -1648,49 +1517,32 @@ GÖREVİN:
 2. Metinle ilgili 2 adet çoktan seçmeli anlama sorusu oluştur.
 3. Kelime sayısı ve ideal WPM (Words Per Minute) hedefi (örn. 200-240) belirle.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          config: {
-            temperature: 0.6,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                passage: { type: Type.STRING },
-                wordCount: { type: Type.INTEGER },
-                idealWpmTarget: { type: Type.INTEGER },
-                comprehensionQuestions: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      question: { type: Type.STRING },
-                      options: {
-                        type: Type.ARRAY,
-                        items: { type: Type.STRING },
-                      },
-                      correctIndex: { type: Type.INTEGER },
-                      explanation: { type: Type.STRING },
-                    },
-                    required: ['id', 'question', 'options', 'correctIndex', 'explanation'],
-                  },
-                },
-              },
-              required: ['title', 'passage', 'wordCount', 'idealWpmTarget', 'comprehensionQuestions'],
-            },
+    await handleGeminiJson({
+      res,
+      label: 'Speed trainer',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { temperature: 0.6 },
+      noKeyFallback: () => ({
+        title: 'Zaman Yönetimi ve Bilişsel Esneklik',
+        passage: 'Öğrenme sürecinde beynimiz iki temel mod arasında geçiş yapar: odaklanmış mod ve dağınık mod. Odaklanmış modda doğrudan problemin çözümüne kilitleniriz; dağınık modda ise beynimiz arka planda kavramlar arasında geniş bağlantılar kurar. Zorlu bir problemle karşılaşıldığında belirli bir süre yoğun odaklanmanın ardından kısa bir mola vermek, zihnin dağınık moda geçerek beklenmedik yaratıcı çözümler üretmesini sağlar.',
+        wordCount: 72,
+        idealWpmTarget: 220,
+        comprehensionQuestions: [
+          {
+            id: 'cq-1',
+            question: 'Metne göre dağınık modun temel işlevi nedir?',
+            options: [
+              'Doğrudan tek bir hesaba odaklanmak',
+              'Kavramlar arasında geniş bağlantılar kurmak',
+              'Ezber yapmayı hızlandırmak',
+              'Yalnızca uyku anında çalışmak',
+            ],
+            correctIndex: 1,
+            explanation: 'Metinde dağınık modun kavramlar arasında geniş bağlantılar kurduğu açıkça belirtilmiştir.',
           },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      res.json(parsed);
-    } catch (err: any) {
-      console.warn('Speed trainer fallback triggered:', err?.message || err);
-      res.json({
+        ],
+      }),
+      fallback: () => ({
         title: 'Sınavda Zihinsel Odaklanma ve Hızlı Okuma',
         passage: 'ÖSYM sınavlarında paragraf sorularında başarı, sadece hızlı okumakla değil, metnin ana düşüncesini ve yazarın bakış açısını ilk okuyuşta yakalamakla mümkündür. Turlama tekniği ve göz sıçramalarını genişleterek okuma alışkanlığı kazanmak, soru başına harcanan süreyi 40 saniyeye kadar düşürür.',
         wordCount: 48,
@@ -1709,139 +1561,128 @@ GÖREVİN:
             explanation: 'Metne göre göz sıçramalarını genişletmek ve turlama tekniği süreyi düşürmektedir.',
           },
         ],
-      });
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          passage: { type: Type.STRING },
+          wordCount: { type: Type.INTEGER },
+          idealWpmTarget: { type: Type.INTEGER },
+          comprehensionQuestions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                question: { type: Type.STRING },
+                options: {
+                  type: Type.ARRAY,
+                  items: { type: Type.STRING },
+                },
+                correctIndex: { type: Type.INTEGER },
+                explanation: { type: Type.STRING },
+              },
+              required: ['id', 'question', 'options', 'correctIndex', 'explanation'],
+            },
+          },
+        },
+        required: ['title', 'passage', 'wordCount', 'idealWpmTarget', 'comprehensionQuestions'],
+      },
+    });
   });
 
   // 14. WhatsApp Report Generator for Institutions
   app.post('/api/institution/generate-whatsapp-report', async (req, res) => {
     const { student, institutionName, latestExam } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY) {
-        const text = `📊 *${institutionName || 'Dershane'} Öğrenci Gelişim Raporu*\n\n` +
-          `👤 *Öğrenci:* ${student?.name || 'Öğrenci'}\n` +
-          `🎯 *Hedef Sınav:* ${student?.targetExam || 'KPSS / YKS'}\n` +
-          `📈 *Son Deneme Neti:* ${student?.latestMockNet || '0'} Net\n` +
-          `📝 *Toplam Çözülen Soru:* ${student?.totalQuestionsSolved || '0'}\n` +
-          `📅 *Devam Durumu:* %${student?.attendancePercent || '100'}\n\n` +
-          `💡 *Rehberlik Notu:* Öğrencimizin genel motivasyonu ve soru çözme istikrarı iyi durumdadır. Eksik konuları için etüt planlaması yapılmıştır.`;
-        return res.json({ formattedMessage: text });
-      }
-
-      const prompt = `Sen profesyonel bir dershane rehberlik öğretmenisin.
+    const prompt = `Sen profesyonel bir dershane rehberlik öğretmenisin.
 Kurum Adı: ${institutionName || 'Snaps Akademi'}
 Öğrenci Bilgileri: ${JSON.stringify(student || {})}
 Son Sınav Bilgileri: ${JSON.stringify(latestExam || {})}
 
 Veliye veya öğrenciye WhatsApp üzerinden gönderilecek; emojilerle zenginleştirilmiş, saygılı, net, motive edici ve özetleyen hazır bir WhatsApp mesaj metni hazırla. Markdown kalınlıkları (*metin*) WhatsApp formatına tam uygun olsun.`;
 
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          config: {
-            temperature: 0.5,
-          },
-        })
-      );
-
-      res.json({ formattedMessage: response.text || '' });
-    } catch (err: any) {
-      console.warn('WhatsApp report fallback triggered:', err?.message || err);
-      const text = `📊 *${institutionName || 'Akademi'} Öğrenci Gelişim & Deneme Raporu*\n\n` +
-        `👤 *Öğrenci:* ${student?.name || 'Değerli Öğrencimiz'}\n` +
-        `🎯 *Hedef Sınav:* ${student?.targetExam || 'KPSS / YKS'}\n` +
-        `📈 *Son Deneme Neti:* ${student?.latestMockNet || '75'} Net\n` +
-        `📝 *Çözülen Soru Sayısı:* ${student?.totalQuestionsSolved || '1200'}\n\n` +
-        `💡 *Rehberlik Değerlendirmesi:* Öğrencimizin konu çalışma disiplini ve deneme performansı artış trendindedir. Tespit edilen eksik konular için bireysel etüt planı başlatılmıştır.`;
-      res.json({ formattedMessage: text });
-    }
+    await handleGeminiText({
+      res,
+      label: 'WhatsApp report',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { temperature: 0.5 },
+      shape: (text) => ({ formattedMessage: text || '' }),
+      noKeyFallback: () => ({
+        formattedMessage:
+          `📊 *${institutionName || 'Dershane'} Öğrenci Gelişim Raporu*\n\n` +
+          `👤 *Öğrenci:* ${student?.name || 'Öğrenci'}\n` +
+          `🎯 *Hedef Sınav:* ${student?.targetExam || 'KPSS / YKS'}\n` +
+          `📈 *Son Deneme Neti:* ${student?.latestMockNet || '0'} Net\n` +
+          `📝 *Toplam Çözülen Soru:* ${student?.totalQuestionsSolved || '0'}\n` +
+          `📅 *Devam Durumu:* %${student?.attendancePercent || '100'}\n\n` +
+          `💡 *Rehberlik Notu:* Öğrencimizin genel motivasyonu ve soru çözme istikrarı iyi durumdadır. Eksik konuları için etüt planlaması yapılmıştır.`,
+      }),
+      fallback: () => ({
+        formattedMessage:
+          `📊 *${institutionName || 'Akademi'} Öğrenci Gelişim & Deneme Raporu*\n\n` +
+          `👤 *Öğrenci:* ${student?.name || 'Değerli Öğrencimiz'}\n` +
+          `🎯 *Hedef Sınav:* ${student?.targetExam || 'KPSS / YKS'}\n` +
+          `📈 *Son Deneme Neti:* ${student?.latestMockNet || '75'} Net\n` +
+          `📝 *Çözülen Soru Sayısı:* ${student?.totalQuestionsSolved || '1200'}\n\n` +
+          `💡 *Rehberlik Değerlendirmesi:* Öğrencimizin konu çalışma disiplini ve deneme performansı artış trendindedir. Tespit edilen eksik konular için bireysel etüt planı başlatılmıştır.`,
+      }),
+    });
   });
 
   // 15. Optical Form / Exam Image OCR Reader
   app.post('/api/institution/parse-optical-form', async (req, res) => {
     const { imageBase64, examType } = req.body;
-    try {
-      const ai = getGeminiClient();
 
-      if (!process.env.GEMINI_API_KEY || !imageBase64) {
-        return res.json({
-          studentName: 'Örnek Öğrenci',
-          studentNumber: '1042',
-          sections: [
-            { name: 'Türkçe', correct: 32, wrong: 6, empty: 2, net: 30.5 },
-            { name: 'Matematik', correct: 28, wrong: 4, empty: 8, net: 27.0 },
-            { name: 'Fen / Tarih', correct: 16, wrong: 3, empty: 1, net: 15.25 },
-          ],
-          totalNet: 72.75,
-          notes: 'Optik form veya sınav sonuç belgesi başarıyla ayrıştırıldı.',
-        });
-      }
+    const demoResult = () => ({
+      studentName: 'Örnek Öğrenci',
+      studentNumber: '1042',
+      sections: [
+        { name: 'Türkçe', correct: 32, wrong: 6, empty: 2, net: 30.5 },
+        { name: 'Matematik', correct: 28, wrong: 4, empty: 8, net: 27.0 },
+        { name: 'Fen / Tarih', correct: 16, wrong: 3, empty: 1, net: 15.25 },
+      ],
+      totalNet: 72.75,
+      notes: 'Optik form veya sınav sonuç belgesi başarıyla ayrıştırıldı.',
+    });
 
-      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-      const response = await callGeminiApi((model) =>
-        ai.models.generateContent({
-          model,
-          contents: [
+    // No image → nothing to OCR; return the demo result (same as the no-key path).
+    if (!imageBase64) {
+      res.json(demoResult());
+      return;
+    }
+
+    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+
+    await handleGeminiJson({
+      res,
+      label: 'Optical form OCR',
+      contents: [
+        {
+          role: 'user',
+          parts: [
             {
-              role: 'user',
-              parts: [
-                {
-                  inlineData: {
-                    mimeType: 'image/jpeg',
-                    data: cleanBase64,
-                  },
-                },
-                {
-                  text: `Bu resim bir ÖSYM/KPSS/YKS deneme sınavı optik formu veya sınav sonuç karnesidir.
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: cleanBase64,
+              },
+            },
+            {
+              text: `Bu resim bir ÖSYM/KPSS/YKS deneme sınavı optik formu veya sınav sonuç karnesidir.
 Lütfen resimdeki:
 1. Öğrenci Adı (varsa)
 2. Öğrenci Numarası / T.C. (varsa)
 3. Branş bazında Doğru (D), Yanlış (Y), Boş (B) ve Net değerlerini
 4. Toplam Net değerini çıkar.
 Türkiye standartlarında 4 yanlış 1 doğruyu götürür (Net = Doğru - Yanlış/4).`,
-                },
-              ],
             },
           ],
-          config: {
-            temperature: 0.2,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                studentName: { type: Type.STRING },
-                studentNumber: { type: Type.STRING },
-                sections: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      name: { type: Type.STRING },
-                      correct: { type: Type.NUMBER },
-                      wrong: { type: Type.NUMBER },
-                      empty: { type: Type.NUMBER },
-                      net: { type: Type.NUMBER },
-                    },
-                    required: ['name', 'correct', 'wrong', 'empty', 'net'],
-                  },
-                },
-                totalNet: { type: Type.NUMBER },
-                notes: { type: Type.STRING },
-              },
-              required: ['sections', 'totalNet'],
-            },
-          },
-        })
-      );
-
-      const parsed = JSON.parse(response.text || '{}');
-      res.json(parsed);
-    } catch (err: any) {
-      console.warn('Optical form OCR fallback triggered:', err?.message || err);
-      res.json({
+        },
+      ],
+      config: { temperature: 0.2 },
+      noKeyFallback: demoResult,
+      fallback: () => ({
         studentName: 'Öğrenci Sonuç Belgesi',
         studentNumber: '---',
         sections: [
@@ -1850,8 +1691,32 @@ Türkiye standartlarında 4 yanlış 1 doğruyu götürür (Net = Doğru - Yanl�
         ],
         totalNet: 51.5,
         notes: 'Görsel tarandı. Manuel net kontrolü yapabilirsiniz.',
-      });
-    }
+      }),
+      schema: {
+        type: Type.OBJECT,
+        properties: {
+          studentName: { type: Type.STRING },
+          studentNumber: { type: Type.STRING },
+          sections: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                correct: { type: Type.NUMBER },
+                wrong: { type: Type.NUMBER },
+                empty: { type: Type.NUMBER },
+                net: { type: Type.NUMBER },
+              },
+              required: ['name', 'correct', 'wrong', 'empty', 'net'],
+            },
+          },
+          totalNet: { type: Type.NUMBER },
+          notes: { type: Type.STRING },
+        },
+        required: ['sections', 'totalNet'],
+      },
+    });
   });
 
   // Vite middleware for development

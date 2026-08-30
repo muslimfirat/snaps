@@ -397,7 +397,10 @@ export function saveInstitutionExams(exams: InstitutionExam[]): void {
 }
 
 /**
- * Loads or generates 7-day rolling study analytics integrated with the active UserProfile.
+ * Builds the 7-day rolling study analytics from real data only:
+ * - today's live counters from the active UserProfile,
+ * - any explicitly saved {@link DailyStudyLog} entries for the past 6 days.
+ * Days with no recorded activity report 0 (no synthetic/demo seeding).
  */
 export function loadWeeklyStudyLogs(profile: UserProfile): DailyStudyLog[] {
   const dayLabels = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -448,16 +451,10 @@ export function loadWeeklyStudyLogs(profile: UserProfile): DailyStudyLog[] {
     } else if (saved && typeof saved.questionsSolved === 'number') {
       questionsSolved = saved.questionsSolved;
       minutesStudied = saved.minutesStudied || Math.round(saved.questionsSolved * 1.6);
-    } else if (isActiveStudyDay) {
-      // Deterministic realistic variance based on date
-      const seed = (d.getDate() * 17 + d.getMonth() * 31 + i * 13) % 40;
-      const factor = 0.85 + (seed / 100); // 0.85 to 1.25
-      questionsSolved = Math.round(questionTarget * factor);
-      minutesStudied = Math.round(minuteTarget * factor);
     } else {
-      // Off day / rest day
-      questionsSolved = Math.round(questionTarget * 0.15);
-      minutesStudied = Math.round(minuteTarget * 0.2);
+      // No recorded activity for this day.
+      questionsSolved = 0;
+      minutesStudied = 0;
     }
 
     const questionRatio = Math.min(1.2, questionsSolved / questionTarget);

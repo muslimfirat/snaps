@@ -253,23 +253,45 @@ doğrulaması API key gerektirdiğinden log'dan yapılamadı; model ID'leri resm
 
 ---
 
-## Faz 7 — Sunucu refactor ve son temizlik (Bulgu #7, #16)
+## Faz 7 — Sunucu refactor ve son temizlik (Bulgu #7, #16)  ✅ TAMAM (2026-08-29)
 
-Amaç: 1780 satırlık `server.ts`'i sürdürülebilir hale getirmek.
+Amaç: ~1880 satırlık `server.ts`'i sürdürülebilir hale getirmek.
 
-- [ ] `handleGeminiJson(res, { schema, prompt, contents, fallback })` ortak yardımcısı
-  - try / model fallback / `JSON.parse` / şema doğrulama / fallback JSON tek yerde
-  - 15 uç bu helper'a indirgensin
-- [ ] `loadWeeklyStudyLogs` sahte veri üretimi (`storage.ts:465`):
-  - **Ürün kararı:** demo seeding mi kalsın, yoksa gerçek loglanmamış günler `0` mı görünsün?
-  - Karar "gerçek" ise: seed mantığını kaldır, boş günler boş
-  - Karar "demo" ise: fonksiyon başına yorum + ilk gerçek log girildiğinde seed'i bırak
-- [ ] `firebase-blueprint.json` ↔ gerçek Firestore şeması uyumunu son kez kontrol et
-- [ ] Kullanılmayan import/dosya taraması (`institutionData` içindeki ölü export'lar vb.)
-- [ ] `server.ts:228` `const PORT = 3000` → `process.env.PORT || 3000` (Cloud Run uyumu, Faz 6'dan devir)
-- [ ] Vite kod bölme (opsiyonel) — tek 1.8 MB chunk (Faz 6'dan devir, kozmetik)
+- [x] `handleGeminiJson({ res, label, contents, schema, fallback, noKeyFallback?, config?, validate?, shape? })`
+  ortak yardımcısı + plain-text uçlar için `handleGeminiText`
+  - `getGeminiClient` + API key kontrolü + `callGeminiApi` (model fallback) + `JSON.parse` +
+    doğrulama + hata/fallback JSON artık tek yerde
+  - **13 uç** bu iki helper'a indirgendi (11 JSON + `coach/chat` & `generate-whatsapp-report` text)
+  - `noKeyFallback` opsiyonu: API-key-yok ile hata-fallback farklı olan uçlarda (snap/solve,
+    quiz, analyze-class, twins, target-simulator, duel, speed-trainer, whatsapp) davranış birebir korundu
+  - `server.ts` 1877 → 1742 satır (−135). Asıl kazanç yapısal: her uçtaki try/catch/parse/
+    key-check tekrarı kalktı, model-fallback + hata yönetimi merkezileşti
+- [x] `loadWeeklyStudyLogs` (`storage.ts`) — **Ürün kararı: gerçek veri.** Deterministik seed
+  (aktif gün varyansı + off-day %15) tamamen kaldırıldı. Artık yalnız bugünkü canlı sayaç +
+  `saveDailyStudyLogs` ile kaydedilmiş günler gerçek; kayıtsız günler `0`. Fonksiyon docstring'i güncellendi
+- [x] `firebase-blueprint.json` — gerçek şemayla farkı `_note` alanıyla belgelendi (blueprint =
+  HEDEF alt-koleksiyon tasarımı / Faz 2b; mevcut impl tek-doküman, `firestoreSync.ts`). README zaten not ediyordu
+- [x] Ölü kod taraması: tüm `data/` + `lib/` export'ları (institutionData dahil) kullanılıyor,
+  ölü dosya yok. **Not:** `tsc --noUnusedLocals` 30 bileşende 222 kullanılmayan import (çoğu
+  lucide-react ikonu) buluyor — mekanik ama Faz 7 dışı; ayrı temizlik olarak ertelendi
+- [x] `server.ts` `const PORT = 3000` → `Number(process.env.PORT) || 3000` (Cloud Run, Faz 6'dan devir)
+- [x] Vite kod bölme (**kullanıcı: "sen seç" → basit manualChunks**): `firebase` (660 KB),
+  `charts`/recharts (411 KB), `icons`/lucide (48 KB) ayrı chunk'lara. Ana bundle 1880 → 756 KB.
+  Lazy-load eklenmedi
 
-**Kabul kriterleri:** `server.ts` belirgin şekilde kısaldı, davranış aynı. Analitik grafikleri ya gerçek veri gösteriyor ya net "örnek veri" etiketli.
+**Doğrulama:**
+| Kontrol | Sonuç |
+|---------|-------|
+| `npm run lint` (strict) | ✅ 0 hata |
+| `npm run build` | ✅ başarılı, chunk'lar bölündü (firebase/charts/icons/index) |
+| `NODE_ENV=production PORT=3009 node dist/server.mjs` | ✅ 3009'da ayağa kalktı (PORT env çalışıyor) |
+| prod `/api/health`, SPA `/`, `/api/snap/solve` | ✅ 200 (fallback) |
+| prod `/api/institution/analyze-class` (token'sız) | ✅ 401 |
+| dev: chat/topic-summary/quiz/duel/twins/whatsapp fallback'leri | ✅ eski çıktıyla birebir |
+| `coach/chat` no-key mesajı (`examType` interpolasyonlu) | ✅ korundu (noKeyFallback) |
+
+**Kabul kriterleri:** ✅ `server.ts` yapısal olarak sadeleşti (uç başına ~15 satır boilerplate
+kalktı), davranış birebir aynı. ✅ Analitik grafiği artık yalnız gerçek veri gösteriyor (sahte seed yok).
 
 ---
 
