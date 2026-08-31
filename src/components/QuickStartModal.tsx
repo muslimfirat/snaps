@@ -133,13 +133,16 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs">
-          <span className="text-slate-500">
-            Dilediğin an arama çubuğundan veya başlıktan bu rehbere ulaşabilirsin.
-          </span>
+        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-3 text-xs">
+          <button
+            onClick={() => { onClose(); window.dispatchEvent(new CustomEvent('open-coach-tour')); }}
+            className="text-slate-400 hover:text-white font-semibold transition-colors"
+          >
+            ↻ Tanıtım turunu başlat
+          </button>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-md"
+            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all shadow-md shrink-0"
           >
             Anladım, Başla!
           </button>

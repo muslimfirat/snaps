@@ -6,6 +6,7 @@ import { Dashboard } from './components/Dashboard';
 import { ToolsHub } from './components/ToolsHub';
 import { Onboarding } from './components/Onboarding';
 import { LegalModal } from './components/LegalModal';
+import { CoachTour, TOUR_STEPS } from './components/CoachTour';
 import { QuickStartModal } from './components/QuickStartModal';
 import { StudyInsightsToast } from './components/StudyInsightsToast';
 import { ApiErrorToast } from './components/ApiErrorToast';
@@ -71,6 +72,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(false);
   const [legalDoc, setLegalDoc] = useState<'privacy' | 'terms' | null>(null);
+  const [showTour, setShowTour] = useState(false);
 
   // İlk açılış: profil hiç kurulmadıysa tam ekran onboarding akışını göster.
   const [isOnboarding, setIsOnboarding] = useState(() => !storage.getProfile().onboarded);
@@ -225,11 +227,18 @@ export default function App() {
       }
     };
     const openSearch = () => setIsSearchOpen(true);
+    const startTour = () => {
+      setActiveCategory('HOME');
+      setActiveTab('dashboard');
+      setTimeout(() => setShowTour(true), 300);
+    };
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('open-command-search', openSearch);
+    window.addEventListener('open-coach-tour', startTour);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-command-search', openSearch);
+      window.removeEventListener('open-coach-tour', startTour);
     };
   }, []);
 
@@ -269,6 +278,14 @@ export default function App() {
     if (isOnboarding) {
       setIsOnboarding(false);
       setShowSettings(false);
+      // Kurulumu ilk kez bitiren kullanıcıya kısa tanıtım turu.
+      let tourDone = false;
+      try { tourDone = localStorage.getItem('snaps_tour_done') === '1'; } catch { /* ignore */ }
+      if (!tourDone) {
+        setActiveCategory('HOME');
+        setActiveTab('dashboard');
+        setTimeout(() => setShowTour(true), 400);
+      }
     }
     setProfile(newProfile);
     storage.saveProfile(newProfile);
@@ -762,6 +779,17 @@ export default function App() {
         onClose={() => setLegalDoc(null)}
         initialDoc={legalDoc || 'privacy'}
       />
+
+      {/* İlk kurulum sonrası kısa tanıtım turu */}
+      {showTour && !isOnboarding && (
+        <CoachTour
+          steps={TOUR_STEPS}
+          onDone={() => {
+            setShowTour(false);
+            try { localStorage.setItem('snaps_tour_done', '1'); } catch { /* ignore */ }
+          }}
+        />
+      )}
 
       {/* Quick Start Guide Modal */}
       <QuickStartModal

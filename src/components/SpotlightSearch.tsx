@@ -45,7 +45,7 @@ export const SpotlightSearch: React.FC<SpotlightSearchProps> = ({ onOpenSearch, 
   }, []);
 
   return (
-    <div className="rounded-3xl p-[1.5px] bg-gradient-to-tr from-indigo-500/60 via-violet-500/40 to-indigo-500/60 shadow-lg shadow-indigo-950/30">
+    <div id="spotlight-search" className="rounded-3xl p-[1.5px] bg-gradient-to-tr from-indigo-500/60 via-violet-500/40 to-indigo-500/60 shadow-lg shadow-indigo-950/30">
       <div className="rounded-[calc(1.5rem-1.5px)] bg-surface-1 p-4 sm:p-5 space-y-3">
         <button
           onClick={() => {
