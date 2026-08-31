@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Camera, Bot, Calendar, BarChart3, BookOpen, Zap, Bookmark, Sparkles, Target, Clock, Share2, Building2, ArrowRight, X, Flame, Lightbulb } from 'lucide-react';
 import { MainTabCategory } from '../types';
+import { INSTITUTION_ENABLED } from '../lib/features';
 
 export interface CommandItem {
   id: string;
@@ -238,6 +239,7 @@ export const CommandSearch: React.FC<CommandSearchProps> = ({
   }, [isOpen]);
 
   const filteredItems = COMMAND_ITEMS.filter((item) => {
+    if (item.category === 'INSTITUTION' && !INSTITUTION_ENABLED) return false;
     if (!query.trim()) return true;
     const q = query.toLowerCase();
     return (

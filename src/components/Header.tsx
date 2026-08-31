@@ -33,6 +33,7 @@ import { EXAM_METADATA } from '../data/curriculumData';
 import { ambientManager } from '../lib/soundEffects';
 import { haptics } from '../lib/haptics';
 import { handleTablistKeys } from '../lib/useTablistKeys';
+import { INSTITUTION_ENABLED } from '../lib/features';
 
 interface HeaderProps {
   profile: UserProfile;
@@ -318,7 +319,8 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   </div>
 
-                  {/* 1. Kurumsal / Dershane Portalı Girişi */}
+                  {/* 1. Kurumsal / Dershane Portalı Girişi (demo — bayrakla gizlenebilir) */}
+                  {INSTITUTION_ENABLED && (
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
@@ -338,6 +340,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition-transform group-hover:translate-x-0.5 shrink-0 ml-1" />
                   </button>
+                  )}
 
                   {/* 2. Odak & Yağmur Sesi */}
                   <button

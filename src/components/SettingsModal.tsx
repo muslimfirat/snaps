@@ -8,6 +8,7 @@ import { GoogleAuthButton } from './GoogleAuthButton';
 import { useAuth } from '../context/AuthContext';
 import { useModalA11y } from '../lib/useModalA11y';
 import { getThemeMode, setThemeMode, type ThemeMode } from '../lib/themeMode';
+import { isTelemetryEnabled, setTelemetryEnabled } from '../lib/telemetry';
 
 interface SettingsModalProps {
   profile: UserProfile;
@@ -32,6 +33,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [dailyStudyHourTarget, setDailyStudyHourTarget] = useState(profile.dailyStudyHourTarget);
   const [examDate, setExamDate] = useState(profile.examDate);
   const [hapticEnabled, setHapticState] = useState(getHapticsEnabled());
+  const [telemetryEnabled, setTelemetryState] = useState(isTelemetryEnabled());
   const [hasVibrated, setHasVibrated] = useState(false);
   const [insightsEnabled, setInsightsEnabled] = useState<boolean>(() => {
     try {
@@ -447,6 +449,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* 7b. GİZLİLİK — ANONİM HATA RAPORLAMA */}
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-white block">Anonim Hata Raporlama</span>
+                    <span className="text-2xs text-slate-400 block">
+                      Sadece hata mesajları — kişisel veri veya çalışma içeriği gönderilmez. Üçüncü taraf yok.
+                    </span>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={telemetryEnabled}
+                    onChange={(e) => { setTelemetryState(e.target.checked); setTelemetryEnabled(e.target.checked); haptics.light(); }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-800 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500/60 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-legal', { detail: 'privacy' }))}
+                className="text-2xs text-indigo-400 hover:text-indigo-300 font-semibold"
+              >
+                Gizlilik &amp; KVKK metnini oku →
+              </button>
             </div>
 
             {/* 8. LİSANS & ÜYELİK BİLGİSİ */}

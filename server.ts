@@ -447,6 +447,29 @@ async function startServer() {
   app.use('/api', apiLimiter);
   app.use(['/api/snap/solve', '/api/coach/chat'], aiLimiter);
 
+  // --- Anonim telemetri: hata + temel olay logu (3. parti YOK, kalıcı depolama YOK) ---
+  // Yalnızca sunucu loglarına yapılandırılmış satır yazar; PII beklenmez/istenmez.
+  const telemetryLimiter = rateLimit({ windowMs: 60_000, limit: 30, standardHeaders: false, legacyHeaders: false });
+  app.post('/api/telemetry', telemetryLimiter, (req, res) => {
+    try {
+      const { type, name, message, stack, meta } = req.body || {};
+      const entry = {
+        t: new Date().toISOString(),
+        kind: 'telemetry',
+        type: String(type || 'event').slice(0, 24),
+        name: name ? String(name).slice(0, 80) : undefined,
+        message: message ? String(message).slice(0, 500) : undefined,
+        stack: stack ? String(stack).slice(0, 1500) : undefined,
+        meta: meta && typeof meta === 'object' ? JSON.parse(JSON.stringify(meta).slice(0, 800)) : undefined,
+        ua: (req.headers['user-agent'] || '').slice(0, 200),
+      };
+      console.log(JSON.stringify(entry));
+    } catch {
+      /* telemetri asla isteği bozmaz */
+    }
+    res.status(204).end();
+  });
+
   // --- Auth: institution portal + study-plan generation require a signed-in user ---
   // (Melez politika: snap/solve ve coach/chat girişsiz kullanılabilir, gerisi korunur.)
   app.use('/api/institution', requireAuth);

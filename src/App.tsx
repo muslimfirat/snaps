@@ -7,6 +7,7 @@ import { ToolsHub } from './components/ToolsHub';
 import { Onboarding } from './components/Onboarding';
 import { LegalModal } from './components/LegalModal';
 import { CoachTour, TOUR_STEPS } from './components/CoachTour';
+import { INSTITUTION_ENABLED } from './lib/features';
 import { QuickStartModal } from './components/QuickStartModal';
 import { StudyInsightsToast } from './components/StudyInsightsToast';
 import { ApiErrorToast } from './components/ApiErrorToast';
@@ -217,6 +218,14 @@ export default function App() {
   // "Sistem" teması seçiliyken cihaz açık/koyu tercihi değişirse canlı uygula
   useEffect(() => watchSystemTheme(), []);
 
+  // Kurum portalı kapalıyken o sekmede kalınmışsa anasayfaya dön.
+  useEffect(() => {
+    if (!INSTITUTION_ENABLED && (activeTab === 'institution' || activeCategory === 'INSTITUTION')) {
+      setActiveCategory('HOME');
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, activeCategory]);
+
   // PWA kısayolları: /?go=snap gibi bir parametreyle açılırsa ilgili sekmeye git.
   useEffect(() => {
     try {
@@ -243,6 +252,10 @@ export default function App() {
       }
     };
     const openSearch = () => setIsSearchOpen(true);
+    const openLegal = (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      setLegalDoc(d === 'terms' ? 'terms' : 'privacy');
+    };
     const startTour = () => {
       setActiveCategory('HOME');
       setActiveTab('dashboard');
@@ -251,10 +264,12 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('open-command-search', openSearch);
     window.addEventListener('open-coach-tour', startTour);
+    window.addEventListener('open-legal', openLegal);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-command-search', openSearch);
       window.removeEventListener('open-coach-tour', startTour);
+      window.removeEventListener('open-legal', openLegal);
     };
   }, []);
 
@@ -723,7 +738,7 @@ export default function App() {
         )}
 
         {/* Category 4: Institution & Management Views */}
-        {activeTab === 'institution' && (
+        {activeTab === 'institution' && INSTITUTION_ENABLED && (
           isInstitutionAuthenticated ? (
             <InstitutionPortal
               institutionConfig={institutionConfig}

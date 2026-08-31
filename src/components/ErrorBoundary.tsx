@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
+import { reportError } from '../lib/telemetry';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -25,6 +26,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('Uncaught UI error:', error, info.componentStack);
+    reportError(error, { source: 'ErrorBoundary', componentStack: (info.componentStack || '').slice(0, 600) });
   }
 
   private handleReload = () => {
