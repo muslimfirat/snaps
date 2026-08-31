@@ -14,3 +14,12 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 );
+
+// PWA: yalnızca üretim derlemesinde service worker kaydı ("Ana ekrana ekle").
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* SW zorunlu değil; sessizce geç */
+    });
+  });
+}

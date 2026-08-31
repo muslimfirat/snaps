@@ -1,0 +1,23 @@
+{
+  "name": "Snaps — KPSS & YKS AI Sınav Koçu",
+  "short_name": "Snaps",
+  "description": "KPSS ve YKS adayları için yapay zeka destekli sınav koçu: fotoğrafla soru çözümü, deneme takibi, çalışma planı ve istikrar analizi.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0c10",
+  "theme_color": "#0b0c10",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Soru Çöz", "short_name": "Soru Çöz", "url": "/?source=pwa&go=snap", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Takvim", "short_name": "Takvim", "url": "/?source=pwa&go=planner", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

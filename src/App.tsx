@@ -217,6 +217,22 @@ export default function App() {
   // "Sistem" teması seçiliyken cihaz açık/koyu tercihi değişirse canlı uygula
   useEffect(() => watchSystemTheme(), []);
 
+  // PWA kısayolları: /?go=snap gibi bir parametreyle açılırsa ilgili sekmeye git.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const go = params.get('go');
+      if (go) {
+        handleSelectTab(go);
+        params.delete('go');
+        params.delete('source');
+        const qs = params.toString();
+        window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''));
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Global keyboard shortcut Ctrl+K / Cmd+K + programmatic "open-command-search" event
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

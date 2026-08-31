@@ -384,6 +384,42 @@ async function startServer() {
   // Cloud Run / proxy: needed for correct client IP in rate limiting.
   app.set('trust proxy', 1);
 
+  // --- Güvenlik başlıkları (tüm yanıtlara) ---
+  const isProd = process.env.NODE_ENV === 'production';
+  // Firebase Auth popup + Firestore/Identity Toolkit + Google profil görselleri için izinli kaynaklar.
+  const csp = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://accounts.google.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://*.googleusercontent.com https://www.gstatic.com",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.googleapis.com https://*.google.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com",
+    "frame-src https://accounts.google.com https://*.firebaseapp.com",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+  ].join('; ');
+
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=(), browsing-topics=()');
+    // Firebase signInWithPopup, opener erişimi ister → allow-popups.
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    if (isProd) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+      // CSP yalnızca üretimde: dev'de Vite HMR (inline script + ws) engellenmesin.
+      if (process.env.DISABLE_CSP !== '1') {
+        res.setHeader('Content-Security-Policy', csp);
+      }
+    }
+    next();
+  });
+
   // Health check (before rate limiter so uptime probes are never throttled).
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', time: new Date().toISOString() });
