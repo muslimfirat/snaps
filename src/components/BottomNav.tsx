@@ -32,7 +32,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   // Check which main category is active
   const isHomeActive =
     activeCategory === 'HOME' ||
-    ['dashboard', 'curriculum', 'streak', 'achievements'].includes(activeTab);
+    ['dashboard', 'curriculum', 'notes', 'streak', 'achievements'].includes(activeTab);
 
   const isTrainingActive =
     activeCategory === 'TRAINING' ||
@@ -75,7 +75,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           onClick={() => {
             haptics.selection();
             onSelectCategory('HOME');
-            if (!['dashboard', 'curriculum', 'streak', 'achievements'].includes(activeTab)) {
+            if (!['dashboard', 'curriculum', 'notes', 'streak', 'achievements'].includes(activeTab)) {
               onSelectTab('dashboard');
             }
           }}

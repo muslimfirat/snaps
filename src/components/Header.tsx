@@ -23,7 +23,8 @@ import {
   X, 
   Lightbulb,
   ChevronRight,
-  Trophy
+  Trophy,
+  NotebookPen
 } from 'lucide-react';
 import { GoogleAuthButton } from './GoogleAuthButton';
 import { UserProfile, InstitutionConfig, MainTabCategory, InstitutionAccount } from '../types';
@@ -67,6 +68,7 @@ export const CATEGORY_DEFINITIONS: {
     subTabs: [
       { id: 'dashboard', label: 'Genel Bakış', icon: BarChart3 },
       { id: 'curriculum', label: 'Müfredat & Konu', icon: BookOpen },
+      { id: 'notes', label: 'Defter Notları', icon: NotebookPen },
       { id: 'streak', label: 'İstikrar Analizi', icon: Flame },
       { id: 'achievements', label: 'Başarılar & Rozetler', icon: Trophy },
     ],

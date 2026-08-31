@@ -37,6 +37,15 @@ export const COMMAND_ITEMS: CommandItem[] = [
     keywords: ['müfredat', 'konu', 'not', 'hap bilgi', 'hafıza', 'quiz', 'dersler', 'tarih', 'matematik'],
   },
   {
+    id: 'notes',
+    category: 'HOME',
+    title: 'Defter Notları — El Yazısı Ders Notları',
+    subtitle: 'Ekip el yazısı konu notları + kendi defter sayfalarını fotoğraflayıp ekle, tekrar et',
+    icon: BookOpen,
+    badge: 'YENİ',
+    keywords: ['defter', 'not', 'ders notu', 'el yazısı', 'notlar', 'defter notları', 'konu notu', 'özet'],
+  },
+  {
     id: 'streak',
     category: 'HOME',
     title: 'İstikrar Analitiği & Seri Grafiği',

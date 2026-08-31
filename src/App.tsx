@@ -29,6 +29,7 @@ const SpeedTrainer = lazy(() => named(import('./components/SpeedTrainer'), 'Spee
 const QuestionDuel = lazy(() => named(import('./components/QuestionDuel'), 'QuestionDuel'));
 const VoiceAICoach = lazy(() => named(import('./components/VoiceAICoach'), 'VoiceAICoach'));
 const StreakAnalytics = lazy(() => named(import('./components/StreakAnalytics'), 'StreakAnalytics'));
+const LectureNotes = lazy(() => named(import('./components/LectureNotes'), 'LectureNotes'));
 const AchievementBadges = lazy(() => named(import('./components/AchievementBadges'), 'AchievementBadges'));
 const InstitutionLoginView = lazy(() => named(import('./components/InstitutionLoginView'), 'InstitutionLoginView'));
 
@@ -36,11 +37,11 @@ import { storage } from './lib/storage';
 import { watchSystemTheme } from './lib/themeMode';
 import { initGlobalHaptics, haptics } from './lib/haptics';
 import { useAuth } from './context/AuthContext';
-import { UserProfile, SnapSolution, MockExamRecord, WeeklyStudyPlan, Subject, Flashcard, InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, MistakeQuestionItem, MainTabCategory, InstitutionAccount } from './types';
+import { UserProfile, SnapSolution, MockExamRecord, WeeklyStudyPlan, Subject, Flashcard, InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, MistakeQuestionItem, MainTabCategory, InstitutionAccount, NoteProgress } from './types';
 
 const getCategoryForTab = (tab: string): MainTabCategory => {
   if (['institution', 'inst_analysis', 'inst_students', 'inst_optical', 'inst_coaching'].includes(tab)) return 'INSTITUTION';
-  if (['dashboard', 'curriculum', 'streak', 'analytics', 'achievements'].includes(tab)) return 'HOME';
+  if (['dashboard', 'curriculum', 'notes', 'streak', 'analytics', 'achievements'].includes(tab)) return 'HOME';
   if (['snap', 'mock', 'mistakes', 'notebook', 'errors', 'pomodoro', 'simulator', 'voice_coach', 'coach', 'speed', 'duel', 'flashcards'].includes(tab)) return 'TRAINING';
   if (['planner', 'calendar'].includes(tab)) return 'CALENDAR';
   if (['settings', 'profile'].includes(tab)) return 'PROFILE';
@@ -62,6 +63,7 @@ export default function App() {
   const [studyPlan, setStudyPlan] = useState<WeeklyStudyPlan | null>(() => storage.getStudyPlan());
   const [subjects, setSubjects] = useState<Subject[]>(() => storage.getSubjects(profile.targetExam));
   const [flashcards, setFlashcards] = useState<Flashcard[]>(() => storage.getFlashcards());
+  const [noteProgress, setNoteProgress] = useState<Record<string, NoteProgress>>(() => storage.getNoteProgress());
   const [showSettings, setShowSettings] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(false);
 
@@ -116,6 +118,10 @@ export default function App() {
             setFlashcards(cloudData.flashcards);
             storage.saveFlashcards(cloudData.flashcards);
           }
+          if (cloudData.noteProgress) {
+            setNoteProgress(cloudData.noteProgress);
+            storage.saveNoteProgress(cloudData.noteProgress);
+          }
         } else {
           // New Google User: Seed their initial cloud storage with their current state
           const local = localStateRef.current;
@@ -135,6 +141,7 @@ export default function App() {
             flashcards: local.flashcards,
             subjects: local.subjects,
             targetExam: local.profile.targetExam,
+            noteProgress: storage.getNoteProgress(),
           });
         }
       } catch (err) {
@@ -322,6 +329,14 @@ export default function App() {
     }
   };
 
+  const handleUpdateNoteProgress = (next: Record<string, NoteProgress>) => {
+    setNoteProgress(next);
+    storage.saveNoteProgress(next);
+    if (currentUser) {
+      syncCurrentDataToCloud({ noteProgress: next });
+    }
+  };
+
   const handleUpdateFlashcards = (newCards: Flashcard[]) => {
     setFlashcards(newCards);
     storage.saveFlashcards(newCards);
@@ -462,6 +477,7 @@ export default function App() {
             subjects={subjects}
             classGroups={classGroups}
             students={students}
+            noteProgress={noteProgress}
             onNavigateTab={handleSelectTab}
             onIncrementQuestionCount={handleIncrementQuestionCount}
             onIncrementStudyMinutes={handleIncrementStudyMinutes}
@@ -487,6 +503,17 @@ export default function App() {
             onIncrementQuestionCount={handleIncrementQuestionCount}
             onAddFlashcard={handleAddFlashcard}
             onNavigateTab={handleSelectTab}
+          />
+        )}
+
+        {activeTab === 'notes' && (
+          <LectureNotes
+            profile={profile}
+            subjects={subjects}
+            onUpdateSubjects={handleUpdateSubjects}
+            onNavigateTab={handleSelectTab}
+            noteProgress={noteProgress}
+            onUpdateNoteProgress={handleUpdateNoteProgress}
           />
         )}
 

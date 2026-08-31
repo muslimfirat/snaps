@@ -20,6 +20,7 @@ import {
   Flashcard,
   Subject,
   ExamCategory,
+  NoteProgress,
 } from '../types';
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
@@ -32,6 +33,8 @@ export interface CloudUserData {
   studyPlan?: WeeklyStudyPlan | null;
   flashcards?: Flashcard[];
   subjects?: Record<string, Subject[]>;
+  /** Defter Notları okuma/tekrar durumu (görseller senkronlanmaz). */
+  noteProgress?: Record<string, NoteProgress>;
 }
 
 /**
@@ -174,6 +177,7 @@ export async function syncUserDataToFirestore(
     flashcards?: Flashcard[];
     subjects?: Subject[];
     targetExam?: ExamCategory;
+    noteProgress?: Record<string, NoteProgress>;
   },
   database: Firestore = db,
 ): Promise<void> {
@@ -188,6 +192,7 @@ export async function syncUserDataToFirestore(
     if (data.subjects !== undefined && data.targetExam) {
       updates[`subjects_${data.targetExam}`] = data.subjects;
     }
+    if (data.noteProgress !== undefined) updates.noteProgress = data.noteProgress;
 
     const dropped = trimOversizedPayload(updates);
     if (JSON.stringify(updates).length > MAX_DOC_BYTES) {
@@ -240,6 +245,7 @@ export async function fetchAllCollections(
       flashcards: flashcards.docs.map((d) => d.data() as Flashcard),
       studyPlan: data.studyPlan || undefined,
       subjects: data.subjects || undefined,
+      noteProgress: data.noteProgress || undefined,
     };
   } catch (error) {
     console.error('Error fetching user data from Firestore:', error);

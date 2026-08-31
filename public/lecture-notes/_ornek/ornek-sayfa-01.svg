@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" font-family="Georgia, serif">
+  <rect width="900" height="1200" fill="#fdfcf7"/>
+  <g stroke="#dfe7f0" stroke-width="1">
+    <line x1="0" y1="120" x2="900" y2="120"/><line x1="0" y1="180" x2="900" y2="180"/>
+    <line x1="0" y1="240" x2="900" y2="240"/><line x1="0" y1="300" x2="900" y2="300"/>
+    <line x1="0" y1="360" x2="900" y2="360"/><line x1="0" y1="420" x2="900" y2="420"/>
+    <line x1="0" y1="480" x2="900" y2="480"/><line x1="0" y1="540" x2="900" y2="540"/>
+    <line x1="0" y1="600" x2="900" y2="600"/><line x1="0" y1="660" x2="900" y2="660"/>
+  </g>
+  <line x1="90" y1="0" x2="90" y2="1200" stroke="#f2b8c0" stroke-width="2"/>
+  <text x="120" y="90" font-size="40" fill="#1b3a6b">Örnek Not Sayfası</text>
+  <text x="120" y="170" font-size="30" fill="#333">yol = hız · zaman</text>
+  <text x="120" y="230" font-size="26" fill="#555">• Aynı yönde: v_bağıl = v1 − v2</text>
+  <text x="120" y="290" font-size="26" fill="#555">• Zıt yönde:  v_bağıl = v1 + v2</text>
+  <text x="120" y="1120" font-size="22" fill="#a33">Bu bir yer tutucudur — ekip el yazısı görselini buraya koyacak.</text>
+</svg>

@@ -1032,3 +1032,44 @@ grep `\[#[0-9A-Fa-f]` → 0 (SVG marka logoları hariç) · `!important` yalnız
 | 10 — renk sistemi + tasarım ölçeği | 🟢 10.1/10.2/10.3/10.5 + tipografi + gölge ölçeği tamam; 10.4 moot | — |
 | 10b — gündüz teması | 🟢 tamam (Sistem/Gündüz/Gece, token blokları, no-flash, elevasyon, grafik senkronu) | — |
 | Ölü bileşen temizliği | 🟢 3 bileşen (~1000 satır) silindi | — |
+
+---
+
+## Faz 11 — YKS konu havuzu + çıkmış soru ağırlıkları + Defter Notları (2026-08-31)
+
+**İstek:** (1) konular eksikti, tam YKS konu listesi gelsin; (2) çıkmış soru
+dağılımı/yılları eklensin; (3) çıkmış soruya göre ağırlık; (4) el yazısı ders
+notları modülü (ekip notları gömülü + öğrenci ekleyebilir), yeni sekme "Defter
+Notları" + anasayfa kartı.
+
+- **F1 — Tam YKS konu havuzu.** `INITIAL_YKS_SUBJECTS` 4 ders → **20 ders**
+  (TYT+AYT ayrı: Türkçe/Matematik/Geometri/Fizik/Kimya/Biyoloji/Tarih/Coğrafya/
+  Felsefe/Din + AYT Edebiyat). ~332 konu. `SubjectTopic.statKey` alanı eklendi
+  (`src/types.ts`). `mkTopic()` üretici: ağırlık `statKey` varsa çıkmış-soru
+  ortalamasından türetilir. `CURRICULUM_VERSION = 2`.
+- **F2 — `src/data/examTopicStats.ts` (YENİ).** MEB rehberlik derlemesi
+  PDF'lerinden (Psk. Dan. N. Gizem Toker) çözümlenmiş **TYT 2018–2025 + AYT
+  2019–2025** konu×yıl soru sayıları (296 satır). `getTopicStat`,
+  `deriveWeight` (derse göre normalize eşik), `topTopicsForSubject`.
+- **F3 — `CurriculumTracker`.** Her konuda yıl sparkline + "yıllık ort. / son
+  çıkış / toplam / trend" + açılır yıl kırılımı. Sırala (ağırlık/eksik/müfredat),
+  filtre (tümü/son 3 yıl/hiç çıkmamış/eksik). "En Kritik 5 Konu" paneli. Kaynak
+  dipnotu. Ortak statKey paylaşan alt başlıklar için "ana başlık geneli" uyarısı.
+- **F4 — Not veri katmanı.** `src/types.ts`: `LectureNote*`, `UserNote`,
+  `NoteProgress`. `src/data/lectureNotes.ts` (YENİ) küratörlü manifest +
+  `public/lecture-notes/` (README + `_ornek/` yer tutucu SVG'ler).
+  `src/lib/noteStore.ts` (YENİ) — vanilla IndexedDB (görsel Blob + downscale/webp
+  + user note meta). `storage.ts`: `loadNoteProgress`/`saveNoteProgress`.
+- **F5 — `src/components/LectureNotes.tsx` (YENİ, lazy).** Ders→konu→sayfa
+  görüntüleyici (zoom, sayfa nav), Ekip/Benim sekmeleri, "Okundu"/"Tekrar lazım",
+  tekrar listesi, dosyadan not ekleme modalı, konu↔müfredat köprüsü. Sekme
+  kaydı: `Header` CATEGORY_DEFINITIONS, `App` getCategoryForTab+render,
+  `BottomNav`, `CommandSearch`. `Dashboard`'a "Defter Notları" kartı.
+- **F6 — Göç & senkron.** `storage.loadSubjects` `CURRICULUM_VERSION` kontrolü +
+  `migrateSubjects` (kullanıcı işaretlerini konu id'sine göre taşır; tarayıcıda
+  test edildi — eski id düşer, eşleşen id işareti korur). `noteProgress`
+  Firestore ana dokümanına (`firestoreSync` + `AuthContext` fetch/seed);
+  görseller ASLA senkronlanmaz. Firestore kuralları değişmedi (owner write yeter).
+
+`npm run lint` + `npm run build` temiz. Tarayıcıda doğrulandı (konu takip
+frekans UI, migrasyon, defter görüntüleyici, konsol temiz).

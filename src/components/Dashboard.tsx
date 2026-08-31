@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Camera, Flame, Clock, Sparkles, ArrowRight, BookOpen, HelpCircle, FileText } from 'lucide-react';
-import { 
-  UserProfile, 
-  MockExamRecord, 
-  SnapSolution, 
-  WeeklyStudyPlan, 
-  Subject, 
+import { Camera, Flame, Clock, Sparkles, ArrowRight, BookOpen, HelpCircle, FileText, NotebookPen } from 'lucide-react';
+import {
+  UserProfile,
+  MockExamRecord,
+  SnapSolution,
+  WeeklyStudyPlan,
+  Subject,
   MainTabCategory,
   ClassGroup,
-  StudentRecord
+  StudentRecord,
+  NoteProgress
 } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
+import { lectureNoteCounts } from '../data/lectureNotes';
 import { DailyGoalProgressRing } from './DailyGoalProgressRing';
 import { DailyTasksWidget } from './DailyTasksWidget';
 import { QuickStartModal } from './QuickStartModal';
@@ -25,6 +27,7 @@ interface DashboardProps {
   subjects: Subject[];
   classGroups?: ClassGroup[];
   students?: StudentRecord[];
+  noteProgress?: Record<string, NoteProgress>;
   onNavigateTab: (tab: string, category?: MainTabCategory) => void;
   onIncrementQuestionCount: (count?: number) => void;
   onIncrementStudyMinutes?: (minutes: number) => void;
@@ -35,10 +38,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   mockExams = [],
   snaps = [],
   subjects = [],
+  noteProgress = {},
   onNavigateTab,
   onIncrementQuestionCount,
   onIncrementStudyMinutes,
 }) => {
+  const noteCounts = lectureNoteCounts();
+  const notesToReview = Object.values(noteProgress).filter((p) => p?.needsReview).length;
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
 
   const safeSubjects = Array.isArray(subjects) ? subjects : [];
@@ -318,6 +324,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
           />
         </div>
       </div>
+
+      {/* 6. Defter Notları kısayolu */}
+      <button
+        type="button"
+        onClick={() => {
+          haptics.selection();
+          onNavigateTab('notes', 'HOME');
+        }}
+        className="w-full bg-surface-1 border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between gap-3 hover:border-indigo-500/40 transition-colors text-left cursor-pointer"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
+            <NotebookPen className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">Defter Notları</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {noteCounts.topics} konu · {noteCounts.pages} el yazısı sayfa
+              {notesToReview > 0 ? ` · 🔁 ${notesToReview} tekrar` : ''}
+            </p>
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 text-slate-400 shrink-0" />
+      </button>
 
       {/* Quick Start Modal */}
       <QuickStartModal
