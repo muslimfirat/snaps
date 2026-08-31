@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
-import { BookOpen, Sparkles, Check, Zap, BookmarkPlus } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { BookOpen, Sparkles, Check, Zap, BookmarkPlus, ChevronDown, Flame, ArrowUpDown, Filter, TrendingUp, TrendingDown } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Subject, UserProfile, Flashcard, MainTabCategory } from '../types';
+import { Subject, SubjectTopic, UserProfile, Flashcard, MainTabCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
+import {
+  getTopicStat,
+  topTopicsForSubject,
+  STAT_SOURCE_LABEL,
+  type TopicStatSummary,
+} from '../data/examTopicStats';
 import { haptics } from '../lib/haptics';
 import { apiFetch } from '../lib/apiClient';
 
@@ -14,6 +20,83 @@ interface CurriculumTrackerProps {
   onAddFlashcard?: (card: Flashcard) => void;
   onNavigateTab?: (tab: string, category?: MainTabCategory) => void;
 }
+
+/** yks-tyt-matematik -> { section: 'TYT', slug: 'matematik' }  (KPSS dersleri null) */
+function parseSubjectId(id: string): { section: 'TYT' | 'AYT'; slug: string } | null {
+  const m = /^yks-(tyt|ayt)-(.+)$/.exec(id);
+  if (!m) return null;
+  return { section: m[1].toUpperCase() as 'TYT' | 'AYT', slug: m[2] };
+}
+
+const WEIGHT_RANK: Record<SubjectTopic['weight'], number> = { YÜKSEK: 0, ORTA: 1, DÜŞÜK: 2 };
+
+/** Bir konunun çıkmış soru geçmişini gösteren kompakt şerit + açılır yıl kırılımı. */
+const TopicFrequency: React.FC<{ stat: TopicStatSummary; expanded: boolean; sharedLabel?: string | null }> = ({
+  stat,
+  expanded,
+  sharedLabel,
+}) => {
+  const max = Math.max(1, ...stat.sparkline);
+  const TrendIcon =
+    stat.trend === 'artıyor' ? TrendingUp : stat.trend === 'azalıyor' ? TrendingDown : null;
+
+  return (
+    <div className="mt-1.5 space-y-1.5">
+      {sharedLabel && (
+        <p className="text-3xs text-slate-500">
+          «{sharedLabel}» ana başlığının geneli (alt başlıklar bu veriyi paylaşır):
+        </p>
+      )}
+      <div className="flex items-center gap-2 flex-wrap text-3xs text-slate-400">
+        <span className="inline-flex items-end gap-[2px] h-5" aria-hidden>
+          {stat.sparkline.map((n, i) => (
+            <span
+              key={i}
+              className={`w-1.5 rounded-sm ${n === 0 ? 'bg-slate-800' : n >= max * 0.66 ? 'bg-rose-500/80' : n >= max * 0.33 ? 'bg-amber-500/80' : 'bg-slate-600'}`}
+              style={{ height: `${Math.max(12, (n / max) * 100)}%` }}
+            />
+          ))}
+        </span>
+        <span className="font-semibold text-slate-300">
+          Yıllık ort. {stat.avgPerYear}
+        </span>
+        <span>·</span>
+        <span>Son çıkış {stat.lastAskedYear ?? '—'}</span>
+        <span>·</span>
+        <span>
+          Toplam {stat.total} soru / {stat.years.length} yıl
+        </span>
+        {TrendIcon && (
+          <span
+            className={`inline-flex items-center gap-0.5 ${stat.trend === 'artıyor' ? 'text-rose-300' : 'text-emerald-300'}`}
+          >
+            <TrendIcon className="w-3 h-3" />
+            {stat.trend}
+          </span>
+        )}
+      </div>
+      {expanded && (
+        <div className="flex flex-wrap gap-1 pt-0.5">
+          {stat.years.map((y, i) => (
+            <span
+              key={y}
+              className={`text-3xs px-1.5 py-0.5 rounded border ${
+                stat.sparkline[i] > 0
+                  ? 'bg-slate-800 border-slate-600 text-slate-200'
+                  : 'bg-slate-950 border-slate-800 text-slate-600'
+              }`}
+            >
+              {y}: {stat.sparkline[i]}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+type SortMode = 'weight' | 'curriculum' | 'incomplete';
+type FilterMode = 'all' | 'recent3' | 'never' | 'gaps';
 
 export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
   profile,
@@ -37,7 +120,56 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
   const [userQuizAnswers, setUserQuizAnswers] = useState<Record<number, string>>({});
   const [showQuizResults, setShowQuizResults] = useState(false);
 
+  // Çıkmış soru odaklı sıralama / filtre
+  const [sortMode, setSortMode] = useState<SortMode>('weight');
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [expandedTopicId, setExpandedTopicId] = useState<string | null>(null);
+
   const selectedSubject = safeSubjects.find((s) => s?.id === selectedSubjectId) || safeSubjects[0];
+  const subjectMeta = selectedSubject ? parseSubjectId(selectedSubject.id) : null;
+
+  const criticalTopics = useMemo(() => {
+    if (!subjectMeta) return [];
+    const top = topTopicsForSubject(subjectMeta.section, subjectMeta.slug, 5);
+    return top
+      .map((c) => {
+        const t = (selectedSubject?.topics || []).find((x) => x.statKey === c.statKey);
+        return t ? { topic: t, avgPerYear: c.avgPerYear } : null;
+      })
+      .filter((x): x is { topic: SubjectTopic; avgPerYear: number } => !!x);
+  }, [subjectMeta, selectedSubject]);
+
+  const sharedStatKeys = useMemo(() => {
+    const count = new Map<string, number>();
+    for (const t of selectedSubject?.topics || []) {
+      if (t.statKey) count.set(t.statKey, (count.get(t.statKey) || 0) + 1);
+    }
+    return new Set([...count].filter(([, n]) => n > 1).map(([k]) => k));
+  }, [selectedSubject]);
+
+  const visibleTopics = useMemo(() => {
+    const topics = [...(selectedSubject?.topics || [])];
+
+    const filtered = topics.filter((t) => {
+      if (filterMode === 'all') return true;
+      if (filterMode === 'gaps') return !t.isStudied || !t.isPracticeDone;
+      const stat = getTopicStat(t.statKey);
+      if (filterMode === 'never') return !stat || stat.total === 0;
+      if (filterMode === 'recent3') return !!stat && stat.sparkline.slice(-3).some((n) => n > 0);
+      return true;
+    });
+
+    const avg = (t: SubjectTopic) => getTopicStat(t.statKey)?.avgPerYear ?? -1;
+    if (sortMode === 'weight') {
+      filtered.sort(
+        (a, b) => WEIGHT_RANK[a.weight] - WEIGHT_RANK[b.weight] || avg(b) - avg(a)
+      );
+    } else if (sortMode === 'incomplete') {
+      const done = (t: SubjectTopic) => (t.isStudied ? 1 : 0) + (t.isPracticeDone ? 1 : 0) + (t.isReviewed ? 1 : 0);
+      filtered.sort((a, b) => done(a) - done(b) || WEIGHT_RANK[a.weight] - WEIGHT_RANK[b.weight]);
+    }
+    return filtered;
+  }, [selectedSubject, sortMode, filterMode, subjectMeta]);
 
   // Progress calculations
   const totalTopics = safeSubjects.reduce((acc, s) => acc + (s?.topics?.length || 0), 0);
@@ -238,26 +370,115 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
         {selectedSubject && (
           <div className="lg:col-span-8 space-y-4">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="border-b border-slate-800 pb-3 space-y-2">
                 <div>
                   <h2 className="text-base font-bold text-white">
                     {selectedSubject.name} Konuları
                   </h2>
                   <span className="text-xs text-slate-400">
-                    ÖSYM soru ağırlıklarına göre önceliklendirin
+                    ÖSYM çıkmış soru dağılımına göre (TYT 2018–2025, AYT 2019–2025) önceliklendirilmiştir
                   </span>
                 </div>
+
+                {subjectMeta && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 text-3xs text-slate-500 pr-1">
+                      <ArrowUpDown className="w-3 h-3" /> Sırala
+                    </span>
+                    {([
+                      ['weight', 'Ağırlık'],
+                      ['incomplete', 'Eksikler önce'],
+                      ['curriculum', 'Müfredat sırası'],
+                    ] as [SortMode, string][]).map(([m, label]) => (
+                      <button
+                        key={m}
+                        onClick={() => setSortMode(m)}
+                        className={`text-3xs font-semibold px-2 py-1 rounded-lg border transition-colors ${
+                          sortMode === m
+                            ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-200'
+                            : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                    <span className="inline-flex items-center gap-1 text-3xs text-slate-500 px-1">
+                      <Filter className="w-3 h-3" /> Filtre
+                    </span>
+                    {([
+                      ['all', 'Tümü'],
+                      ['recent3', 'Son 3 yılda çıkan'],
+                      ['never', 'Hiç çıkmamış'],
+                      ['gaps', 'Eksik konularım'],
+                    ] as [FilterMode, string][]).map(([m, label]) => (
+                      <button
+                        key={m}
+                        onClick={() => setFilterMode(m)}
+                        className={`text-3xs font-semibold px-2 py-1 rounded-lg border transition-colors ${
+                          filterMode === m
+                            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-200'
+                            : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* En kritik 5 konu (çıkmış soru ortalamasına göre) */}
+              {criticalTopics.length > 0 && (
+                <div className="rounded-xl bg-rose-950/20 border border-rose-500/25 p-3.5 space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-rose-200">
+                    <Flame className="w-3.5 h-3.5" />
+                    En Kritik 5 Konu — {selectedSubject.name.replace(/\s*\(.*\)/, '')}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {criticalTopics.map(({ topic, avgPerYear }) => (
+                      <button
+                        key={topic.id}
+                        onClick={() => setExpandedTopicId(topic.id)}
+                        className={`text-3xs px-2 py-1 rounded-lg border transition-colors ${
+                          topic.isStudied
+                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-200'
+                            : 'bg-slate-900 border-rose-500/30 text-rose-100 hover:bg-slate-800'
+                        }`}
+                        title={`Yıllık ort. ${avgPerYear} soru`}
+                      >
+                        {topic.isStudied ? '✓ ' : ''}
+                        {topic.name} · {avgPerYear}/yıl
+                      </button>
+                    ))}
+                  </div>
+                  {onNavigateTab && (
+                    <button
+                      onClick={() => onNavigateTab('planner', 'CALENDAR')}
+                      className="text-3xs font-semibold text-rose-300 hover:text-rose-100 underline underline-offset-2"
+                    >
+                      Bu konuları Çalışma Planı'na taşı →
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Topic Rows */}
               <div className="space-y-3">
-                {(selectedSubject.topics || []).map((topic) => (
+                {visibleTopics.length === 0 && (
+                  <p className="text-xs text-slate-500 py-6 text-center">
+                    Bu filtreye uyan konu yok.
+                  </p>
+                )}
+                {visibleTopics.map((topic) => {
+                  const stat = getTopicStat(topic.statKey);
+                  const isExpanded = expandedTopicId === topic.id;
+                  return (
                   <div
                     key={topic.id}
-                    className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-start justify-between gap-3"
                   >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-bold text-slate-100">
                           {topic.name}
                         </span>
@@ -269,11 +490,30 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
                               ? 'bg-amber-950/60 border-amber-500/50 text-amber-300'
                               : 'bg-slate-800 border-slate-700 text-slate-400'
                           }`}
-                          title="ÖSYM Sınav Çıkma Ağırlığı"
+                          title="ÖSYM çıkmış soru dağılımından türetilen ağırlık"
                         >
                           {topic.weight} AĞIRLIK
                         </span>
+                        {stat && (
+                          <button
+                            onClick={() => setExpandedTopicId(isExpanded ? null : topic.id)}
+                            className="text-3xs text-slate-500 hover:text-slate-300 inline-flex items-center gap-0.5"
+                            aria-expanded={isExpanded}
+                          >
+                            yıl kırılımı
+                            <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+                        )}
                       </div>
+                      {stat ? (
+                        <TopicFrequency
+                          stat={stat}
+                          expanded={isExpanded}
+                          sharedLabel={topic.statKey && sharedStatKeys.has(topic.statKey) ? stat.topic : null}
+                        />
+                      ) : (
+                        <p className="text-3xs text-slate-600">Bu alt başlık için ayrı çıkmış soru verisi yok.</p>
+                      )}
                     </div>
 
                     {/* Status Toggles & AI Actions */}
@@ -345,8 +585,14 @@ export const CurriculumTracker: React.FC<CurriculumTrackerProps> = ({
 
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
+
+              <p className="text-3xs text-slate-600 pt-1 border-t border-slate-800/60">
+                Kaynak: {STAT_SOURCE_LABEL}. Ağırlık, konunun yıllık ortalama soru payından türetilir.
+                2026 verisi ÖSYM yayımlayınca eklenecektir.
+              </p>
 
             </div>
           </div>

@@ -11,6 +11,11 @@ export interface SubjectTopic {
   isPracticeDone: boolean;
   isReviewed: boolean;
   notes?: string;
+  /**
+   * Çıkmış soru istatistiğine (src/data/examTopicStats.ts) bağlanma anahtarı.
+   * Birden fazla konu aynı statKey'i paylaşabilir (ör. alt başlıklar).
+   */
+  statKey?: string;
 }
 
 export interface Subject {
@@ -440,4 +445,56 @@ export interface CoachingSessionNote {
   actionItems: string[];
   targetQuestionCommitment: number;
   nextAppointmentDate: string;
+}
+
+// ----------------------------------------------------
+// DEFTER NOTLARI (el yazısı ders notları modülü)
+// ----------------------------------------------------
+
+/** Küratörlü (ekip tarafından hazırlanan) bir not sayfası. */
+export interface LectureNotePage {
+  /** public/ altındaki statik görsel yolu, ör. "/lecture-notes/tyt-matematik/problemler-01.webp" */
+  src: string;
+  caption?: string;
+}
+
+/** Bir konuya ait küratörlü not seti. */
+export interface LectureNoteTopic {
+  /** curriculumData'daki SubjectTopic.id ile eşleşir (konu ↔ not bağı). */
+  topicId: string;
+  title: string;
+  pages: LectureNotePage[];
+}
+
+/** Bir derse ait küratörlü notlar. */
+export interface LectureNoteSubject {
+  /** curriculumData'daki Subject.id ile eşleşir. */
+  subjectId: string;
+  label: string;
+  section: 'TYT' | 'AYT';
+  topics: LectureNoteTopic[];
+}
+
+/** Öğrencinin kendi eklediği not sayfası. Görsel Blob'u IndexedDB'de tutulur. */
+export interface UserNote {
+  id: string;
+  subjectId: string;
+  topicId?: string;
+  title: string;
+  tags: string[];
+  /** IndexedDB'deki blob kayıt anahtarları (sayfa sırası). */
+  imageKeys: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Bir not sayfası/setinin okuma durumu. Anahtar:
+ *  - küratörlü: `lecture:${topicId}` veya `lecture:${topicId}#${pageIndex}`
+ *  - öğrenci notu: `user:${noteId}`
+ */
+export interface NoteProgress {
+  read?: boolean;
+  needsReview?: boolean;
+  lastViewedAt?: string;
 }

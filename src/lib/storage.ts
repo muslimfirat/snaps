@@ -1,7 +1,8 @@
 import { 
-  UserProfile, 
-  Subject, 
-  SnapSolution, 
+  UserProfile,
+  Subject,
+  SubjectTopic,
+  SnapSolution,
   MockExamRecord, 
   WeeklyStudyPlan, 
   Flashcard, 
@@ -11,9 +12,10 @@ import {
   StudentRecord,
   InstitutionExam,
   MistakeQuestionItem,
-  DailyStudyLog
+  DailyStudyLog,
+  NoteProgress
 } from '../types';
-import { INITIAL_KPSS_SUBJECTS, INITIAL_YKS_SUBJECTS, INITIAL_SAVED_SNAPS, INITIAL_FLASHCARDS, INITIAL_MISTAKES, EXAM_METADATA } from '../data/curriculumData';
+import { INITIAL_KPSS_SUBJECTS, INITIAL_YKS_SUBJECTS, INITIAL_SAVED_SNAPS, INITIAL_FLASHCARDS, INITIAL_MISTAKES, EXAM_METADATA, CURRICULUM_VERSION } from '../data/curriculumData';
 import { DEFAULT_INSTITUTION_CONFIG, DEFAULT_CLASS_GROUPS, DEFAULT_STUDENTS, DEFAULT_INSTITUTION_EXAMS } from '../data/institutionData';
 import { getLocalDateStr, dayDifference } from './dateUtils';
 
@@ -30,7 +32,40 @@ const STORAGE_KEYS = {
   INSTITUTION_STUDENTS: 'snaps_inst_students',
   INSTITUTION_EXAMS: 'snaps_inst_exams',
   DAILY_STUDY_LOGS: 'snaps_daily_study_logs',
+  CURRICULUM_VERSION: 'snaps_curriculum_version_',
+  NOTE_PROGRESS: 'snaps_note_progress',
 };
+
+/**
+ * Konu havuzu güncellendiğinde (CURRICULUM_VERSION artınca) çalışır: kayıtlı
+ * derslerdeki kullanıcı işaretlerini (isStudied / isPracticeDone / isReviewed /
+ * notes) konu id'sine göre yeni havuza taşır. Eşleşmeyen eski konular düşer,
+ * yeni konular işaretsiz gelir.
+ */
+function migrateSubjects(examType: ExamCategory, stored: Subject[]): Subject[] {
+  const base = examType.startsWith('KPSS') ? INITIAL_KPSS_SUBJECTS : INITIAL_YKS_SUBJECTS;
+  const marks = new Map<string, Pick<SubjectTopic, 'isStudied' | 'isPracticeDone' | 'isReviewed' | 'notes'>>();
+  for (const s of Array.isArray(stored) ? stored : []) {
+    for (const t of s?.topics || []) {
+      if (!t?.id) continue;
+      if (t.isStudied || t.isPracticeDone || t.isReviewed || t.notes) {
+        marks.set(t.id, {
+          isStudied: !!t.isStudied,
+          isPracticeDone: !!t.isPracticeDone,
+          isReviewed: !!t.isReviewed,
+          notes: t.notes,
+        });
+      }
+    }
+  }
+  return base.map((s) => ({
+    ...s,
+    topics: s.topics.map((t) => {
+      const m = marks.get(t.id);
+      return m ? { ...t, ...m } : t;
+    }),
+  }));
+}
 
 export const DEFAULT_PROFILE: UserProfile = {
   name: 'Sınav Adayı',
@@ -178,28 +213,61 @@ export function saveProfile(profile: UserProfile): void {
 }
 
 export function loadSubjects(examType: ExamCategory): Subject[] {
+  const base = examType.startsWith('KPSS') ? INITIAL_KPSS_SUBJECTS : INITIAL_YKS_SUBJECTS;
   try {
     const key = STORAGE_KEYS.SUBJECTS + examType;
+    const versionKey = STORAGE_KEYS.CURRICULUM_VERSION + examType;
     const raw = localStorage.getItem(key);
-    if (raw) {
-      return JSON.parse(raw);
+
+    if (!raw) {
+      // İlk kez: sürüm damgasını yaz ki sonraki güncellemelerde göç tetiklensin.
+      try { localStorage.setItem(versionKey, String(CURRICULUM_VERSION)); } catch { /* kota */ }
+      return base;
     }
-    // Return defaults based on exam category
-    if (examType.startsWith('KPSS')) {
-      return INITIAL_KPSS_SUBJECTS;
-    } else {
-      return INITIAL_YKS_SUBJECTS;
+
+    const stored = JSON.parse(raw) as Subject[];
+    const storedVersion = Number(localStorage.getItem(versionKey) || '1');
+    if (storedVersion >= CURRICULUM_VERSION) {
+      return stored;
     }
+
+    // Konu havuzu güncellenmiş — kullanıcı işaretlerini taşı.
+    const migrated = migrateSubjects(examType, stored);
+    try {
+      localStorage.setItem(key, JSON.stringify(migrated));
+      localStorage.setItem(versionKey, String(CURRICULUM_VERSION));
+    } catch { /* kota */ }
+    return migrated;
   } catch {
-    return examType.startsWith('KPSS') ? INITIAL_KPSS_SUBJECTS : INITIAL_YKS_SUBJECTS;
+    return base;
   }
 }
 
 export function saveSubjects(examType: ExamCategory, subjects: Subject[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.SUBJECTS + examType, JSON.stringify(subjects));
+    localStorage.setItem(STORAGE_KEYS.CURRICULUM_VERSION + examType, String(CURRICULUM_VERSION));
   } catch (e) {
     console.error('Failed to save subjects:', e);
+  }
+}
+
+// ── Defter Notları: okuma / tekrar durumu (görseller IndexedDB'de, bkz. noteStore.ts) ──
+
+export function loadNoteProgress(): Record<string, NoteProgress> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.NOTE_PROGRESS);
+    return raw ? (JSON.parse(raw) as Record<string, NoteProgress>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveNoteProgress(progress: Record<string, NoteProgress>): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.NOTE_PROGRESS, JSON.stringify(progress));
+  } catch (e) {
+    console.error('Failed to save note progress:', e);
   }
 }
 
@@ -488,4 +556,6 @@ export const storage = {
   saveInstitutionExams,
   getWeeklyStudyLogs: loadWeeklyStudyLogs,
   saveDailyStudyLogs,
+  getNoteProgress: loadNoteProgress,
+  saveNoteProgress,
 };
