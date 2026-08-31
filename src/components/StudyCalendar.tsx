@@ -7,17 +7,38 @@ import {
   ClipboardList,
   Flame,
   ArrowUpRight,
+  CalendarPlus,
+  Clock3,
+  CheckCircle2,
+  Circle,
+  Lightbulb,
 } from 'lucide-react';
-import { UserProfile, MockExamRecord, MistakeQuestionItem, MainTabCategory, HeatmapDay } from '../types';
+import { UserProfile, MockExamRecord, MistakeQuestionItem, MainTabCategory, HeatmapDay, WeeklyStudyPlan } from '../types';
 import { loadStudyHeatmap } from '../lib/storage';
 import { getLocalDateStr } from '../lib/dateUtils';
 import { haptics } from '../lib/haptics';
+import { buildIcs, downloadIcs, IcsEvent } from '../lib/icsExport';
+import { EXAM_METADATA } from '../data/curriculumData';
 
 interface StudyCalendarProps {
   profile: UserProfile;
+  studyPlan?: WeeklyStudyPlan | null;
   mockExams?: MockExamRecord[];
   mistakes?: MistakeQuestionItem[];
   onNavigateTab?: (tab: string, category?: MainTabCategory) => void;
+  /** "Haftalık Plan" görünümüne geçiş (StudyPlanner'daki sekme). */
+  onShowWeeklyPlan?: () => void;
+}
+
+/** "09:00 - 10:30", "14.00", "Sabah 08:00" gibi metinden başlangıç saatini (dk) çıkarır. */
+function parseStartMinutes(time: string | undefined): number | null {
+  if (!time) return null;
+  const m = time.match(/(\d{1,2})[:.](\d{2})/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) return null;
+  return h * 60 + min;
 }
 
 const MONTHS_TR = [
@@ -39,9 +60,11 @@ const MILESTONES = [90, 60, 30, 14, 7];
 
 export const StudyCalendar: React.FC<StudyCalendarProps> = ({
   profile,
+  studyPlan,
   mockExams = [],
   mistakes = [],
   onNavigateTab,
+  onShowWeeklyPlan,
 }) => {
   const todayStr = getLocalDateStr();
   const today = new Date(`${todayStr}T00:00:00`);
@@ -123,6 +146,74 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
     return Math.min(100, Math.max(0, ((today.getTime() - start) / total) * 100));
   }, [examDateStr, profile.loginDates, todayStr, today]);
 
+  // Bugüne denk gelen plan günü (haftanın gününe göre — plan günleri gerçek tarih taşımıyor).
+  const todayPlanDay = useMemo(() => {
+    const days = studyPlan?.days;
+    if (!Array.isArray(days) || days.length === 0) return null;
+    const wd = (today.getDay() + 6) % 7;
+    return days[Math.min(wd, days.length - 1)] || null;
+  }, [studyPlan, today]);
+
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const planBlocks = Array.isArray(todayPlanDay?.blocks) ? todayPlanDay!.blocks : [];
+  // "Şimdi sırada": başlangıç saati şu andan önce olan son blok (tamamlanmamışsa).
+  const currentBlockIdx = useMemo(() => {
+    let idx = -1;
+    planBlocks.forEach((b, i) => {
+      const start = parseStartMinutes(b.time);
+      if (start !== null && start <= nowMinutes) idx = i;
+    });
+    return idx;
+  }, [planBlocks, nowMinutes]);
+
+  // Sınav öncesi "deneme haftası" önerisi
+  const recentMockCount = useMemo(() => {
+    const cutoff = new Date(today);
+    cutoff.setDate(cutoff.getDate() - 14);
+    return (Array.isArray(mockExams) ? mockExams : []).filter((ex) => {
+      if (!ex?.date) return false;
+      const d = new Date(`${ex.date.slice(0, 10)}T00:00:00`);
+      return d >= cutoff && d <= today;
+    }).length;
+  }, [mockExams, today]);
+  const denemeNudge = daysToExam > 7 && daysToExam <= 45 && recentMockCount < 2;
+
+  const handleExportIcs = () => {
+    haptics.selection();
+    const events: IcsEvent[] = [];
+    const examName = EXAM_METADATA[profile.targetExam]?.shortName || 'Sınav';
+
+    if (examDateStr) {
+      events.push({ date: examDateStr, summary: `🎯 ${examName} — SINAV GÜNÜ`, description: 'Snaps sınav koçu' });
+    }
+    (Array.isArray(mockExams) ? mockExams : []).forEach((ex) => {
+      if (ex?.date) events.push({ date: ex.date.slice(0, 10), summary: `📝 Deneme: ${ex.title}`, description: `${ex.totalNet} net` });
+    });
+    // Yaklaşan tekrarlar (bugünden itibaren 60 gün)
+    const limit = new Date(today); limit.setDate(limit.getDate() + 60);
+    reviewsByDate.forEach((count, date) => {
+      const d = new Date(`${date}T00:00:00`);
+      if (d >= today && d <= limit) {
+        events.push({ date, summary: `🔁 ${count} soru tekrarı`, description: 'Hata defteri aralıklı tekrar' });
+      }
+    });
+    // Haftalık plan — önümüzdeki günlere sırayla
+    if (Array.isArray(studyPlan?.days)) {
+      studyPlan!.days.forEach((d, i) => {
+        const dt = new Date(today); dt.setDate(dt.getDate() + i);
+        const blocks = Array.isArray(d?.blocks) ? d.blocks.map((b) => `• ${b.subject}: ${b.task}`).join('\n') : '';
+        events.push({
+          date: getLocalDateStr(dt),
+          summary: `📚 ${d?.focus || d?.dayName || `Çalışma günü ${i + 1}`}${d?.targetQuestions ? ` (${d.targetQuestions} soru)` : ''}`,
+          description: blocks,
+        });
+      });
+    }
+
+    if (events.length === 0) return;
+    downloadIcs('snaps-calisma-takvimi.ics', buildIcs(events));
+  };
+
   return (
     <div className="space-y-5">
       {/* Sınav geri sayımı + faz */}
@@ -140,9 +231,19 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
               </div>
             </div>
           </div>
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${phase.tone}`}>
-            {phase.label}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${phase.tone}`}>
+              {phase.label}
+            </span>
+            <button
+              onClick={handleExportIcs}
+              title="Takvimi .ics olarak indir (Google/Apple/Outlook)"
+              className="p-1.5 rounded-lg border border-border text-slate-400 hover:text-white hover:border-indigo-500/40 transition-colors"
+              aria-label="Takvimi dışa aktar"
+            >
+              <CalendarPlus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* İlerleme çizgisi + kilometre taşları */}
@@ -159,7 +260,65 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
         </div>
 
         <p className="text-xs text-slate-400 leading-relaxed">{phase.tip}</p>
+
+        {denemeNudge && (
+          <div className="flex items-start gap-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/25 rounded-xl p-3">
+            <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>Son 2 haftada {recentMockCount} deneme kaydettin. Sınav yaklaşıyor — bu hafta bir tam deneme planla.</span>
+          </div>
+        )}
       </div>
+
+      {/* Bugün odak — planın bugünkü blokları */}
+      {planBlocks.length > 0 && (
+        <div className="bg-surface-1 border border-border rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Clock3 className="w-4 h-4 text-indigo-400" /> Bugün Odak
+            </h3>
+            {todayPlanDay?.focus && (
+              <span className="text-2xs text-indigo-300 bg-indigo-500/15 px-2 py-0.5 rounded-md">{todayPlanDay.focus}</span>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            {planBlocks.map((b, i) => {
+              const isNow = i === currentBlockIdx && !b.completed;
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center gap-3 p-2.5 rounded-xl border ${
+                    isNow
+                      ? 'border-indigo-500/60 bg-indigo-600/15'
+                      : b.completed
+                      ? 'border-transparent bg-surface-0 opacity-60'
+                      : 'border-transparent bg-surface-0'
+                  }`}
+                >
+                  {b.completed ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-slate-600 shrink-0" />
+                  )}
+                  <span className="text-2xs font-mono text-slate-400 w-14 shrink-0">{b.time || '—'}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className={`text-xs font-semibold ${b.completed ? 'line-through text-slate-500' : 'text-indigo-300'}`}>{b.subject}</span>
+                    <p className={`text-2xs truncate ${b.completed ? 'text-slate-600' : 'text-slate-300'}`}>{b.task}</p>
+                  </div>
+                  {isNow && <span className="text-3xs font-bold text-indigo-300 bg-indigo-500/20 px-1.5 py-0.5 rounded shrink-0">ŞİMDİ</span>}
+                </div>
+              );
+            })}
+          </div>
+          {onShowWeeklyPlan && (
+            <button
+              onClick={onShowWeeklyPlan}
+              className="text-2xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+            >
+              Haftalık planın tamamı <ArrowUpRight className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Bugünün tekrarları */}
       {reviewsDueToday > 0 && (

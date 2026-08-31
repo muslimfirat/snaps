@@ -213,9 +213,11 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
       {view === 'calendar' ? (
         <StudyCalendar
           profile={profile}
+          studyPlan={studyPlan}
           mockExams={safeMockExams}
           mistakes={mistakes}
           onNavigateTab={onNavigateTab}
+          onShowWeeklyPlan={() => setView('plan')}
         />
       ) : (
       <div className="space-y-8">
