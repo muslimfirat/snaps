@@ -4,6 +4,8 @@ import { BottomNav } from './components/BottomNav';
 import { CommandSearch } from './components/CommandSearch';
 import { Dashboard } from './components/Dashboard';
 import { ToolsHub } from './components/ToolsHub';
+import { Onboarding } from './components/Onboarding';
+import { LegalModal } from './components/LegalModal';
 import { QuickStartModal } from './components/QuickStartModal';
 import { StudyInsightsToast } from './components/StudyInsightsToast';
 import { ApiErrorToast } from './components/ApiErrorToast';
@@ -68,12 +70,10 @@ export default function App() {
   const [noteProgress, setNoteProgress] = useState<Record<string, NoteProgress>>(() => storage.getNoteProgress());
   const [showSettings, setShowSettings] = useState(false);
   const [showQuickStart, setShowQuickStart] = useState(false);
+  const [legalDoc, setLegalDoc] = useState<'privacy' | 'terms' | null>(null);
 
-  // İlk açılış: profil hiç kurulmadıysa kurulum modalını aç (Faz 9.5).
+  // İlk açılış: profil hiç kurulmadıysa tam ekran onboarding akışını göster.
   const [isOnboarding, setIsOnboarding] = useState(() => !storage.getProfile().onboarded);
-  useEffect(() => {
-    if (isOnboarding) setShowSettings(true);
-  }, [isOnboarding]);
 
   // Keep the latest local state reachable from the login effect without
   // re-subscribing it on every mutation (the effect only fires on uid change).
@@ -95,6 +95,9 @@ export default function App() {
           if (cloudData.profile) {
             setProfile(cloudData.profile);
             storage.saveProfile(cloudData.profile);
+            if (cloudData.profile.onboarded) {
+              setIsOnboarding(false);
+            }
             if (cloudData.profile.targetExam) {
               const cloudSubjects = storage.getSubjects(cloudData.profile.targetExam);
               setSubjects(cloudSubjects);
@@ -212,7 +215,7 @@ export default function App() {
   // "Sistem" teması seçiliyken cihaz açık/koyu tercihi değişirse canlı uygula
   useEffect(() => watchSystemTheme(), []);
 
-  // Global keyboard shortcut Ctrl+K / Cmd+K
+  // Global keyboard shortcut Ctrl+K / Cmd+K + programmatic "open-command-search" event
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -221,8 +224,13 @@ export default function App() {
         setIsSearchOpen((prev) => !prev);
       }
     };
+    const openSearch = () => setIsSearchOpen(true);
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-command-search', openSearch);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-command-search', openSearch);
+    };
   }, []);
 
   // Navigation handlers
@@ -256,7 +264,7 @@ export default function App() {
 
   // Sync profile changes
   const handleUpdateProfile = (incoming: UserProfile) => {
-    // İlk kurulum kaydında onboarding'i kapat ve modalı kapat
+    // İlk kurulum kaydında onboarding'i kapat.
     const newProfile: UserProfile = { ...incoming, onboarded: true };
     if (isOnboarding) {
       setIsOnboarding(false);
@@ -729,16 +737,31 @@ export default function App() {
       />
 
       {/* Profile / Settings Modal */}
-      {showSettings && (
+      {showSettings && !isOnboarding && (
         <Suspense fallback={null}>
           <SettingsModal
             profile={profile}
             onUpdateProfile={handleUpdateProfile}
-            onClose={() => { if (!isOnboarding) setShowSettings(false); }}
-            isOnboarding={isOnboarding}
+            onClose={() => setShowSettings(false)}
           />
         </Suspense>
       )}
+
+      {/* İlk açılış — tam ekran kurulum akışı */}
+      {isOnboarding && (
+        <Onboarding
+          initialProfile={profile}
+          onComplete={handleUpdateProfile}
+          onOpenLegal={(doc) => setLegalDoc(doc)}
+        />
+      )}
+
+      {/* Yasal metinler */}
+      <LegalModal
+        isOpen={legalDoc !== null}
+        onClose={() => setLegalDoc(null)}
+        initialDoc={legalDoc || 'privacy'}
+      />
 
       {/* Quick Start Guide Modal */}
       <QuickStartModal
@@ -756,8 +779,15 @@ export default function App() {
       <ApiErrorToast />
 
       {/* Global Minimal Footer */}
-      <footer className="border-t border-slate-900 pt-4 pb-24 md:pb-4 text-center text-xs text-slate-500 no-print">
+      <footer className="border-t border-slate-900 pt-4 pb-24 md:pb-4 text-center text-xs text-slate-500 no-print space-y-1.5">
         <p>{institutionConfig.name} • Snaps KPSS & YKS Koçluk ve Kurumsal Sınav Analiz Portalı</p>
+        <p className="flex items-center justify-center gap-3">
+          <button onClick={() => setLegalDoc('privacy')} className="hover:text-slate-300 transition-colors">Gizlilik &amp; KVKK</button>
+          <span className="text-slate-700">·</span>
+          <button onClick={() => setLegalDoc('terms')} className="hover:text-slate-300 transition-colors">Kullanım Koşulları</button>
+          <span className="text-slate-700">·</span>
+          <button onClick={() => setShowQuickStart(true)} className="hover:text-slate-300 transition-colors">Nasıl kullanılır?</button>
+        </p>
       </footer>
 
     </div>

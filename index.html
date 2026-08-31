@@ -33,7 +33,28 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- İlk boya: React yüklenene kadar markalı bekleme ekranı (beyaz/boş flash yok) -->
+      <style>
+        #snaps-splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0b0c10;color:#e2e8f0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+        :root[data-theme="light"] #snaps-splash{background:#f6f7f9;color:#334155}
+        #snaps-splash .logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 40px rgba(79,70,229,.35)}
+        #snaps-splash .spin{width:22px;height:22px;border:2.5px solid rgba(148,163,184,.25);border-top-color:#6366f1;border-radius:50%;animation:snaps-spin .7s linear infinite}
+        #snaps-splash .brand{font-weight:800;font-size:15px;letter-spacing:-.01em}
+        #snaps-splash .tag{font-size:12px;opacity:.55}
+        @keyframes snaps-spin{to{transform:rotate(360deg)}}
+      </style>
+      <div id="snaps-splash">
+        <div class="logo">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 6l2.6 6.2L25 13l-5.2 4.3L21.4 24 16 20.4 10.6 24l1.6-6.7L7 13l6.4-.8z" fill="#fff"/></svg>
+        </div>
+        <div style="text-align:center">
+          <div class="brand">Snaps</div>
+          <div class="tag">KPSS &amp; YKS AI Sınav Koçu</div>
+        </div>
+        <div class="spin"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

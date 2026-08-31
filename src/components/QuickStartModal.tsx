@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Sparkles, Camera, Bot, Trophy, ArrowRight, Flame } from 'lucide-react';
+import { X, Sparkles, Camera, LayoutGrid, ArrowRight, Flame, ClipboardList, Search } from 'lucide-react';
 import { MainTabCategory } from '../types';
 
 interface QuickStartModalProps {
@@ -18,51 +18,48 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({
   const steps = [
     {
       step: '1',
-      title: 'Hedefini & Sınavını Belirle',
-      desc: 'Üst bardan hedef sınavını (KPSS / YKS) ve hedef puanını seç. Geri sayım sayacın otomatik olarak başlayacaktır.',
-      icon: Trophy,
-      color: 'from-amber-500 to-orange-500',
-      actionText: 'Hedef Ayarlarına Git',
-      action: () => {
-        onClose();
-        onNavigateTab('dashboard', 'HOME');
-      },
+      title: 'Aramayı kullan',
+      desc: 'Anasayfadaki büyük arama kutusu (veya alt bardaki Arama düğmesi) tüm modüllere, konulara ve komutlara tek yerden ulaştırır. Masaüstünde ⌘K / Ctrl+K.',
+      icon: Search,
+      color: 'from-indigo-500 to-cyan-500',
+      actionText: 'Aramayı Aç',
+      action: () => { onClose(); window.dispatchEvent(new CustomEvent('open-command-search')); },
     },
     {
       step: '2',
-      title: 'Yapamadığın Soruyu Fotoğrafla',
-      desc: 'Denemede veya testte çözemediğin sorunun fotoğrafını yükle. Yapay zeka adım adım ÖSYM mantığıyla çözsün ve Hata Bankana kaydetsin.',
+      title: 'Yapamadığın soruyu fotoğrafla',
+      desc: 'Çözemediğin sorunun fotoğrafını yükle; yapay zeka adım adım ÖSYM mantığıyla çözsün, püf noktasını göstersin ve Hata Defterine eklesin.',
       icon: Camera,
-      color: 'from-indigo-500 to-cyan-500',
+      color: 'from-violet-500 to-fuchsia-500',
       actionText: 'Soru Çözdürmeyi Dene',
-      action: () => {
-        onClose();
-        onNavigateTab('snap', 'TRAINING');
-      },
+      action: () => { onClose(); onNavigateTab('snap', 'TRAINING'); },
     },
     {
       step: '3',
-      title: 'AI Koçunla Strateji Belirle',
-      desc: 'Sesli veya yazılı yapay zeka koçuna takıldığın konuları sor, haftalık ders çalışma programını otomatik planla.',
-      icon: Bot,
-      color: 'from-pink-500 to-rose-500',
-      actionText: 'Sesli Koçla Konuş',
-      action: () => {
-        onClose();
-        onNavigateTab('voice_coach', 'TRAINING');
-      },
+      title: 'Çalışma Araçları\'nı keşfet',
+      desc: 'Deneme takibi, hata defteri, pomodoro, hedef simülatörü, sesli/yazılı koç, bilgi kartları — hepsi "Araçlar" sekmesindeki kart ızgarasında.',
+      icon: LayoutGrid,
+      color: 'from-indigo-500 to-blue-500',
+      actionText: 'Araçları Aç',
+      action: () => { onClose(); onNavigateTab('tools', 'TRAINING'); },
     },
     {
       step: '4',
-      title: 'Günlük Halkalarını Kapat & Rozetleri Kazan',
-      desc: 'Her gün çözdüğün soruları ve ders sürelerini kaydet, çalışma serini (Streak) bozma ve başarı ünvanlarını profilinde kuşan!',
-      icon: Flame,
+      title: 'Takvim ile planla',
+      desc: 'Sınav geri sayımı, günün odak blokları, aylık takvim ve ileri tarihli deneme planlama tek ekranda. Aralıklı tekrarların da burada görünür.',
+      icon: ClipboardList,
       color: 'from-emerald-500 to-teal-500',
-      actionText: 'Hedeflerimi Gör',
-      action: () => {
-        onClose();
-        onNavigateTab('dashboard', 'HOME');
-      },
+      actionText: 'Takvimi Aç',
+      action: () => { onClose(); onNavigateTab('planner', 'CALENDAR'); },
+    },
+    {
+      step: '5',
+      title: 'Zinciri kırma',
+      desc: 'Her gün çözdüğün soruyu ve süreyi kaydet; çalışma serini (streak) sürdür. Bir gün kaçırırsan telafi hakkın seriyi korur. İlerlemeni İstikrar Merkezi\'nden izle.',
+      icon: Flame,
+      color: 'from-amber-500 to-orange-500',
+      actionText: 'İstikrar Merkezi',
+      action: () => { onClose(); onNavigateTab('streak', 'HOME'); },
     },
   ];
 
