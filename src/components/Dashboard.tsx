@@ -13,6 +13,7 @@ import {
 } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { lectureNoteCounts } from '../data/lectureNotes';
+import { SpotlightSearch } from './SpotlightSearch';
 import { DailyGoalProgressRing } from './DailyGoalProgressRing';
 import { DailyTasksWidget } from './DailyTasksWidget';
 import { QuickStartModal } from './QuickStartModal';
@@ -31,6 +32,7 @@ interface DashboardProps {
   onNavigateTab: (tab: string, category?: MainTabCategory) => void;
   onIncrementQuestionCount: (count?: number) => void;
   onIncrementStudyMinutes?: (minutes: number) => void;
+  onOpenSearch?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -42,6 +44,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onNavigateTab,
   onIncrementQuestionCount,
   onIncrementStudyMinutes,
+  onOpenSearch,
 }) => {
   const noteCounts = lectureNoteCounts();
   const notesToReview = Object.values(noteProgress).filter((p) => p?.needsReview).length;
@@ -82,7 +85,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="space-y-6">
-      
+
+      {/* 0. Spotlight Arama Adacığı */}
+      {onOpenSearch && (
+        <SpotlightSearch onOpenSearch={onOpenSearch} onNavigateTab={onNavigateTab} />
+      )}
+
       {/* 1. Karşılama Başlığı, Durum Rozetleri ve Sınav Sayacı */}
       <div className="bg-surface-1 border border-border rounded-2xl p-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5">
         

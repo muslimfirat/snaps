@@ -926,7 +926,7 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
                         onNavigateTab(task.linkTab!, task.linkCategory);
                       }}
                       className="px-2.5 py-1 rounded-lg bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-colors"
-                      title="İlgili antrenmana veya araca git"
+                      title="İlgili araca git"
                     >
                       <span className="hidden sm:inline">Başla</span>
                       <ArrowRight className="w-3 h-3" />

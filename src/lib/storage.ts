@@ -13,6 +13,7 @@ import {
   InstitutionExam,
   MistakeQuestionItem,
   DailyStudyLog,
+  HeatmapDay,
   NoteProgress
 } from '../types';
 import { INITIAL_KPSS_SUBJECTS, INITIAL_YKS_SUBJECTS, INITIAL_SAVED_SNAPS, INITIAL_FLASHCARDS, INITIAL_MISTAKES, EXAM_METADATA, CURRICULUM_VERSION } from '../data/curriculumData';
@@ -84,39 +85,111 @@ export const DEFAULT_PROFILE: UserProfile = {
   lastActiveDate: getLocalDateStr(),
   lastLoginDate: getLocalDateStr(),
   loginDates: [getLocalDateStr()],
+  streakFreezesRemaining: 2,
+  streakFreezeMonth: getLocalDateStr().slice(0, 7),
+  streakFreezeUsedDates: [],
   classGroupId: 'grp-kpss-1',
   onboarded: false,
 };
 
+const MONTHLY_STREAK_FREEZES = 2;
+
+/**
+ * Biten bir günün canlı sayaçlarını kalıcı günlük geçmişe ({@link STORAGE_KEYS.DAILY_STUDY_LOGS})
+ * yazar. Gün devrinde (uygulama yeni günde ilk açıldığında) çağrılır; aksi halde
+ * dünkü çözülen soru / süre verisi kaybolur ve istikrar grafiği hep boş görünür.
+ */
+function archiveDayLog(
+  dateStr: string,
+  data: { questionsSolved: number; minutesStudied: number; questionTarget: number; minuteTarget: number; frozen?: boolean }
+): void {
+  if (typeof localStorage === 'undefined') return;
+  if (!dateStr) return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.DAILY_STUDY_LOGS);
+    const map: Record<string, Partial<DailyStudyLog> & { frozen?: boolean }> = raw ? JSON.parse(raw) : {};
+    const existing = map[dateStr] || {};
+    // Aynı gün birden çok kez arşivlenirse en yüksek değeri koru (idempotent).
+    map[dateStr] = {
+      ...existing,
+      date: dateStr,
+      questionsSolved: Math.max(existing.questionsSolved || 0, Math.max(0, data.questionsSolved)),
+      minutesStudied: Math.max(existing.minutesStudied || 0, Math.max(0, data.minutesStudied)),
+      questionTarget: data.questionTarget || existing.questionTarget || 0,
+      minuteTarget: data.minuteTarget || existing.minuteTarget || 0,
+      frozen: data.frozen || existing.frozen || false,
+    };
+    localStorage.setItem(STORAGE_KEYS.DAILY_STUDY_LOGS, JSON.stringify(map));
+  } catch (e) {
+    console.error('archiveDayLog failed:', e);
+  }
+}
+
+/** `YYYY-MM-DD` + n gün. */
+function addDaysStr(dateStr: string, n: number): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (isNaN(d.getTime())) return dateStr;
+  d.setDate(d.getDate() + n);
+  return getLocalDateStr(d);
+}
+
+/**
+ * Ay başında seri dondurma (telafi) hakkını yeniler. Sayaç `streakFreezeMonth`
+ * ile farklı bir aydaysa hak {@link MONTHLY_STREAK_FREEZES}'e sıfırlanır.
+ */
+function refillStreakFreezes(profile: UserProfile, monthStr: string): Pick<UserProfile, 'streakFreezesRemaining' | 'streakFreezeMonth' | 'streakFreezeUsedDates'> {
+  const usedDates = Array.isArray(profile.streakFreezeUsedDates) ? profile.streakFreezeUsedDates.slice(-60) : [];
+  if (profile.streakFreezeMonth === monthStr && typeof profile.streakFreezesRemaining === 'number') {
+    return {
+      streakFreezesRemaining: Math.max(0, Math.min(MONTHLY_STREAK_FREEZES, profile.streakFreezesRemaining)),
+      streakFreezeMonth: monthStr,
+      streakFreezeUsedDates: usedDates,
+    };
+  }
+  return {
+    streakFreezesRemaining: MONTHLY_STREAK_FREEZES,
+    streakFreezeMonth: monthStr,
+    streakFreezeUsedDates: usedDates,
+  };
+}
+
 /**
  * Processes daily login streak whenever the user loads the app or active profile.
  * - Same day: Retains current active streak.
- * - Consecutive day (1 day gap): Increments streak by 1 and resets daily study meters.
- * - Missed days (>1 day gap): Resets streak to 1 and starts fresh daily counters.
+ * - Consecutive day (1 day gap): Increments streak, archives the finished day.
+ * - Missed exactly 1 day + telafi hakkı varsa: hak harcanır, seri korunur, kaçan
+ *   gün "donduruldu" olarak işaretlenir.
+ * - Missed 2+ days (veya hak yoksa): Seri 1'e döner.
  */
 export function processDailyLoginStreak(rawProfile: UserProfile): { profile: UserProfile; streakUpdated: boolean } {
   const todayStr = getLocalDateStr();
+  const monthStr = todayStr.slice(0, 7);
   const lastDate = rawProfile.lastActiveDate || rawProfile.lastLoginDate || '';
   const currentStreak = Number(rawProfile.streakDays) || 0;
   const currentMaxStreak = Number(rawProfile.maxStreakDays) || currentStreak || 1;
   const existingLoginDates = Array.isArray(rawProfile.loginDates) ? rawProfile.loginDates : [];
+  const freezes = refillStreakFreezes(rawProfile, monthStr);
+
+  const questionTarget = Math.max(20, rawProfile.dailyQuestionTarget || 120);
+  const minuteTarget = Math.max(60, (rawProfile.dailyStudyHourTarget || 4) * 60);
 
   // If already logged in today
   if (lastDate === todayStr) {
     const updatedLoginDates = existingLoginDates.includes(todayStr)
       ? existingLoginDates
-      : [...existingLoginDates.slice(-29), todayStr];
-    
+      : [...existingLoginDates.slice(-59), todayStr];
+
     return {
       profile: {
         ...rawProfile,
+        ...freezes,
         streakDays: Math.max(1, currentStreak),
         maxStreakDays: Math.max(currentMaxStreak, currentStreak, 1),
         lastActiveDate: todayStr,
         lastLoginDate: todayStr,
         loginDates: updatedLoginDates,
       },
-      streakUpdated: false,
+      streakUpdated: freezes.streakFreezeMonth !== rawProfile.streakFreezeMonth,
     };
   }
 
@@ -125,6 +198,7 @@ export function processDailyLoginStreak(rawProfile: UserProfile): { profile: Use
     return {
       profile: {
         ...rawProfile,
+        ...freezes,
         streakDays: Math.max(1, currentStreak || 1),
         maxStreakDays: Math.max(currentMaxStreak, currentStreak || 1),
         lastActiveDate: todayStr,
@@ -137,39 +211,42 @@ export function processDailyLoginStreak(rawProfile: UserProfile): { profile: Use
 
   const diffDays = dayDifference(lastDate, todayStr);
 
+  // Bozuk/geçersiz tarih → seriye dokunma, yalnız tarihi güncelle.
+  if (diffDays <= 0) {
+    return {
+      profile: {
+        ...rawProfile,
+        ...freezes,
+        lastActiveDate: todayStr,
+        lastLoginDate: todayStr,
+      },
+      streakUpdated: false,
+    };
+  }
+
+  // Gün devri: biten günün (lastDate) canlı sayaçlarını kalıcı geçmişe yaz.
+  archiveDayLog(lastDate, {
+    questionsSolved: rawProfile.todayQuestionsSolved || 0,
+    minutesStudied: rawProfile.todayMinutesStudied || 0,
+    questionTarget,
+    minuteTarget,
+  });
+
   if (diffDays === 1) {
     // Consecutive day login: Streak rewarded!
     const newStreak = currentStreak + 1;
     const newMaxStreak = Math.max(currentMaxStreak, newStreak);
-    const updatedLoginDates = [...existingLoginDates.slice(-29), todayStr];
+    const updatedLoginDates = [...existingLoginDates.slice(-59), todayStr];
 
     return {
       profile: {
         ...rawProfile,
+        ...freezes,
         streakDays: newStreak,
         maxStreakDays: newMaxStreak,
         lastActiveDate: todayStr,
         lastLoginDate: todayStr,
         loginDates: updatedLoginDates,
-        // Reset daily progress for fresh day
-        todayQuestionsSolved: 0,
-        todayMinutesStudied: 0,
-      },
-      streakUpdated: true,
-    };
-  } else if (diffDays > 1) {
-    // Streak broken: Reset streak to 1
-    const updatedLoginDates = [...existingLoginDates.slice(-29), todayStr];
-
-    return {
-      profile: {
-        ...rawProfile,
-        streakDays: 1,
-        maxStreakDays: Math.max(currentMaxStreak, currentStreak, 1),
-        lastActiveDate: todayStr,
-        lastLoginDate: todayStr,
-        loginDates: updatedLoginDates,
-        // Reset daily progress for fresh day
         todayQuestionsSolved: 0,
         todayMinutesStudied: 0,
       },
@@ -177,14 +254,54 @@ export function processDailyLoginStreak(rawProfile: UserProfile): { profile: Use
     };
   }
 
-  // Fallback
+  const missedDays = diffDays - 1;
+
+  if (missedDays === 1 && (freezes.streakFreezesRemaining || 0) >= 1) {
+    // Tek gün kaçtı + telafi hakkı var → seriyi köprüle.
+    const frozenDay = addDaysStr(lastDate, 1);
+    archiveDayLog(frozenDay, {
+      questionsSolved: 0,
+      minutesStudied: 0,
+      questionTarget,
+      minuteTarget,
+      frozen: true,
+    });
+    const newStreak = currentStreak + 1;
+    const updatedLoginDates = [...existingLoginDates.slice(-59), todayStr];
+
+    return {
+      profile: {
+        ...rawProfile,
+        ...freezes,
+        streakFreezesRemaining: (freezes.streakFreezesRemaining || 0) - 1,
+        streakFreezeUsedDates: [...(freezes.streakFreezeUsedDates || []).slice(-59), frozenDay],
+        streakDays: newStreak,
+        maxStreakDays: Math.max(currentMaxStreak, newStreak),
+        lastActiveDate: todayStr,
+        lastLoginDate: todayStr,
+        loginDates: updatedLoginDates,
+        todayQuestionsSolved: 0,
+        todayMinutesStudied: 0,
+      },
+      streakUpdated: true,
+    };
+  }
+
+  // Seri kırıldı: 1'e dön.
+  const updatedLoginDates = [...existingLoginDates.slice(-59), todayStr];
   return {
     profile: {
       ...rawProfile,
+      ...freezes,
+      streakDays: 1,
+      maxStreakDays: Math.max(currentMaxStreak, currentStreak, 1),
       lastActiveDate: todayStr,
       lastLoginDate: todayStr,
+      loginDates: updatedLoginDates,
+      todayQuestionsSolved: 0,
+      todayMinutesStudied: 0,
     },
-    streakUpdated: false,
+    streakUpdated: true,
   };
 }
 
@@ -519,6 +636,66 @@ export function loadWeeklyStudyLogs(profile: UserProfile): DailyStudyLog[] {
   return result;
 }
 
+/**
+ * İstikrar ısı haritası için son `numDays` günün hücrelerini üretir (bugünle biter).
+ * Gerçek veri: kayıtlı günlük geçmiş + bugünün canlı sayaçları + telafi ("frozen")
+ * günleri + giriş kayıtları. Kayıt yoksa gün boştur (level 0).
+ */
+export function loadStudyHeatmap(profile: UserProfile, numDays = 133): HeatmapDay[] {
+  const questionTarget = Math.max(20, profile.dailyQuestionTarget || 120);
+  const minuteTarget = Math.max(60, (profile.dailyStudyHourTarget || 4) * 60);
+  const loginDates = new Set(Array.isArray(profile.loginDates) ? profile.loginDates : []);
+  const frozenDates = new Set(Array.isArray(profile.streakFreezeUsedDates) ? profile.streakFreezeUsedDates : []);
+  const todayStr = getLocalDateStr();
+
+  let savedLogsMap: Record<string, Partial<DailyStudyLog> & { frozen?: boolean }> = {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.DAILY_STUDY_LOGS);
+    if (raw) savedLogsMap = JSON.parse(raw);
+  } catch {
+    savedLogsMap = {};
+  }
+
+  const cells: HeatmapDay[] = [];
+  const today = new Date();
+  for (let i = numDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dateStr = getLocalDateStr(d);
+    const isToday = dateStr === todayStr;
+    const saved = savedLogsMap[dateStr];
+
+    const questionsSolved = isToday
+      ? Math.max(0, profile.todayQuestionsSolved || 0)
+      : Math.max(0, Number(saved?.questionsSolved) || 0);
+    const minutesStudied = isToday
+      ? Math.max(0, profile.todayMinutesStudied || 0)
+      : Math.max(0, Number(saved?.minutesStudied) || 0);
+
+    const frozen = frozenDates.has(dateStr) || !!saved?.frozen;
+    const ratio = Math.max(questionsSolved / questionTarget, minutesStudied / minuteTarget);
+
+    let level: HeatmapDay['level'] = 0;
+    if (frozen) level = 1;
+    else if (ratio >= 1) level = 4;
+    else if (ratio >= 0.66) level = 3;
+    else if (ratio >= 0.33) level = 2;
+    else if (questionsSolved > 0 || minutesStudied > 0) level = 1;
+
+    cells.push({
+      date: dateStr,
+      questionsSolved,
+      minutesStudied,
+      level,
+      isToday,
+      isFuture: false,
+      frozen,
+      active: level > 0 || loginDates.has(dateStr),
+    });
+  }
+  return cells;
+}
+
 export function saveDailyStudyLogs(logs: DailyStudyLog[]): void {
   try {
     const map: Record<string, DailyStudyLog> = {};
@@ -555,6 +732,7 @@ export const storage = {
   getInstitutionExams: loadInstitutionExams,
   saveInstitutionExams,
   getWeeklyStudyLogs: loadWeeklyStudyLogs,
+  getStudyHeatmap: loadStudyHeatmap,
   saveDailyStudyLogs,
   getNoteProgress: loadNoteProgress,
   saveNoteProgress,

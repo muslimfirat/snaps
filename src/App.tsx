@@ -3,6 +3,7 @@ import { Header, CATEGORY_DEFINITIONS } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { CommandSearch } from './components/CommandSearch';
 import { Dashboard } from './components/Dashboard';
+import { ToolsHub } from './components/ToolsHub';
 import { QuickStartModal } from './components/QuickStartModal';
 import { StudyInsightsToast } from './components/StudyInsightsToast';
 import { ApiErrorToast } from './components/ApiErrorToast';
@@ -42,7 +43,7 @@ import { UserProfile, SnapSolution, MockExamRecord, WeeklyStudyPlan, Subject, Fl
 const getCategoryForTab = (tab: string): MainTabCategory => {
   if (['institution', 'inst_analysis', 'inst_students', 'inst_optical', 'inst_coaching'].includes(tab)) return 'INSTITUTION';
   if (['dashboard', 'curriculum', 'notes', 'streak', 'analytics', 'achievements'].includes(tab)) return 'HOME';
-  if (['snap', 'mock', 'mistakes', 'notebook', 'errors', 'pomodoro', 'simulator', 'voice_coach', 'coach', 'speed', 'duel', 'flashcards'].includes(tab)) return 'TRAINING';
+  if (['tools', 'snap', 'mock', 'mistakes', 'notebook', 'errors', 'pomodoro', 'simulator', 'voice_coach', 'coach', 'speed', 'duel', 'flashcards'].includes(tab)) return 'TRAINING';
   if (['planner', 'calendar'].includes(tab)) return 'CALENDAR';
   if (['settings', 'profile'].includes(tab)) return 'PROFILE';
   return 'HOME';
@@ -230,8 +231,10 @@ export default function App() {
     haptics.selection();
     setActiveCategory(cat);
     const catDef = CATEGORY_DEFINITIONS.find((c) => c.id === cat);
-    if (catDef && Array.isArray(catDef.subTabs) && catDef.subTabs.length > 0) {
-      setActiveTab(catDef.subTabs[0].id);
+    const landing = catDef?.landingTab
+      || (catDef && Array.isArray(catDef.subTabs) && catDef.subTabs.length > 0 ? catDef.subTabs[0].id : undefined);
+    if (landing) {
+      setActiveTab(landing);
     }
   };
 
@@ -481,6 +484,7 @@ export default function App() {
             onNavigateTab={handleSelectTab}
             onIncrementQuestionCount={handleIncrementQuestionCount}
             onIncrementStudyMinutes={handleIncrementStudyMinutes}
+            onOpenSearch={() => setIsSearchOpen(true)}
           />
         )}
 
@@ -491,6 +495,7 @@ export default function App() {
             onUpdateStudyPlan={handleUpdateStudyPlan}
             onIncrementQuestionCount={handleIncrementQuestionCount}
             mockExams={mockExams}
+            mistakes={mistakes}
             onNavigateTab={handleSelectTab}
           />
         )}
@@ -542,6 +547,15 @@ export default function App() {
               onUpdateProfile={handleUpdateProfilePartial}
             />
           </div>
+        )}
+
+        {/* Çalışma Araçları giriş ekranı (modül ızgarası) */}
+        {activeTab === 'tools' && (
+          <ToolsHub
+            title={CATEGORY_DEFINITIONS.find((c) => c.id === 'TRAINING')?.name || 'Çalışma Araçları'}
+            items={CATEGORY_DEFINITIONS.find((c) => c.id === 'TRAINING')?.subTabs || []}
+            onSelect={(id) => handleSelectTab(id, 'TRAINING')}
+          />
         )}
 
         {/* Category 2: AI Studio Views */}

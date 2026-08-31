@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar, Sparkles, CheckCircle2, Clock, Zap, Plus, ListTodo, Printer, Brain } from 'lucide-react';
+import { Calendar, Sparkles, CheckCircle2, Clock, Zap, Plus, ListTodo, Printer, Brain, CalendarDays } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { WeeklyStudyPlan, UserProfile, StudyPlanBlock, MockExamRecord } from '../types';
+import { WeeklyStudyPlan, UserProfile, StudyPlanBlock, MockExamRecord, MistakeQuestionItem, MainTabCategory } from '../types';
+import { StudyCalendar } from './StudyCalendar';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { playCompletionBell } from '../lib/soundEffects';
 import { apiFetch } from '../lib/apiClient';
@@ -12,7 +13,8 @@ interface StudyPlannerProps {
   onUpdateStudyPlan: (plan: WeeklyStudyPlan) => void;
   onIncrementQuestionCount: (count?: number) => void;
   mockExams?: MockExamRecord[];
-  onNavigateTab?: (tab: string) => void;
+  mistakes?: MistakeQuestionItem[];
+  onNavigateTab?: (tab: string, category?: MainTabCategory) => void;
 }
 
 export const StudyPlanner: React.FC<StudyPlannerProps> = ({
@@ -21,9 +23,11 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
   onUpdateStudyPlan,
   onIncrementQuestionCount,
   mockExams = [],
+  mistakes = [],
   onNavigateTab,
 }) => {
   const safeMockExams = Array.isArray(mockExams) ? mockExams : [];
+  const [view, setView] = useState<'calendar' | 'plan'>('calendar');
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -185,7 +189,36 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
   const dayProgressPercent = isNaN(rawDayProgress) ? 0 : Math.min(100, Math.max(0, rawDayProgress));
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-6 pb-12">
+      {/* Görünüm seçici: Takvim / Haftalık Plan */}
+      <div className="flex items-center gap-1.5 bg-surface-1 border border-border p-1 rounded-xl w-full sm:w-auto sm:inline-flex">
+        <button
+          onClick={() => setView('calendar')}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+            view === 'calendar' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <CalendarDays className="w-4 h-4" /> Takvim
+        </button>
+        <button
+          onClick={() => setView('plan')}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+            view === 'plan' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <ListTodo className="w-4 h-4" /> Haftalık Plan
+        </button>
+      </div>
+
+      {view === 'calendar' ? (
+        <StudyCalendar
+          profile={profile}
+          mockExams={safeMockExams}
+          mistakes={mistakes}
+          onNavigateTab={onNavigateTab}
+        />
+      ) : (
+      <div className="space-y-8">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -681,6 +714,8 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
             </form>
           </div>
         </div>
+      )}
+      </div>
       )}
     </div>
   );

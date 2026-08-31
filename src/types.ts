@@ -150,6 +150,16 @@ export interface UserProfile {
   lastActiveDate: string;
   lastLoginDate?: string;
   loginDates?: string[];
+  /**
+   * Seri dondurma / telafi hakkı (Tur 2). Bir gün kaçırıldığında seriyi
+   * sıfırlamak yerine otomatik bir telafi hakkı harcanır. Hak ayda 2'dir ve her
+   * ay başında yenilenir.
+   */
+  streakFreezesRemaining?: number;
+  /** Telafi sayacının geçerli olduğu ay (`YYYY-MM`). Ay değişince hak yenilenir. */
+  streakFreezeMonth?: string;
+  /** Telafi ile kurtarılan günler (`YYYY-MM-DD`) — ısı haritasında işaretlenir. */
+  streakFreezeUsedDates?: string[];
   activeTitle?: string;
   unlockedBadges?: string[];
   classGroupId?: string;
@@ -168,6 +178,21 @@ export interface DailyStudyLog {
   isStreakMaintained: boolean;
   completionRate: number; // 0 - 100%
   focusScore: number; // 0 - 100
+}
+
+/** İstikrar ısı haritası (GitHub tarzı) için tek gün. */
+export interface HeatmapDay {
+  date: string; // YYYY-MM-DD
+  questionsSolved: number;
+  minutesStudied: number;
+  /** 0 (boş) – 4 (hedefin üstü) arası yoğunluk seviyesi. */
+  level: 0 | 1 | 2 | 3 | 4;
+  isToday: boolean;
+  isFuture: boolean;
+  /** Telafi hakkıyla kurtarılan gün. */
+  frozen: boolean;
+  /** O gün en az bir aktivite kaydı veya giriş var mı. */
+  active: boolean;
 }
 
 export interface WeeklyStreakSummary {

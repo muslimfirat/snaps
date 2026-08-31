@@ -10,9 +10,11 @@ import {
   CartesianGrid,
   ReferenceLine,
 } from 'recharts';
-import { Flame, Zap, Trophy, TrendingUp, Calendar, Clock, Target, Sparkles, BarChart3, ArrowUpRight } from 'lucide-react';
-import { UserProfile, DailyStudyLog, MainTabCategory } from '../types';
-import { loadWeeklyStudyLogs } from '../lib/storage';
+import { Flame, Zap, Trophy, TrendingUp, Calendar, Clock, Target, Sparkles, BarChart3, ArrowUpRight, Snowflake, ShieldCheck, AlertTriangle, Award, ArrowUp, ArrowDown, RotateCcw, Gauge } from 'lucide-react';
+import { UserProfile, DailyStudyLog, HeatmapDay, MainTabCategory } from '../types';
+import { loadWeeklyStudyLogs, loadStudyHeatmap } from '../lib/storage';
+import { computeStreakInsights } from '../lib/streakInsights';
+import { StreakHeatmap } from './StreakHeatmap';
 import { THEME } from '../theme';
 import { useChartColors } from '../lib/chartColors';
 import { haptics } from '../lib/haptics';
@@ -46,8 +48,31 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
     profile.loginDates,
   ]);
 
+  const heatmap: HeatmapDay[] = useMemo(() => loadStudyHeatmap(profile), [
+    profile.todayQuestionsSolved,
+    profile.todayMinutesStudied,
+    profile.streakDays,
+    profile.dailyQuestionTarget,
+    profile.dailyStudyHourTarget,
+    profile.loginDates,
+    profile.streakFreezeUsedDates,
+  ]);
+
+  const insights = useMemo(
+    () => computeStreakInsights(profile, logs, heatmap),
+    [profile, logs, heatmap]
+  );
+
   const currentStreak = Number(profile.streakDays) || 1;
-  const maxStreak = Number(profile.maxStreakDays) || currentStreak;
+
+  const MOMENTUM_TONE: Record<string, { text: string; bar: string; ring: string }> = {
+    crit: { text: 'text-rose-400', bar: 'bg-rose-500', ring: 'border-rose-500/40' },
+    low: { text: 'text-amber-400', bar: 'bg-amber-500', ring: 'border-amber-500/40' },
+    ok: { text: 'text-emerald-400', bar: 'bg-emerald-500', ring: 'border-emerald-500/40' },
+    high: { text: 'text-indigo-300', bar: 'bg-indigo-500', ring: 'border-indigo-500/40' },
+    peak: { text: 'text-violet-300', bar: 'bg-violet-500', ring: 'border-violet-500/40' },
+  };
+  const tone = MOMENTUM_TONE[insights.momentum.tone];
 
   // Aggregate weekly calculations
   const weeklyStats = useMemo(() => {
@@ -67,19 +92,6 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
       Math.round(logs.reduce((sum, l) => sum + l.completionRate, 0) / Math.max(1, logs.length))
     );
 
-    let statusLabel = 'İstikrarlı ⚡';
-    let statusClass = 'text-green-400 bg-green-600/15 border-green-600/30';
-    if (currentStreak >= 14) {
-      statusLabel = 'Efsanevi Alev 🔥';
-      statusClass = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
-    } else if (currentStreak >= 7) {
-      statusLabel = 'Yüksek Momentum 🚀';
-      statusClass = 'text-indigo-300 bg-indigo-600/15 border-indigo-500/30';
-    } else if (currentStreak <= 2) {
-      statusLabel = 'Yeni Başlangıç 🌱';
-      statusClass = 'text-sky-400 bg-sky-600/15 border-sky-600/30';
-    }
-
     return {
       totalQuestions,
       totalMinutes,
@@ -89,10 +101,8 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
       activeDaysCount,
       consistencyPercent,
       avgCompletion,
-      statusLabel,
-      statusClass,
     };
-  }, [logs, currentStreak]);
+  }, [logs]);
 
   // Format data for Recharts using flat theme colors
   const chartData = useMemo(() => {
@@ -142,48 +152,207 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
 
   return (
     <div className="bg-surface-1 border border-border rounded-3xl p-6 shadow-xl space-y-6">
-      {/* Header: Title, Live Status & Quick Streaks */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 border-b border-border pb-5">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
             <Flame className="w-6 h-6 fill-amber-400" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                Haftalık Çalışma & İstikrar Analitiği
-              </h2>
-              <span className={`text-2xs font-semibold px-2 py-0.5 rounded-md border ${weeklyStats.statusClass}`}>
-                {weeklyStats.statusLabel}
-              </span>
-            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+              İstikrar Merkezi
+            </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Son 7 günlük soru temposu, çalışma süreleri ve alışkanlık sürekliliği
+              Serini koru, ritmini gör, zinciri kırma
             </p>
           </div>
         </div>
 
-        {/* Big Streak Number & All-time Record Pill */}
-        <div className="flex items-center gap-3 self-start sm:self-auto bg-surface-0 border border-border rounded-2xl px-4 py-2">
-          <div className="flex items-baseline gap-1.5">
-            <Flame className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
-            <span className="text-xl font-black font-mono text-white">
-              {currentStreak}
-            </span>
-            <span className="text-xs font-semibold text-amber-300">
-              Gün Seri
-            </span>
-          </div>
-
-          <div className="h-5 w-px bg-surface-3" />
-
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span>Rekor:</span>
-            <span className="font-bold font-mono text-slate-200">{maxStreak} Gün</span>
-          </div>
+        <div className="flex items-center gap-2 self-start bg-amber-500/10 border border-amber-500/30 rounded-2xl px-3.5 py-2 shrink-0">
+          <Flame className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+          <span className="text-xl font-black font-mono text-white">{currentStreak}</span>
+          <span className="text-xs font-semibold text-amber-300">gün</span>
         </div>
       </div>
+
+      {/* Dönüş mesajı (yargılamayan) — ara verilmişse en üstte */}
+      {insights.comeback.show && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 mt-0.5">
+            <RotateCcw className="w-5 h-5" />
+          </div>
+          <div className="space-y-0.5">
+            <h4 className="text-sm font-bold text-white">Tekrar başlamak için harika bir gün</h4>
+            <p className="text-xs text-slate-300 leading-relaxed">{insights.comeback.message}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Momentum skoru + bugünkü risk + telafi hakkı */}
+      <div className={`rounded-2xl bg-surface-0 border ${tone.ring} p-5 space-y-4`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-11 h-11 rounded-2xl bg-surface-2 border border-border flex items-center justify-center shrink-0 ${tone.text}`}>
+              <Gauge className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-xs text-slate-400 font-medium block">Momentum Skoru</span>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-3xl font-black font-mono ${tone.text}`}>{insights.momentum.score}</span>
+                <span className="text-sm text-slate-500 font-mono">/100</span>
+                <span className={`text-xs font-semibold ${tone.text}`}>{insights.momentum.label}</span>
+              </div>
+            </div>
+          </div>
+          {insights.momentum.trend !== 0 && (
+            <div className={`flex items-center gap-1 text-xs font-semibold shrink-0 ${insights.momentum.trend > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {insights.momentum.trend > 0 ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />}
+              <span>{Math.abs(insights.momentum.trend)} puan</span>
+              <span className="text-slate-500 font-normal hidden sm:inline">son 3 gün</span>
+            </div>
+          )}
+        </div>
+
+        <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-500 ${tone.bar}`} style={{ width: `${insights.momentum.score}%` }} />
+        </div>
+
+        {/* Bugünkü seri durumu — kayıp-kaçınma çerçevesi */}
+        <div className={`flex items-start gap-3 p-3.5 rounded-xl border ${
+          insights.risk.safeToday ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'
+        }`}>
+          {insights.risk.safeToday ? (
+            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+          ) : (
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-slate-200 leading-relaxed">{insights.risk.message}</p>
+            {!insights.risk.safeToday && insights.risk.questionsLeft > 0 && onNavigateTab && (
+              <button
+                onClick={() => onNavigateTab('snap', 'TRAINING')}
+                className="mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+              >
+                <span>Hemen çözmeye başla</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Telafi hakkı */}
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Snowflake className="w-4 h-4 text-sky-400 shrink-0" />
+            <span>Seri telafi hakkın (bu ay)</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: insights.freezes.total }).map((_, i) => (
+              <Snowflake
+                key={i}
+                className={`w-4 h-4 ${i < insights.freezes.remaining ? 'text-sky-400' : 'text-surface-3'}`}
+              />
+            ))}
+            <span className="ml-1 font-mono font-bold text-slate-300">
+              {insights.freezes.remaining}/{insights.freezes.total}
+            </span>
+          </div>
+        </div>
+        <p className="text-3xs text-slate-500 -mt-1.5">
+          Bir gün kaçırırsan seri sıfırlanmaz — otomatik bir telafi hakkı harcanır. Her ay 2 hak yenilenir.
+        </p>
+      </div>
+
+      {/* Kilometre taşı + Rekor */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="p-4 rounded-2xl bg-surface-0 border border-border space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-indigo-400" /> Sonraki Kilometre Taşı
+            </span>
+            <span className="text-xs font-mono font-bold text-white">{insights.milestone.next} gün</span>
+          </div>
+          <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden">
+            <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${Math.round(insights.milestone.progress * 100)}%` }} />
+          </div>
+          <p className="text-2xs text-slate-400">
+            {insights.milestone.daysLeft > 0
+              ? `${insights.milestone.daysLeft} gün kaldı`
+              : 'Bugün ulaşıyorsun! 🎉'}
+            {insights.milestone.passed.length > 0 && (
+              <span className="text-slate-500"> · Geçilen: {insights.milestone.passed.join(', ')}</span>
+            )}
+          </p>
+        </div>
+
+        {insights.record.show && (
+          <div className={`p-4 rounded-2xl border space-y-1.5 ${
+            insights.record.isNewRecord ? 'bg-amber-500/10 border-amber-500/30' : 'bg-surface-0 border-border'
+          }`}>
+            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <Trophy className="w-4 h-4 text-amber-400" />
+              {insights.record.isNewRecord ? 'Yeni Rekor!' : 'Kişisel Rekor'}
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-black font-mono text-amber-400">{insights.record.best}</span>
+              <span className="text-xs text-slate-400">gün</span>
+            </div>
+            <p className="text-2xs text-slate-400 leading-relaxed">{insights.record.message}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Zinciri Kırma ısı haritası */}
+      <div className="bg-surface-0 border border-border rounded-2xl p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Flame className="w-4 h-4 text-amber-400" />
+          <h3 className="text-sm font-bold text-white">Zinciri Kırma — Çalışma Takvimin</h3>
+        </div>
+        <StreakHeatmap
+          cells={heatmap}
+          onSelectDay={(date) => {
+            const idx = logs.findIndex((l) => l.date === date);
+            if (idx >= 0) {
+              haptics.selection();
+              setSelectedDayIndex(idx);
+            }
+          }}
+        />
+      </div>
+
+      {/* Haftanın ritmi */}
+      {insights.rhythm && (
+        <div className="bg-surface-0 border border-border rounded-2xl p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-indigo-400" />
+            <h3 className="text-sm font-bold text-white">Haftanın Ritmi</h3>
+          </div>
+          <div className="flex items-end justify-between gap-1.5 h-24">
+            {insights.rhythm.byWeekday.map((d) => (
+              <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
+                <div className="w-full flex-1 flex items-end">
+                  <div
+                    className={`w-full rounded-t-md transition-all ${
+                      d.label === insights.rhythm!.weakestLabel ? 'bg-rose-500/70' : 'bg-indigo-500/60'
+                    }`}
+                    style={{ height: `${Math.max(4, d.avg)}%` }}
+                  />
+                </div>
+                <span className={`text-3xs ${d.label === insights.rhythm!.weakestLabel ? 'text-rose-400 font-bold' : 'text-slate-500'}`}>
+                  {d.label}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-2xs text-slate-400 leading-relaxed flex items-start gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+            <span>{insights.rhythm.tip}</span>
+          </p>
+        </div>
+      )}
+
+      {/* Detaylı haftalık metrikler */}
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-1">Haftalık Detaylar</p>
 
       {/* 4 Summary Metric Cards (Flat Theme Colors) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -541,11 +710,11 @@ export const StreakAnalytics: React.FC<StreakAnalyticsProps> = ({
               </span>
             </h4>
             <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
-              {currentStreak >= 7
-                ? 'Harika bir tempo yakaladın! Haftalık istikrarın %' +
-                  weeklyStats.consistencyPercent +
-                  '. Soru hızını koruyarak bu hafta sonu 1 adet tam deneme ile netlerini pekiştirebilirsin.'
-                : 'Her gün düzenli 20-30 soru çözmek bile sınav hafızasını diri tutar. Serini kırmadan bugünkü hedefini tamamla!'}
+              {insights.momentum.score >= 65
+                ? `Momentumun güçlü (${insights.momentum.score}/100), haftalık istikrarın %${weeklyStats.consistencyPercent}. Bu tempoyu koruyup hafta sonu 1 tam deneme ekleyerek netlerini pekiştir.`
+                : insights.momentum.score >= 40
+                ? `Toparlanma yolundasın (${insights.momentum.score}/100). Bugünkü hedefinin en az yarısını tamamla — momentumu ancak günlük küçük adımlar büyütür.`
+                : 'Her gün düzenli 20-30 soru çözmek bile sınav hafızasını diri tutar. Bugün küçük bir hedefle başla, yarın biraz artır.'}
             </p>
           </div>
         </div>

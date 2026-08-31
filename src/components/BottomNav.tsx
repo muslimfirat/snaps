@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  Home, 
-  Dumbbell, 
-  Search, 
-  Calendar, 
-  User 
+import {
+  Home,
+  LayoutGrid,
+  Search,
+  Calendar,
+  User
 } from 'lucide-react';
 import { MainTabCategory } from '../types';
 import { haptics } from '../lib/haptics';
@@ -37,17 +37,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const isTrainingActive =
     activeCategory === 'TRAINING' ||
     [
-      'snap', 
-      'mock', 
-      'mistakes', 
-      'notebook', 
-      'errors', 
-      'pomodoro', 
-      'simulator', 
-      'voice_coach', 
-      'coach', 
-      'speed', 
-      'duel', 
+      'tools',
+      'snap',
+      'mock',
+      'mistakes',
+      'notebook',
+      'errors',
+      'pomodoro',
+      'simulator',
+      'voice_coach',
+      'coach',
+      'speed',
+      'duel',
       'flashcards'
     ].includes(activeTab);
 
@@ -95,19 +96,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           </span>
         </button>
 
-        {/* 2. ANTRENMAN */}
+        {/* 2. ÇALIŞMA ARAÇLARI */}
         <button
           id="bottom-nav-training-btn"
           aria-current={isTrainingActive ? 'page' : undefined}
           onClick={() => {
             haptics.selection();
             onSelectCategory('TRAINING');
-            if (![
-              'snap', 'mock', 'mistakes', 'notebook', 'errors', 'pomodoro', 
-              'simulator', 'voice_coach', 'coach', 'speed', 'duel', 'flashcards'
-            ].includes(activeTab)) {
-              onSelectTab('snap');
-            }
+            // Alt navigasyondaki "Araçlar" her zaman modül ızgarasına götürür.
+            onSelectTab('tools');
           }}
           className={`flex flex-col items-center justify-center w-full py-1 transition-all duration-150 ${
             isTrainingActive 
@@ -118,10 +115,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           <div className={`p-1 rounded-xl transition-colors ${
             isTrainingActive ? 'bg-indigo-600/20 text-indigo-400' : ''
           }`}>
-            <Dumbbell className="w-5 h-5 shrink-0" />
+            <LayoutGrid className="w-5 h-5 shrink-0" />
           </div>
           <span className="text-3xs tracking-tight leading-tight mt-0.5 whitespace-nowrap">
-            Antrenman
+            Araçlar
           </span>
         </button>
 
