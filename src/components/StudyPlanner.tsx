@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Sparkles, CheckCircle2, Clock, Zap, Plus, ListTodo, Printer, Brain, CalendarDays } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { WeeklyStudyPlan, UserProfile, StudyPlanBlock, MockExamRecord, MistakeQuestionItem, MainTabCategory } from '../types';
+import { WeeklyStudyPlan, UserProfile, StudyPlanBlock, MockExamRecord, PlannedMockExam, MistakeQuestionItem, MainTabCategory } from '../types';
 import { StudyCalendar } from './StudyCalendar';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { playCompletionBell } from '../lib/soundEffects';
@@ -14,6 +14,9 @@ interface StudyPlannerProps {
   onIncrementQuestionCount: (count?: number) => void;
   mockExams?: MockExamRecord[];
   mistakes?: MistakeQuestionItem[];
+  plannedMocks?: PlannedMockExam[];
+  onAddPlannedMock?: (planned: PlannedMockExam) => void;
+  onDeletePlannedMock?: (id: string) => void;
   onNavigateTab?: (tab: string, category?: MainTabCategory) => void;
 }
 
@@ -24,6 +27,9 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
   onIncrementQuestionCount,
   mockExams = [],
   mistakes = [],
+  plannedMocks = [],
+  onAddPlannedMock,
+  onDeletePlannedMock,
   onNavigateTab,
 }) => {
   const safeMockExams = Array.isArray(mockExams) ? mockExams : [];
@@ -216,6 +222,9 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
           studyPlan={studyPlan}
           mockExams={safeMockExams}
           mistakes={mistakes}
+          plannedMocks={plannedMocks}
+          onAddPlannedMock={onAddPlannedMock}
+          onDeletePlannedMock={onDeletePlannedMock}
           onNavigateTab={onNavigateTab}
           onShowWeeklyPlan={() => setView('plan')}
         />

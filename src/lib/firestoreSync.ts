@@ -16,6 +16,7 @@ import {
   SnapSolution,
   MistakeQuestionItem,
   MockExamRecord,
+  PlannedMockExam,
   WeeklyStudyPlan,
   Flashcard,
   Subject,
@@ -30,6 +31,8 @@ export interface CloudUserData {
   snaps?: SnapSolution[];
   mistakes?: MistakeQuestionItem[];
   mockExams?: MockExamRecord[];
+  /** İleri tarihli planlanmış denemeler (ana dokümanda, küçük ve sınırlı). */
+  plannedMocks?: PlannedMockExam[];
   studyPlan?: WeeklyStudyPlan | null;
   flashcards?: Flashcard[];
   subjects?: Record<string, Subject[]>;
@@ -173,6 +176,7 @@ export async function syncUserDataToFirestore(
     snaps?: SnapSolution[];
     mistakes?: MistakeQuestionItem[];
     mockExams?: MockExamRecord[];
+    plannedMocks?: PlannedMockExam[];
     studyPlan?: WeeklyStudyPlan | null;
     flashcards?: Flashcard[];
     subjects?: Subject[];
@@ -189,6 +193,7 @@ export async function syncUserDataToFirestore(
     };
     if (data.profile) updates.profile = data.profile;
     if (data.studyPlan !== undefined) updates.studyPlan = data.studyPlan;
+    if (data.plannedMocks !== undefined) updates.plannedMocks = data.plannedMocks;
     if (data.subjects !== undefined && data.targetExam) {
       updates[`subjects_${data.targetExam}`] = data.subjects;
     }
@@ -246,6 +251,7 @@ export async function fetchAllCollections(
       studyPlan: data.studyPlan || undefined,
       subjects: data.subjects || undefined,
       noteProgress: data.noteProgress || undefined,
+      plannedMocks: Array.isArray(data.plannedMocks) ? (data.plannedMocks as PlannedMockExam[]) : undefined,
     };
   } catch (error) {
     console.error('Error fetching user data from Firestore:', error);

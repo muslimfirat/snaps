@@ -14,6 +14,7 @@ import {
   MistakeQuestionItem,
   DailyStudyLog,
   HeatmapDay,
+  PlannedMockExam,
   NoteProgress
 } from '../types';
 import { INITIAL_KPSS_SUBJECTS, INITIAL_YKS_SUBJECTS, INITIAL_SAVED_SNAPS, INITIAL_FLASHCARDS, INITIAL_MISTAKES, EXAM_METADATA, CURRICULUM_VERSION } from '../data/curriculumData';
@@ -35,6 +36,7 @@ const STORAGE_KEYS = {
   DAILY_STUDY_LOGS: 'snaps_daily_study_logs',
   CURRICULUM_VERSION: 'snaps_curriculum_version_',
   NOTE_PROGRESS: 'snaps_note_progress',
+  PLANNED_MOCKS: 'snaps_planned_mocks',
 };
 
 /**
@@ -445,6 +447,24 @@ export function saveMockExams(exams: MockExamRecord[]): void {
   }
 }
 
+export function loadPlannedMocks(): PlannedMockExam[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.PLANNED_MOCKS);
+    const list: PlannedMockExam[] = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch {
+    return [];
+  }
+}
+
+export function savePlannedMocks(list: PlannedMockExam[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.PLANNED_MOCKS, JSON.stringify(Array.isArray(list) ? list : []));
+  } catch (e) {
+    console.error('Failed to save planned mocks:', e);
+  }
+}
+
 export function loadStudyPlan(): WeeklyStudyPlan | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.STUDY_PLAN);
@@ -721,6 +741,8 @@ export const storage = {
   saveMockExams,
   getStudyPlan: loadStudyPlan,
   saveStudyPlan,
+  getPlannedMocks: loadPlannedMocks,
+  savePlannedMocks,
   getFlashcards: loadFlashcards,
   saveFlashcards,
   getInstitutionConfig: loadInstitutionConfig,

@@ -12,8 +12,11 @@ import {
   CheckCircle2,
   Circle,
   Lightbulb,
+  Plus,
+  Trash2,
+  CalendarClock,
 } from 'lucide-react';
-import { UserProfile, MockExamRecord, MistakeQuestionItem, MainTabCategory, HeatmapDay, WeeklyStudyPlan } from '../types';
+import { UserProfile, MockExamRecord, PlannedMockExam, MistakeQuestionItem, MainTabCategory, HeatmapDay, WeeklyStudyPlan } from '../types';
 import { loadStudyHeatmap } from '../lib/storage';
 import { getLocalDateStr } from '../lib/dateUtils';
 import { haptics } from '../lib/haptics';
@@ -25,6 +28,9 @@ interface StudyCalendarProps {
   studyPlan?: WeeklyStudyPlan | null;
   mockExams?: MockExamRecord[];
   mistakes?: MistakeQuestionItem[];
+  plannedMocks?: PlannedMockExam[];
+  onAddPlannedMock?: (planned: PlannedMockExam) => void;
+  onDeletePlannedMock?: (id: string) => void;
   onNavigateTab?: (tab: string, category?: MainTabCategory) => void;
   /** "Haftalık Plan" görünümüne geçiş (StudyPlanner'daki sekme). */
   onShowWeeklyPlan?: () => void;
@@ -63,6 +69,9 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
   studyPlan,
   mockExams = [],
   mistakes = [],
+  plannedMocks = [],
+  onAddPlannedMock,
+  onDeletePlannedMock,
   onNavigateTab,
   onShowWeeklyPlan,
 }) => {
@@ -70,6 +79,8 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
   const today = new Date(`${todayStr}T00:00:00`);
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selected, setSelected] = useState<string>(todayStr);
+  const [addMockOpen, setAddMockOpen] = useState(false);
+  const [newMockTitle, setNewMockTitle] = useState('');
 
   const examDateStr = profile.examDate ? profile.examDate.slice(0, 10) : '';
   const daysToExam = examDateStr
@@ -99,6 +110,16 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
     });
     return m;
   }, [mockExams]);
+
+  const plannedByDate = useMemo(() => {
+    const m = new Map<string, PlannedMockExam[]>();
+    (Array.isArray(plannedMocks) ? plannedMocks : []).forEach((p) => {
+      if (!p?.date) return;
+      const key = p.date.slice(0, 10);
+      m.set(key, [...(m.get(key) || []), p]);
+    });
+    return m;
+  }, [plannedMocks]);
 
   const reviewsByDate = useMemo(() => {
     const m = new Map<string, number>();
@@ -132,9 +153,11 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
 
   const selDate = selected ? new Date(`${selected}T00:00:00`) : today;
   const selMocks = mocksByDate.get(selected) || [];
+  const selPlanned = plannedByDate.get(selected) || [];
   const selReviews = reviewsByDate.get(selected) || 0;
   const selHeat = heatByDate.get(selected);
   const selIsExam = selected === examDateStr;
+  const selIsFuture = selected >= todayStr;
 
   const progressPct = useMemo(() => {
     if (!examDateStr) return 0;
@@ -176,7 +199,23 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
       return d >= cutoff && d <= today;
     }).length;
   }, [mockExams, today]);
-  const denemeNudge = daysToExam > 7 && daysToExam <= 45 && recentMockCount < 2;
+  const hasUpcomingPlanned = useMemo(
+    () => (Array.isArray(plannedMocks) ? plannedMocks : []).some((p) => p?.date && p.date >= todayStr),
+    [plannedMocks, todayStr]
+  );
+  const denemeNudge = daysToExam > 7 && daysToExam <= 45 && recentMockCount < 2 && !hasUpcomingPlanned;
+
+  const handleAddMock = () => {
+    if (!onAddPlannedMock || !selIsFuture) return;
+    haptics.selection();
+    onAddPlannedMock({
+      id: `pm-${Date.now()}`,
+      title: newMockTitle.trim() || 'Tam Deneme',
+      date: selected,
+    });
+    setNewMockTitle('');
+    setAddMockOpen(false);
+  };
 
   const handleExportIcs = () => {
     haptics.selection();
@@ -188,6 +227,9 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
     }
     (Array.isArray(mockExams) ? mockExams : []).forEach((ex) => {
       if (ex?.date) events.push({ date: ex.date.slice(0, 10), summary: `📝 Deneme: ${ex.title}`, description: `${ex.totalNet} net` });
+    });
+    (Array.isArray(plannedMocks) ? plannedMocks : []).forEach((p) => {
+      if (p?.date) events.push({ date: p.date.slice(0, 10), summary: `📝 Planlı deneme: ${p.title}`, description: p.note || 'Snaps — planlanmış deneme' });
     });
     // Yaklaşan tekrarlar (bugünden itibaren 60 gün)
     const limit = new Date(today); limit.setDate(limit.getDate() + 60);
@@ -371,6 +413,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
             const isSelected = c.date === selected;
             const isExam = c.date === examDateStr;
             const hasMock = mocksByDate.has(c.date);
+            const hasPlanned = plannedByDate.has(c.date);
             const reviewCount = reviewsByDate.get(c.date) || 0;
             const heat = heatByDate.get(c.date);
             const studied = heat && heat.level > 0;
@@ -392,6 +435,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
                 <span className="flex items-center gap-0.5 h-1.5">
                   {isExam && <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />}
                   {hasMock && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />}
+                  {hasPlanned && !hasMock && <span className="w-1.5 h-1.5 rounded-full border border-violet-400" />}
                   {studied && <span className={`w-1.5 h-1.5 rounded-full ${heat!.frozen ? 'bg-sky-400' : 'bg-emerald-400'}`} />}
                   {reviewCount > 0 && !isExam && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
                 </span>
@@ -404,6 +448,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-3xs text-slate-500 pt-1 border-t border-border/60">
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-400" /> Sınav</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-400" /> Deneme</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full border border-violet-400" /> Planlı deneme</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Çalışıldı</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Tekrar</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Telafi</span>
@@ -412,13 +457,41 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
 
       {/* Seçili gün detayı */}
       <div className="bg-surface-1 border border-border rounded-2xl p-5 space-y-3">
-        <div className="flex items-center gap-2">
-          <ClipboardList className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-sm font-bold text-white">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-indigo-400" />
             {selDate.getDate()} {MONTHS_TR[selDate.getMonth()]}
             {selected === todayStr && <span className="text-amber-400 font-normal"> · Bugün</span>}
           </h3>
+          {onAddPlannedMock && selIsFuture && !selIsExam && (
+            <button
+              onClick={() => { setAddMockOpen((v) => !v); setNewMockTitle(''); }}
+              className="text-2xs font-semibold text-violet-300 hover:text-violet-200 flex items-center gap-1 shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" /> Deneme planla
+            </button>
+          )}
         </div>
+
+        {addMockOpen && onAddPlannedMock && selIsFuture && (
+          <div className="flex items-center gap-2 bg-surface-0 border border-border rounded-xl p-2">
+            <input
+              type="text"
+              value={newMockTitle}
+              onChange={(e) => setNewMockTitle(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleAddMock(); }}
+              placeholder="Deneme adı (ör. TYT Genel Deneme 4)"
+              className="flex-1 min-w-0 bg-transparent text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none px-1"
+              autoFocus
+            />
+            <button
+              onClick={handleAddMock}
+              className="px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-2xs font-bold shrink-0"
+            >
+              Ekle
+            </button>
+          </div>
+        )}
 
         <div className="space-y-2 text-xs">
           {selIsExam && (
@@ -432,6 +505,29 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
               <span>{ex.title} — {ex.totalNet} net</span>
             </div>
           ))}
+          {selPlanned.map((p) => (
+            <div key={p.id} className="flex items-center justify-between gap-2 text-violet-300">
+              <div className="flex items-center gap-2 min-w-0">
+                <CalendarClock className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{p.title}{selected < todayStr ? ' (geçmiş)' : ''}</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {onNavigateTab && selected <= todayStr && (
+                  <button
+                    onClick={() => onNavigateTab('mock', 'TRAINING')}
+                    className="text-3xs font-semibold text-indigo-400 hover:text-indigo-300"
+                  >
+                    Sonucu gir
+                  </button>
+                )}
+                {onDeletePlannedMock && (
+                  <button onClick={() => onDeletePlannedMock(p.id)} className="text-slate-500 hover:text-rose-400" aria-label="Planlı denemeyi sil">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
           {selReviews > 0 && (
             <div className="flex items-center gap-2 text-amber-300">
               <RotateCcw className="w-3.5 h-3.5 shrink-0" /> <span>{selReviews} soru tekrarı planlı</span>
@@ -443,7 +539,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({
               <span>{selHeat.frozen ? 'Telafi günü' : `${selHeat.questionsSolved} soru · ${selHeat.minutesStudied} dk`}</span>
             </div>
           )}
-          {!selIsExam && selMocks.length === 0 && selReviews === 0 && !(selHeat && selHeat.level > 0) && (
+          {!selIsExam && selMocks.length === 0 && selPlanned.length === 0 && selReviews === 0 && !(selHeat && selHeat.level > 0) && (
             <p className="text-slate-500">Bu gün için kayıt yok.</p>
           )}
         </div>

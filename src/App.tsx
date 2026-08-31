@@ -38,7 +38,7 @@ import { storage } from './lib/storage';
 import { watchSystemTheme } from './lib/themeMode';
 import { initGlobalHaptics, haptics } from './lib/haptics';
 import { useAuth } from './context/AuthContext';
-import { UserProfile, SnapSolution, MockExamRecord, WeeklyStudyPlan, Subject, Flashcard, InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, MistakeQuestionItem, MainTabCategory, InstitutionAccount, NoteProgress } from './types';
+import { UserProfile, SnapSolution, MockExamRecord, PlannedMockExam, WeeklyStudyPlan, Subject, Flashcard, InstitutionConfig, ClassGroup, StudentRecord, InstitutionExam, MistakeQuestionItem, MainTabCategory, InstitutionAccount, NoteProgress } from './types';
 
 const getCategoryForTab = (tab: string): MainTabCategory => {
   if (['institution', 'inst_analysis', 'inst_students', 'inst_optical', 'inst_coaching'].includes(tab)) return 'INSTITUTION';
@@ -61,6 +61,7 @@ export default function App() {
   const [snaps, setSnaps] = useState<SnapSolution[]>(() => storage.getSnaps());
   const [mistakes, setMistakes] = useState<MistakeQuestionItem[]>(() => storage.getMistakes());
   const [mockExams, setMockExams] = useState<MockExamRecord[]>(() => storage.getMockExams());
+  const [plannedMocks, setPlannedMocks] = useState<PlannedMockExam[]>(() => storage.getPlannedMocks());
   const [studyPlan, setStudyPlan] = useState<WeeklyStudyPlan | null>(() => storage.getStudyPlan());
   const [subjects, setSubjects] = useState<Subject[]>(() => storage.getSubjects(profile.targetExam));
   const [flashcards, setFlashcards] = useState<Flashcard[]>(() => storage.getFlashcards());
@@ -76,8 +77,8 @@ export default function App() {
 
   // Keep the latest local state reachable from the login effect without
   // re-subscribing it on every mutation (the effect only fires on uid change).
-  const localStateRef = useRef({ profile, snaps, mistakes, mockExams, studyPlan, flashcards, subjects });
-  localStateRef.current = { profile, snaps, mistakes, mockExams, studyPlan, flashcards, subjects };
+  const localStateRef = useRef({ profile, snaps, mistakes, mockExams, plannedMocks, studyPlan, flashcards, subjects });
+  localStateRef.current = { profile, snaps, mistakes, mockExams, plannedMocks, studyPlan, flashcards, subjects };
 
   // Cloud Sync Listener: When user logs in with Google, pull their cloud data or seed their Firestore doc
   useEffect(() => {
@@ -111,6 +112,10 @@ export default function App() {
             setMockExams(cloudData.mockExams);
             storage.saveMockExams(cloudData.mockExams);
           }
+          if (cloudData.plannedMocks) {
+            setPlannedMocks(cloudData.plannedMocks);
+            storage.savePlannedMocks(cloudData.plannedMocks);
+          }
           if (cloudData.studyPlan) {
             setStudyPlan(cloudData.studyPlan);
             storage.saveStudyPlan(cloudData.studyPlan);
@@ -138,6 +143,7 @@ export default function App() {
             snaps: local.snaps,
             mistakes: local.mistakes,
             mockExams: local.mockExams,
+            plannedMocks: local.plannedMocks,
             studyPlan: local.studyPlan,
             flashcards: local.flashcards,
             subjects: local.subjects,
@@ -299,8 +305,23 @@ export default function App() {
     const updated = [...mockExams, exam];
     setMockExams(updated);
     storage.saveMockExams(updated);
+
+    // Gerçek deneme kaydedilince, tarihine yakın (±3 gün) planlı denemeyi kaldır.
+    const examTime = exam.date ? new Date(`${exam.date.slice(0, 10)}T00:00:00`).getTime() : NaN;
+    const prunedPlanned = isNaN(examTime)
+      ? plannedMocks
+      : plannedMocks.filter((p) => {
+          const t = new Date(`${p.date}T00:00:00`).getTime();
+          return isNaN(t) || Math.abs(t - examTime) > 3 * 86_400_000;
+        });
+    const plannedChanged = prunedPlanned.length !== plannedMocks.length;
+    if (plannedChanged) {
+      setPlannedMocks(prunedPlanned);
+      storage.savePlannedMocks(prunedPlanned);
+    }
+
     if (currentUser) {
-      syncCurrentDataToCloud({ mockExams: updated });
+      syncCurrentDataToCloud(plannedChanged ? { mockExams: updated, plannedMocks: prunedPlanned } : { mockExams: updated });
     }
   };
 
@@ -310,6 +331,24 @@ export default function App() {
     storage.saveMockExams(updated);
     if (currentUser) {
       syncCurrentDataToCloud({ mockExams: updated });
+    }
+  };
+
+  const handleAddPlannedMock = (planned: PlannedMockExam) => {
+    const updated = [...plannedMocks, planned].sort((a, b) => a.date.localeCompare(b.date));
+    setPlannedMocks(updated);
+    storage.savePlannedMocks(updated);
+    if (currentUser) {
+      syncCurrentDataToCloud({ plannedMocks: updated });
+    }
+  };
+
+  const handleDeletePlannedMock = (id: string) => {
+    const updated = plannedMocks.filter((p) => p.id !== id);
+    setPlannedMocks(updated);
+    storage.savePlannedMocks(updated);
+    if (currentUser) {
+      syncCurrentDataToCloud({ plannedMocks: updated });
     }
   };
 
@@ -496,6 +535,9 @@ export default function App() {
             onIncrementQuestionCount={handleIncrementQuestionCount}
             mockExams={mockExams}
             mistakes={mistakes}
+            plannedMocks={plannedMocks}
+            onAddPlannedMock={handleAddPlannedMock}
+            onDeletePlannedMock={handleDeletePlannedMock}
             onNavigateTab={handleSelectTab}
           />
         )}

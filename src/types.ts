@@ -67,6 +67,17 @@ export interface MockExamRecord {
   notes?: string;
 }
 
+/**
+ * İleri tarihli planlanmış (henüz çözülmemiş) deneme. Sonuç alanı yoktur —
+ * sadece takvimde hatırlatıcıdır. Çözülünce {@link MockExamRecord}'a dönüştürülür.
+ */
+export interface PlannedMockExam {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  note?: string;
+}
+
 export interface StudyPlanBlock {
   time: string;
   subject: string;
