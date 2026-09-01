@@ -82,9 +82,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ initialProfile, onComple
         {step === 0 && (
           <div className="flex-1 flex flex-col animate-in fade-in">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
-                <SnapsMark className="w-7 h-7 text-white" />
-              </div>
+              <SnapsMark className="w-12 h-12 rounded-2xl shadow-lg shadow-indigo-600/30" />
               <div>
                 <h1 className="text-xl font-extrabold text-white leading-tight">Snaps</h1>
                 <p className="text-xs text-slate-400">KPSS &amp; YKS AI Sınav Koçu</p>

@@ -217,9 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <Building2 className="w-4 h-4" />
                 </div>
               ) : (
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-600/20 shrink-0 group-hover:scale-105 transition-transform">
-                  <SnapsMark className="w-5 h-5 text-white" />
-                </div>
+                <SnapsMark className="w-8 h-8 rounded-xl shadow-md shadow-indigo-600/20 shrink-0 group-hover:scale-105 transition-transform" />
               )}
 
               {/* Dynamic Branding Text: Snaps for Individual, Dershane Name for Authenticated Institutions */}

@@ -8,7 +8,6 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Snaps" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -50,16 +49,15 @@
       <style>
         #snaps-splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0b0c10;color:#e2e8f0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
         :root[data-theme="light"] #snaps-splash{background:#f6f7f9;color:#334155}
-        #snaps-splash .logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 12px 40px rgba(79,70,229,.35)}
+        #snaps-splash .logo{width:56px;height:56px;border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(79,70,229,.35)}
+        #snaps-splash .logo img{width:100%;height:100%;display:block}
         #snaps-splash .spin{width:22px;height:22px;border:2.5px solid rgba(148,163,184,.25);border-top-color:#6366f1;border-radius:50%;animation:snaps-spin .7s linear infinite}
         #snaps-splash .brand{font-weight:800;font-size:15px;letter-spacing:-.01em}
         #snaps-splash .tag{font-size:12px;opacity:.55}
         @keyframes snaps-spin{to{transform:rotate(360deg)}}
       </style>
       <div id="snaps-splash">
-        <div class="logo">
-          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.8 8.6C14.5 6.4 10.2 9.4 10.6 13.9c.4 4.5 9.8 3.3 9.8 7.5 0 4-5.2 5.4-10.2 2.8" stroke="#fff" stroke-width="4.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M23.2 4.6l1 2.7 2.7 1-2.7 1-1 2.7-1-2.7-2.7-1 2.7-1z" fill="#fff"/></svg>
-        </div>
+        <div class="logo"><img src="/icon-mark.png" alt="Snaps" width="56" height="56" /></div>
         <div style="text-align:center">
           <div class="brand">Snaps</div>
           <div class="tag">KPSS &amp; YKS AI Sınav Koçu</div>

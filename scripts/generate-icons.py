@@ -39,6 +39,9 @@ def save_png(img: Image.Image, name: str) -> None:
 save_png(resized(512), "icon-512.png")
 save_png(resized(192), "icon-192.png")
 save_png(resized(180), "apple-touch-icon.png")
+# uygulama içi küçük marka işareti (Header / Onboarding) — köşeler kırpılı,
+# CSS köşe yuvarlatması temiz otursun diye
+save_png(resized(192, crop=0.06), "icon-mark.png")
 save_png(resized(32, crop=0.05), "favicon-32.png")
 save_png(resized(16, crop=0.05), "favicon-16.png")
 
