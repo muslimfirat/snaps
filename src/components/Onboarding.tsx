@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Sparkles, Camera, BarChart3, Flame, Target, Calendar, ArrowRight, ArrowLeft,
+  Camera, BarChart3, Flame, Target, Calendar, ArrowRight, ArrowLeft,
   Check, Minus, Plus, LayoutGrid, ClipboardList,
 } from 'lucide-react';
+import { SnapsMark } from './SnapsMark';
 import { UserProfile, ExamCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { LEGAL_VERSION } from '../data/legalContent';
@@ -82,7 +83,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ initialProfile, onComple
           <div className="flex-1 flex flex-col animate-in fade-in">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
-                <Sparkles className="w-6 h-6 fill-white" />
+                <SnapsMark className="w-7 h-7 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-extrabold text-white leading-tight">Snaps</h1>

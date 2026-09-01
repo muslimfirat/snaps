@@ -28,6 +28,7 @@ import {
   LayoutGrid
 } from 'lucide-react';
 import { GoogleAuthButton } from './GoogleAuthButton';
+import { SnapsMark } from './SnapsMark';
 import { UserProfile, InstitutionConfig, MainTabCategory, InstitutionAccount } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { ambientManager } from '../lib/soundEffects';
@@ -217,7 +218,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               ) : (
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-600/20 shrink-0 group-hover:scale-105 transition-transform">
-                  <Sparkles className="w-4 h-4 fill-white text-white" />
+                  <SnapsMark className="w-5 h-5 text-white" />
                 </div>
               )}
 
