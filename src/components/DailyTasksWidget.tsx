@@ -65,14 +65,14 @@ export const DailyTasksWidget: React.FC<DailyTasksWidgetProps> = ({
     },
     {
       id: 'rec-2-coach',
-      title: 'AI Sınav Koçu ile Günlük Strateji & Motivasyon Brifingi',
+      title: 'Snaps Koç ile Günlük Strateji & Motivasyon Brifingi',
       category: 'custom',
       priority: 'medium',
       linkTab: 'voice_coach',
       linkCategory: 'TRAINING',
       icon: Bot,
       description: 'Günün ders planını netleştir, kaygı yönetimi ve sınav taktiği al.',
-      badge: 'AI KOÇ',
+      badge: 'SNAPS KOÇ',
     },
     {
       id: 'rec-3-mistakes',

@@ -181,7 +181,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       </div>
 
-      {/* 2. 4 Hızlı Eylem Butonu (Soru Çözdür, Pomodoro, Deneme Kaydet, AI Koç) */}
+      {/* 2. 4 Hızlı Eylem Butonu (Soru Çözdür, Pomodoro, Deneme Kaydet, Snaps Koç) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         
         {/* Buton 1: Soru Çözdür */}
@@ -247,7 +247,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </button>
 
-        {/* Buton 4: AI Sınav Koçu */}
+        {/* Buton 4: Snaps Koç */}
         <button
           onClick={() => {
             haptics.selection();
@@ -260,7 +260,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div className="min-w-0">
             <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
-              AI Sınav Koçu
+              Snaps Koç
             </h3>
             <p className="text-2xs text-slate-400 mt-0.5">
               Strateji & brifing al

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, Volume2, Sparkles, Play, Square, Flame, HeartHandshake, Zap, Bot } from 'lucide-react';
+import { Mic, Volume2, Sparkles, Play, Square, Flame, HeartHandshake, Zap } from 'lucide-react';
 import { ExamCategory } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
+import { SnapsMark } from './SnapsMark';
 
 export interface StudentStatsInterface {
   totalQuestionsSolved: number;
@@ -117,11 +118,11 @@ export const VoiceAICoach: React.FC<VoiceAICoachProps> = ({
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold">
-              <Bot className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Yapay Zeka Sesli Koç & Günlük Brifing</span>
+              <SnapsMark className="w-4 h-4 rounded-md" />
+              <span>Sesli Snaps Koç & Günlük Brifing</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Snaps Sesli Mentorun Seni Dinliyor
+              Snaps Koç Seni Dinliyor
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
               Güne başlarken sabah brifingini dinle, sınav kaygını yatıştır veya sesli koçuna durumunu sorup anında yönlendirme al.

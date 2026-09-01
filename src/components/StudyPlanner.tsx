@@ -241,7 +241,7 @@ export const StudyPlanner: React.FC<StudyPlannerProps> = ({
             📅 {studyPlan?.planTitle || 'Haftalık Çalışma & Görev Programı'}
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-xl">
-            {studyPlan?.overview || 'Yapay zeka koçun zayıf olduğun dersleri ve son deneme eksiklerini önceliklendirerek sana özel 7 günlük yüksek verimli bir çalışma takvimi hazırlar.'}
+            {studyPlan?.overview || 'Snaps Koç, zayıf olduğun dersleri ve son deneme eksiklerini önceliklendirerek sana özel 7 günlük yüksek verimli bir çalışma takvimi hazırlar.'}
           </p>
         </div>
 

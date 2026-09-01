@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Bot, User, Volume2, Clock, Trash2 } from 'lucide-react';
+import { Send, Sparkles, User, Volume2, Clock, Trash2 } from 'lucide-react';
 import { ChatMessage, UserProfile } from '../types';
 import { EXAM_METADATA } from '../data/curriculumData';
 import { apiFetch } from '../lib/apiClient';
+import { SnapsMark } from './SnapsMark';
 
 interface AICoachChatProps {
   profile: UserProfile;
@@ -27,7 +28,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
       {
         id: 'msg-init',
         role: 'assistant',
-        content: `Merhaba! Ben Snaps Yapay Zeka Sınav Koçun. 🎯\n\nHedefin: **${EXAM_METADATA[profile.targetExam]?.name}** (${profile.targetScore} Puan).\n\nSınav hazırlık sürecinde sana çalışma stratejisi, ders programı optimizasyonu, net artırma taktikleri, turlama tekniği ve motivasyon konularında 7/24 rehberlik edeceğim.\n\nBugün ne üzerinde çalışmak istiyorsun veya aklına takılan soru nedir?`,
+        content: `Merhaba! Ben Snaps Koç. 🎯\n\nHedefin: **${EXAM_METADATA[profile.targetExam]?.name}** (${profile.targetScore} Puan).\n\nSınav hazırlık sürecinde sana çalışma stratejisi, ders programı optimizasyonu, net artırma taktikleri, turlama tekniği ve motivasyon konularında 7/24 rehberlik edeceğim.\n\nBugün ne üzerinde çalışmak istiyorsun veya aklına takılan soru nedir?`,
         timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
       },
     ];
@@ -146,13 +147,11 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
       {/* Header Info */}
       <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
-            <Bot className="w-6 h-6" />
-          </div>
+          <SnapsMark className="w-12 h-12 rounded-2xl shadow-inner shrink-0" />
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-extrabold text-white">
-                Snaps 7/24 AI Sınav Koçu
+                Snaps Koç
               </h2>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-3xs font-bold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
@@ -160,7 +159,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              {EXAM_METADATA[profile.targetExam]?.name} için kişiselleştirilmiş rehberlik & motivasyon
+              {EXAM_METADATA[profile.targetExam]?.name} için 7/24 kişiselleştirilmiş rehberlik & motivasyon
             </p>
           </div>
         </div>
@@ -218,9 +217,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
                 className={`flex gap-3 ${isAI ? 'justify-start' : 'justify-end'} animate-in fade-in`}
               >
                 {isAI && (
-                  <div className="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-1 shadow-sm">
-                    <Bot className="w-4 h-4" />
-                  </div>
+                  <SnapsMark className="w-8 h-8 rounded-xl flex-shrink-0 mt-1 shadow-sm" />
                 )}
 
                 <div
@@ -277,9 +274,7 @@ export const AICoachChat: React.FC<AICoachChatProps> = ({
 
           {isLoading && (
             <div className="flex gap-3 justify-start items-center">
-              <div className="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
-                <Bot className="w-4 h-4" />
-              </div>
+              <SnapsMark className="w-8 h-8 rounded-xl flex-shrink-0" />
               <div className="bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-400 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
                 <span>Koç tavsiyesini hazırlıyor...</span>

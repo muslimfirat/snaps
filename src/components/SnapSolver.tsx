@@ -336,7 +336,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
               {isLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Sorunuz Yapay Zeka Koçu Tarafından Çözülüyor...</span>
+                  <span>Sorunuz Snaps Koç Tarafından Çözülüyor...</span>
                 </>
               ) : (
                 <>
@@ -378,7 +378,7 @@ export const SnapSolver: React.FC<SnapSolverProps> = ({
                 <Skeleton className="w-full h-12" />
               </div>
               <p className="text-xs text-slate-400 text-center pt-2">
-                Yapay Zeka Koçu soru görselini ve kavram haritasını inceliyor...
+                Snaps Koç soru görselini ve kavram haritasını inceliyor...
               </p>
             </div>
           ) : currentSolution ? (

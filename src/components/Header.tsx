@@ -92,8 +92,8 @@ export const CATEGORY_DEFINITIONS: {
       { id: 'mistakes', label: 'Hata Defteri', icon: Bookmark, description: 'Yanlışlarını kaydet ve tekrar et' },
       { id: 'simulator', label: 'Hedef Simülatörü', icon: Target, description: 'Net → sıralama tahmini yap' },
       { id: 'pomodoro', label: 'Pomodoro', icon: Zap, description: 'Odak sayacıyla çalışma seansı' },
-      { id: 'coach', label: 'Rehberlik Chat', icon: Bot, description: 'Yapay zeka koçuna yazılı danış' },
-      { id: 'voice_coach', label: 'Sesli AI Koç', icon: Sparkles, description: 'Koçunla sesli konuş' },
+      { id: 'coach', label: 'Snaps Koç', icon: Bot, description: 'Snaps Koç ile yazılı sohbet' },
+      { id: 'voice_coach', label: 'Sesli Snaps Koç', icon: Sparkles, description: 'Koçunla sesli konuş' },
       { id: 'flashcards', label: 'Bilgi Kartları', icon: BookOpen, description: 'Hızlı tekrar için kart destesi' },
       { id: 'speed', label: 'Hızlı Okuma', icon: Clock, description: 'Okuma hızını (WPM) artır' },
       { id: 'duel', label: 'Soru Düellosu', icon: Zap, description: 'Süreye karşı soru yarışı' },
@@ -208,7 +208,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onSelectTab('dashboard');
               }}
               className="flex items-center gap-2 cursor-pointer group select-none shrink-0"
-              title="Snaps Sınav Koçu"
+              title="Snaps Koç"
               aria-label="Anasayfaya git"
             >
               {/* Distinctive Snaps Logo */}

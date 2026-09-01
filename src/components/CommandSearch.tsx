@@ -124,7 +124,7 @@ export const COMMAND_ITEMS: CommandItem[] = [
   {
     id: 'voice_coach',
     category: 'TRAINING',
-    title: 'Sesli AI Koç & Sabah Brifingi',
+    title: 'Sesli Snaps Koç & Sabah Brifingi',
     subtitle: 'Güne başlama sesli seslendirmesi, anlık motivasyon ve sesli soru yanıtlama',
     icon: Sparkles,
     badge: 'SESLİ',
@@ -133,7 +133,7 @@ export const COMMAND_ITEMS: CommandItem[] = [
   {
     id: 'coach',
     category: 'TRAINING',
-    title: '7/24 Rehber Koç Chat',
+    title: 'Snaps Koç — Yazılı Sohbet',
     subtitle: 'Soru sorma, turlama tekniği, stres yönetimi ve sınav taktikleri danışmanı',
     icon: Bot,
     keywords: ['chat', 'sohbet', 'koç', 'danışman', 'rehberlik', 'taktik', 'stres', 'yapay zeka'],
